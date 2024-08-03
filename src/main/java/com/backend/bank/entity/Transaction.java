@@ -36,8 +36,8 @@ public class Transaction {
     @Column(name = "status", nullable = false)
     private TransactionStatus status;
 
-    @Column(name = "reference_number", nullable = false, unique = true)
-    private String referenceNumber;
+    @Column(name = "transfer_to_account_number")
+    private String transferToAccount;
 
     @ManyToOne
     @JoinColumn(name = "account_id", nullable = false)

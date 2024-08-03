@@ -1,4 +1,4 @@
-package com.backend.bank.dto.request;
+package com.backend.bank.dto.response;
 
 import java.math.BigDecimal;
 import com.backend.bank.entity.constant.AccountStatus;
@@ -8,10 +8,12 @@ import lombok.Setter;
 
 @Getter
 @Setter
-public class AccountRequest {
+public class AccountResponse {
+    private Long id;
     private String accountNumber;
     private BigDecimal balance;
     private AccountType accountType;
     private AccountStatus accountStatus;
     private Long customerId;
 }
+

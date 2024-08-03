@@ -1,7 +1,6 @@
 package com.backend.bank.service.implement;
 
 import com.backend.bank.dto.EmailDetails;
-import com.backend.bank.dto.request.UserDto;
 import com.backend.bank.entity.*;
 import com.backend.bank.entity.constant.TakeLoanStatus;
 import com.backend.bank.repository.UserRepository;
@@ -32,7 +31,7 @@ public class UserServiceImpl implements UserService {
     private final EmailService emailService;
 
     @Override
-    public UserDto register(UserDto request) throws AccountAlreadyExistsException {
+    public UserDto signup(UserDto request) throws AccountAlreadyExistsException {
         boolean accountExists = userRepository.existsByEmail(request.getAccount().getEmail());
 
         if (accountExists) {
