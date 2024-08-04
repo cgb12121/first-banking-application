@@ -36,7 +36,7 @@ public class Account {
     @Column(name = "account_status", nullable = false)
     private AccountStatus accountStatus;
 
-    @ManyToOne
+    @OneToOne
     @JoinColumn(name = "customer_id", nullable = false)
     private Customer accountHolder;
 
