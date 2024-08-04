@@ -1,5 +1,6 @@
 package com.backend.bank.service.implement;
 
+import com.backend.bank.auth.JwtProviderImpl;
 import com.backend.bank.dto.request.LoginRequest;
 import com.backend.bank.dto.response.LoginResponse;
 import com.backend.bank.entity.Customer;
@@ -20,7 +21,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
 
     private final PasswordEncoder passwordEncoder;
 
-    private final JwtServiceImpl jwtService;
+    private final JwtProviderImpl jwtService;
 
     @Override
     public LoginResponse login(LoginRequest loginRequest) throws AccountNotExistException {

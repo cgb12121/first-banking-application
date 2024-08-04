@@ -1,13 +1,16 @@
-package com.backend.bank.service.implement;
+package com.backend.bank.auth;
 
+import com.backend.bank.exception.InvalidTokenException;
+import com.backend.bank.exception.TokenExpiredException;
 
-import com.backend.bank.service.JwtService;
 import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.impl.lang.Function;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
 import lombok.SneakyThrows;
+
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
@@ -17,7 +20,7 @@ import java.util.Date;
 import java.util.Map;
 
 @Service
-public class JwtServiceImpl implements JwtService {
+public class JwtProviderImpl implements JwtProvider {
 
     @Value("${PRIVATE_KEY}")
     private String SECRET_KEY;
@@ -54,32 +57,41 @@ public class JwtServiceImpl implements JwtService {
     }
 
     @Override
-    public <T> T extractClaims(String token, Function<Claims, T> claimsResolvers) {
+    public <T> T extractClaims(String token, Function<Claims, T> claimsResolvers) throws TokenExpiredException, InvalidTokenException {
         final Claims claims = extractAllClaims(token);
         return claimsResolvers.apply(claims);
     }
 
     @Override
-    public Claims extractAllClaims(String token) {
-        return Jwts.parser()
-                .verifyWith(getSigningKey())
-                .build()
-                .parseSignedClaims(token)
-                .getPayload();
+    public Claims extractAllClaims(String token) throws TokenExpiredException, InvalidTokenException {
+        try {
+            return Jwts.parser()
+                    .verifyWith(getSigningKey())
+                    .build()
+                    .parseSignedClaims(token)
+                    .getPayload();
+        } catch (ExpiredJwtException e) {
+            throw new TokenExpiredException("JWT token is expired!");
+        } catch (Exception e) {
+            throw new InvalidTokenException("Invalid JWT token!");
+        }
     }
 
     @Override
+    @SneakyThrows
     public String extractUserName(String token) {
         return extractClaims(token, Claims::getSubject);
     }
 
     @Override
+    @SneakyThrows
     public boolean isTokenValid(String token, UserDetails userDetails) {
         final String username = extractUserName(token);
         return username.equals(userDetails.getUsername()) && !isTokenExpired(token);
     }
 
     @Override
+    @SneakyThrows
     public boolean isTokenExpired(String token) {
         final Date expiration = extractClaims(token, Claims::getExpiration);
         return expiration.before(new Date());

@@ -1,5 +1,6 @@
 package com.backend.bank.service.implement;
 
+import com.backend.bank.dto.EmailDetails;
 import com.backend.bank.dto.request.AccountRequest;
 import com.backend.bank.dto.request.CardRequest;
 import com.backend.bank.dto.request.SignupRequest;
@@ -11,7 +12,9 @@ import com.backend.bank.exception.AccountAlreadyExistsException;
 import com.backend.bank.repository.AccountRepository;
 import com.backend.bank.repository.CardRepository;
 import com.backend.bank.repository.CustomerRepository;
+import com.backend.bank.service.EmailService;
 import com.backend.bank.service.SignupService;
+import com.backend.bank.utils.EmailUtils;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -31,12 +34,14 @@ public class SignupServiceImpl implements SignupService {
 
     private final CardRepository cardRepository;
 
+    private final EmailService emailService;
+
     @Override
     public SignupResponse signup(SignupRequest signupRequest) throws AccountAlreadyExistsException {
-
         if (customerRepository.existsByEmail(signupRequest.getEmail())) {
             throw new AccountAlreadyExistsException("Email already exists: " + signupRequest.getEmail());
         }
+
         if (customerRepository.existsByPhoneNumber(signupRequest.getPhoneNumber())) {
             throw new AccountAlreadyExistsException("Phone number already exists: " + signupRequest.getPhoneNumber());
         }
@@ -47,7 +52,7 @@ public class SignupServiceImpl implements SignupService {
 
         for (CardRequest cardRequest : signupRequest.getCard()) {
             if (cardRepository.existsByCardNumber(cardRequest.getCardNumber())) {
-                throw new AccountAlreadyExistsException("Card number " + cardRequest.getCardNumber() + " already exists");
+                throw new AccountAlreadyExistsException("Card number: " + cardRequest.getCardNumber() + " already exists");
             }
         }
 
@@ -84,7 +89,13 @@ public class SignupServiceImpl implements SignupService {
 
         SignupResponse response = new SignupResponse();
         response.setCustomerId(customer.getId());
-        response.setMessage("Signup successful");
+        response.setMessage("Signup successful! Please check your email!");
+
+        EmailDetails emailDetails = new EmailDetails();
+        emailDetails.setReceiver(signupRequest.getEmail());
+        emailDetails.setSubject("Signup successful!");
+        emailDetails.setBody(EmailUtils.emailAccountCreationSuccess(signupRequest));
+        emailService.sendEmail(emailDetails);
 
         return response;
     }

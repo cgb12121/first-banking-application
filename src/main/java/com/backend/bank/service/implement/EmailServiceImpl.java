@@ -31,7 +31,10 @@ public class EmailServiceImpl implements EmailService {
             message.setText(emailDetails.getBody());
 
             javaMailSender.send(message);
-            log.info("Sent {} email to {}", emailDetails.getSubject().toUpperCase(), emailDetails.getReceiver());
+            log.info("Sent {} email to: {}",
+                    emailDetails.getSubject().toUpperCase(),
+                    emailDetails.getReceiver()
+            );
         } catch (MailException e) {
             log.error("{} : {} \n When trying to send email to: \n {} {}",
                     e.getCause(),
