@@ -1,4 +1,4 @@
-package com.backend.bank.controller;
+package com.backend.bank.api;
 
 import com.backend.bank.dto.request.LoginRequest;
 import com.backend.bank.dto.response.LoginResponse;

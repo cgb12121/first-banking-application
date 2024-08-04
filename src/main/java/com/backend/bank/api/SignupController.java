@@ -1,4 +1,4 @@
-package com.backend.bank.controller;
+package com.backend.bank.api;
 import com.backend.bank.dto.request.SignupRequest;
 import com.backend.bank.dto.response.SignupResponse;
 import com.backend.bank.exception.AccountAlreadyExistsException;

@@ -2,6 +2,7 @@ package com.backend.bank.auth;
 
 import com.backend.bank.exception.InvalidTokenException;
 import com.backend.bank.exception.TokenExpiredException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -19,13 +20,15 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
+import java.util.Date;
+import java.util.LinkedHashMap;
+import java.util.Map;
 
 @Component
 @RequiredArgsConstructor
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     private final JwtProvider jwtProvider;
-
     private final UserDetailsService userService;
 
     @Override
@@ -58,14 +61,25 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 }
             }
         } catch (TokenExpiredException e) {
-            response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "JWT token is expired!");
+            handleUnauthorized(response, "JWT token is expired!");
             return;
         } catch (InvalidTokenException e) {
-            response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Invalid JWT token!");
+            handleUnauthorized(response, "Invalid JWT token!");
             return;
         }
 
         filterChain.doFilter(request, response);
     }
 
+    private void handleUnauthorized(HttpServletResponse response, String message) throws IOException {
+        Map<String, Object> body = new LinkedHashMap<>();
+        body.put("timestamp", new Date());
+        body.put("status", HttpServletResponse.SC_UNAUTHORIZED);
+        body.put("message", message);
+
+        response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+        response.setContentType("application/json");
+
+        response.getWriter().write(new ObjectMapper().writeValueAsString(body));
+    }
 }
