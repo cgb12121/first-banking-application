@@ -9,6 +9,7 @@ import lombok.RequiredArgsConstructor;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
@@ -37,7 +38,7 @@ public class SecurityConfig {
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         return http
                 .csrf(AbstractHttpConfigurer::disable)
-                .cors(AbstractHttpConfigurer::disable)
+                .cors(Customizer.withDefaults())
                 .headers(header -> header
                         .frameOptions(HeadersConfigurer.FrameOptionsConfig::disable)
                 )
@@ -62,6 +63,7 @@ public class SecurityConfig {
                         .authenticationEntryPoint((request, response, authException)
                                 -> response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Unauthorized: " + request.getRequestURI() + " - " + authException.getMessage()))
                 )
+                .formLogin(login -> login.loginProcessingUrl("/auth/profile"))
                 .build();
     }
 

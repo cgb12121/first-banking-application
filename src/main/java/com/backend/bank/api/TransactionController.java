@@ -18,13 +18,13 @@ public class TransactionController {
 
     private final TransactionService transactionService;
 
-    @PostMapping
+    @PostMapping("/actions")
     public ResponseEntity<TransactionResponse> createTransaction(@PathVariable Long accountId, @RequestBody TransactionRequest transactionRequest) throws AccountNotExistException, InsufficientFundsException, InvalidTransactionAmountException, AccountFrozenException, AccountBannedException, AccountInactiveException {
         TransactionResponse response = transactionService.createTransaction(accountId, transactionRequest);
         return ResponseEntity.ok(response);
     }
 
-    @GetMapping
+    @GetMapping("/history")
     public ResponseEntity<List<TransactionResponse>> getTransactionHistory(
             @PathVariable Long accountId,
             @RequestParam(defaultValue = "0") int page,
