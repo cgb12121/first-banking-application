@@ -36,7 +36,7 @@ public class Transaction {
     @Column(name = "status", nullable = false)
     private TransactionStatus status;
 
-    @Column(name = "transfer_to_account_number")
+    @Column(name = "transfer_to_account")
     private String transferToAccount;
 
     @ManyToOne

@@ -1,8 +1,10 @@
 package com.backend.bank.entity;
 
+import com.backend.bank.entity.constant.AccountStatus;
 import jakarta.persistence.*;
 import lombok.*;
 import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
 import java.time.LocalDateTime;
@@ -57,31 +59,17 @@ public class Customer implements UserDetails {
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        return List.of();
+        return List.of(new SimpleGrantedAuthority("ROLE_USER"));
     }
 
     @Override
     public String getUsername() {
-        return email;
-    }
-
-    @Override
-    public boolean isAccountNonExpired() {
-        return true;
-    }
-
-    @Override
-    public boolean isAccountNonLocked() {
-        return true;
-    }
-
-    @Override
-    public boolean isCredentialsNonExpired() {
-        return true;
+        return email != null ? email : phoneNumber != null ? phoneNumber : account.getAccountNumber();
     }
 
     @Override
     public boolean isEnabled() {
-        return true;
+        AccountStatus status = account.getAccountStatus();
+        return status == AccountStatus.ACTIVE;
     }
 }

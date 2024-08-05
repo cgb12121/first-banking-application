@@ -8,6 +8,7 @@ import com.backend.bank.exception.AccountNotExistException;
 import com.backend.bank.repository.CustomerRepository;
 import com.backend.bank.service.AuthenticationService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -28,6 +29,21 @@ public class AuthenticationServiceImpl implements AuthenticationService {
         String identifier = loginRequest.getIdentifier();
         String password = loginRequest.getPassword();
 
+        Optional<Customer> optionalCustomer = findCustomerByIdentifier(identifier);
+        if (optionalCustomer.isEmpty()) {
+            throw new AccountNotExistException("Customer not found: " + identifier);
+        }
+
+        Customer customer = optionalCustomer.get();
+        if (!passwordEncoder.matches(password, customer.getPassword())) {
+            throw new BadCredentialsException("Invalid password");
+        }
+
+        String token = jwtService.generateToken(customer);
+        return new LoginResponse("Login successful", token);
+    }
+
+    private Optional<Customer> findCustomerByIdentifier(String identifier) {
         Optional<Customer> optionalCustomer = customerRepository.findByEmail(identifier);
         if (optionalCustomer.isEmpty()) {
             optionalCustomer = customerRepository.findByPhoneNumber(identifier);
@@ -35,17 +51,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
         if (optionalCustomer.isEmpty()) {
             optionalCustomer = customerRepository.findByAccount_AccountNumber(identifier);
         }
-
-        if (optionalCustomer.isEmpty()) {
-            throw new AccountNotExistException("Customer not found: " + identifier);
-        }
-
-        Customer customer = optionalCustomer.get();
-        if (passwordEncoder.matches(password, customer.getPassword())) {
-            String token = jwtService.generateToken(customer);
-            return new LoginResponse("Login successful", token);
-        } else {
-            throw new RuntimeException("Invalid password");
-        }
+        return optionalCustomer;
     }
 }
+
