@@ -1,4 +1,4 @@
-package com.backend.bank.auth;
+package com.backend.bank.security.auth;
 
 import com.backend.bank.exception.InvalidTokenException;
 import com.backend.bank.exception.TokenExpiredException;

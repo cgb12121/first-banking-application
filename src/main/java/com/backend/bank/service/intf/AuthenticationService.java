@@ -1,4 +1,4 @@
-package com.backend.bank.service;
+package com.backend.bank.service.intf;
 
 import com.backend.bank.dto.request.LoginRequest;
 import com.backend.bank.dto.response.LoginResponse;

@@ -1,4 +1,4 @@
-package com.backend.bank.auth;
+package com.backend.bank.security.auth;
 
 import com.backend.bank.exception.InvalidTokenException;
 import com.backend.bank.exception.TokenExpiredException;
@@ -13,13 +13,13 @@ import lombok.SneakyThrows;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.stereotype.Service;
+import org.springframework.stereotype.Component;
 
 import javax.crypto.SecretKey;
 import java.util.Date;
 import java.util.Map;
 
-@Service
+@Component
 public class JwtProviderImpl implements JwtProvider {
 
     @Value("${PRIVATE_KEY}")

@@ -3,7 +3,7 @@ package com.backend.bank.api;
 import com.backend.bank.dto.request.LoginRequest;
 import com.backend.bank.dto.response.LoginResponse;
 import com.backend.bank.exception.AccountNotExistException;
-import com.backend.bank.service.AuthenticationService;
+import com.backend.bank.service.intf.AuthenticationService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -17,7 +17,7 @@ import java.util.Map;
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/auth")
-public class AuthenticationController {
+public class LoginController {
 
     private final AuthenticationService authenticationService;
 

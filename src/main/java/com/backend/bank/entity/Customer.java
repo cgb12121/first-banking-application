@@ -72,4 +72,19 @@ public class Customer implements UserDetails {
         AccountStatus status = account.getAccountStatus();
         return status == AccountStatus.ACTIVE;
     }
+
+    @Override
+    public boolean isAccountNonExpired() {
+        return account.getAccountStatus() != AccountStatus.INACTIVE;
+    }
+
+    @Override
+    public boolean isAccountNonLocked() {
+        return account.getAccountStatus() != AccountStatus.FROZEN && account.getAccountStatus() != AccountStatus.BANNED;
+    }
+
+    @Override
+    public boolean isCredentialsNonExpired() {
+        return true;
+    }
 }

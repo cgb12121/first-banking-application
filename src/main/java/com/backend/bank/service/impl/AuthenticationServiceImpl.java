@@ -1,12 +1,12 @@
-package com.backend.bank.service.implement;
+package com.backend.bank.service.impl;
 
-import com.backend.bank.auth.JwtProviderImpl;
+import com.backend.bank.security.auth.JwtProviderImpl;
 import com.backend.bank.dto.request.LoginRequest;
 import com.backend.bank.dto.response.LoginResponse;
 import com.backend.bank.entity.Customer;
 import com.backend.bank.exception.AccountNotExistException;
 import com.backend.bank.repository.CustomerRepository;
-import com.backend.bank.service.AuthenticationService;
+import com.backend.bank.service.intf.AuthenticationService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.crypto.password.PasswordEncoder;
