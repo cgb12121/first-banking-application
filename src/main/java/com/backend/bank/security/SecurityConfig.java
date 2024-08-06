@@ -38,7 +38,7 @@ public class SecurityConfig {
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         return http
                 .csrf(AbstractHttpConfigurer::disable)
-                .cors(Customizer.withDefaults())
+                .cors(AbstractHttpConfigurer::disable)
                 .headers(header -> header
                         .frameOptions(HeadersConfigurer.FrameOptionsConfig::disable)
                 )
@@ -63,19 +63,6 @@ public class SecurityConfig {
                         .authenticationEntryPoint((request, response, authException)
                                 -> response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Unauthorized: " + request.getRequestURI() + " - " + authException.getMessage()))
                 )
-                .formLogin(login -> login.loginProcessingUrl("/auth/profile"))
                 .build();
-    }
-
-    @Bean
-    CorsConfigurationSource corsConfigurationSource() {
-        CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedMethods(List.of("*"));
-        configuration.setAllowedMethods(List.of("*"));
-        configuration.setAllowedHeaders(List.of("*"));
-        configuration.setExposedHeaders(List.of("*"));
-        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-        source.registerCorsConfiguration("/**", configuration);
-        return source;
     }
 }
