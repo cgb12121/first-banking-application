@@ -90,7 +90,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     private void handleUnauthorized(HttpServletResponse response, String message) throws IOException {
         Map<String, Object> body = new LinkedHashMap<>();
-        body.put("timestamp", new Date());
+        body.put("[timestamp]", new Date());
         body.put("status", HttpServletResponse.SC_UNAUTHORIZED);
         body.put("message", message);
 

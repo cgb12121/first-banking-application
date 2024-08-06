@@ -11,6 +11,7 @@ import com.backend.bank.exception.*;
 import com.backend.bank.repository.AccountRepository;
 import com.backend.bank.repository.TransactionRepository;
 import com.backend.bank.service.intf.TransactionService;
+
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -22,6 +23,7 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 @Service
 @RequiredArgsConstructor
@@ -33,7 +35,133 @@ public class TransactionServiceImpl implements TransactionService {
     private final AccountRepository accountRepository;
 
     @Override
-    public TransactionResponse createTransaction(Long accountId, TransactionRequest transactionRequest) throws AccountNotExistException, InsufficientFundsException, InvalidTransactionAmountException, AccountInactiveException, AccountFrozenException, AccountBannedException {
+    public List<TransactionResponse> getTransactionHistory(Long accountId, int page, int size) throws AccountNotExistException {
+        Account account = accountRepository.findById(accountId)
+                .orElseThrow(() -> new AccountNotExistException("Account not found"));
+        String accountNumber = account.getAccountNumber();
+
+        Pageable pageable = PageRequest.of(page, size);
+        Page<Transaction> sentTransactions = transactionRepository.findByAccountId(accountId, pageable);
+        Page<Transaction> receivedTransactions = transactionRepository.findByTransferToAccount(accountNumber, pageable);
+
+        return Stream.concat(sentTransactions.stream(), receivedTransactions.stream())
+                .sorted((t1, t2) -> t2.getTimestamp().compareTo(t1.getTimestamp()))
+                .map(this::mapToResponse)
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    public TransactionResponse deposit(Long accountId, TransactionRequest transactionRequest) throws InvalidTransactionAmountException, AccountNotExistException, AccountInactiveException, AccountFrozenException, AccountBannedException {
+        validateAmount(transactionRequest.getAmount());
+        Account account = validateAccount(accountId);
+
+        Transaction transaction = createTransaction(account, transactionRequest.getAmount(), TransactionType.DEPOSIT);
+
+        account.setBalance(account.getBalance().add(transactionRequest.getAmount()));
+        accountRepository.save(account);
+
+        transaction.setStatus(TransactionStatus.COMPLETED);
+        transaction = transactionRepository.save(transaction);
+
+        return mapToResponse(transaction);
+    }
+
+    @Override
+    public TransactionResponse withdraw(Long accountId, TransactionRequest transactionRequest) throws InvalidTransactionAmountException, AccountNotExistException, AccountInactiveException, AccountFrozenException, AccountBannedException, InsufficientFundsException {
+        validateAmount(transactionRequest.getAmount());
+        Account account = validateAccount(accountId);
+
+        if (account.getBalance().compareTo(transactionRequest.getAmount()) < 0) {
+            throw new InsufficientFundsException("Insufficient funds for withdrawal");
+        }
+
+        Transaction transaction = createTransaction(account, transactionRequest.getAmount(), TransactionType.WITHDRAWAL);
+
+        account.setBalance(account.getBalance().subtract(transactionRequest.getAmount()));
+        accountRepository.save(account);
+
+        transaction.setStatus(TransactionStatus.COMPLETED);
+        transaction = transactionRepository.save(transaction);
+
+        return mapToResponse(transaction);
+    }
+
+    @Override
+    public TransactionResponse transfer(Long accountId, TransactionRequest transactionRequest) throws InvalidTransactionAmountException, AccountNotExistException, AccountInactiveException, AccountFrozenException, AccountBannedException, InsufficientFundsException {
+        validateAmount(transactionRequest.getAmount());
+        Account account = validateAccount(accountId);
+
+        if (account.getBalance().compareTo(transactionRequest.getAmount()) < 0) {
+            throw new InsufficientFundsException("Insufficient funds for transfer");
+        }
+
+        Account transferToAccount = accountRepository.findByAccountNumber(transactionRequest.getTransferToAccount())
+                .orElseThrow(() -> new AccountNotExistException("Transfer to account not found"));
+
+        validateAccountStatus(transferToAccount);
+
+        Transaction transaction = createTransaction(account, transactionRequest.getAmount(), TransactionType.TRANSFER);
+        transaction.setTransferToAccount(transactionRequest.getTransferToAccount());
+
+        account.setBalance(account.getBalance().subtract(transactionRequest.getAmount()));
+        transferToAccount.setBalance(transferToAccount.getBalance().add(transactionRequest.getAmount()));
+        accountRepository.save(account);
+        accountRepository.save(transferToAccount);
+
+        transaction.setStatus(TransactionStatus.COMPLETED);
+        transaction = transactionRepository.save(transaction);
+
+        return mapToResponse(transaction);
+    }
+
+    private void validateAmount(BigDecimal amount) throws InvalidTransactionAmountException {
+        if (amount.compareTo(BigDecimal.ZERO) <= 0) {
+            throw new InvalidTransactionAmountException("Amount must be greater than 0");
+        }
+    }
+
+    private Account validateAccount(Long accountId) throws AccountNotExistException, AccountInactiveException, AccountFrozenException, AccountBannedException {
+        Account account = accountRepository.findById(accountId)
+                .orElseThrow(() -> new AccountNotExistException("Account not found"));
+        validateAccountStatus(account);
+        return account;
+    }
+
+    private void validateAccountStatus(Account account) throws AccountInactiveException, AccountFrozenException, AccountBannedException {
+        switch (account.getAccountStatus()) {
+            case INACTIVE -> throw new AccountInactiveException("Your account is INACTIVE!");
+            case FROZEN -> throw new AccountFrozenException("Your account is frozen! You cannot perform any transactions!");
+            case BANNED -> throw new AccountBannedException("Your account is BANNED!");
+        }
+    }
+
+    private Transaction createTransaction(Account account, BigDecimal amount, TransactionType type) {
+        Transaction transaction = new Transaction();
+        transaction.setAmount(amount);
+        transaction.setTimestamp(LocalDateTime.now());
+        transaction.setType(type);
+        transaction.setStatus(TransactionStatus.PENDING);
+        transaction.setAccount(account);
+        return transaction;
+    }
+
+    private TransactionResponse mapToResponse(Transaction transaction) {
+        TransactionResponse transactionResponse = new TransactionResponse();
+        transactionResponse.setId(transaction.getId());
+        transactionResponse.setAmount(transaction.getAmount());
+        transactionResponse.setTimestamp(transaction.getTimestamp());
+        transactionResponse.setType(transaction.getType());
+        transactionResponse.setStatus(transaction.getStatus());
+        transactionResponse.setTransferToAccount(transaction.getTransferToAccount());
+        return transactionResponse;
+    }
+
+    @Deprecated(
+            since = "development XD",
+            forRemoval = true
+    )
+    @SuppressWarnings("all")
+    private TransactionResponse createTransaction(Long accountId, TransactionRequest transactionRequest) throws AccountNotExistException, InsufficientFundsException, InvalidTransactionAmountException, AccountInactiveException, AccountFrozenException, AccountBannedException {
         if (transactionRequest.getAmount().compareTo(BigDecimal.ZERO) <= 0) {
             throw new InvalidTransactionAmountException("Amount must be greater than 0");
         }
@@ -102,25 +230,5 @@ public class TransactionServiceImpl implements TransactionService {
         transaction = transactionRepository.save(transaction);
 
         return mapToResponse(transaction);
-    }
-
-    @Override
-    public List<TransactionResponse> getTransactionHistory(Long accountId, int page, int size) {
-        Pageable pageable = PageRequest.of(page, size);
-        Page<Transaction> transactionPage = transactionRepository.findByAccountId(accountId, pageable);
-        return transactionPage.stream()
-                .map(this::mapToResponse)
-                .collect(Collectors.toList());
-    }
-
-    private TransactionResponse mapToResponse(Transaction transaction) {
-        TransactionResponse transactionResponse = new TransactionResponse();
-        transactionResponse.setId(transaction.getId());
-        transactionResponse.setAmount(transaction.getAmount());
-        transactionResponse.setTimestamp(transaction.getTimestamp());
-        transactionResponse.setType(transaction.getType());
-        transactionResponse.setStatus(transaction.getStatus());
-        transactionResponse.setTransferToAccount(transaction.getTransferToAccount());
-        return transactionResponse;
     }
 }

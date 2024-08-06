@@ -7,9 +7,11 @@ import com.backend.bank.exception.*;
 import java.util.List;
 
 public interface TransactionService {
-    TransactionResponse createTransaction(Long accountId, TransactionRequest transactionRequest)
-            throws AccountNotExistException, InsufficientFundsException, InvalidTransactionAmountException,
-                    AccountInactiveException, AccountFrozenException, AccountBannedException;
+    List<TransactionResponse> getTransactionHistory(Long accountId, int page, int size) throws AccountNotExistException;
 
-    List<TransactionResponse> getTransactionHistory(Long accountId, int page, int size);
+    TransactionResponse deposit(Long accountId, TransactionRequest transactionRequest) throws InvalidTransactionAmountException, AccountNotExistException, AccountInactiveException, AccountFrozenException, AccountBannedException;
+
+    TransactionResponse withdraw(Long accountId, TransactionRequest transactionRequest) throws AccountInactiveException, AccountNotExistException, AccountFrozenException, AccountBannedException, InvalidTransactionAmountException, InsufficientFundsException;
+
+    TransactionResponse transfer(Long accountId, TransactionRequest transactionRequest) throws InvalidTransactionAmountException, AccountNotExistException, AccountInactiveException, AccountFrozenException, AccountBannedException, InsufficientFundsException;
 }

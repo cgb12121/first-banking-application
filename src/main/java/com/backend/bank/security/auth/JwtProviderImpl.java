@@ -28,7 +28,6 @@ public class JwtProviderImpl implements JwtProvider {
     private static final int ONE_DAY = 86400000;
 
     @Override
-    @SneakyThrows
     public String generateToken(UserDetails userDetails) {
         return Jwts.builder()
                 .subject(userDetails.getUsername())
@@ -40,7 +39,6 @@ public class JwtProviderImpl implements JwtProvider {
     }
 
     @Override
-    @SneakyThrows
     public String generateRefreshToken(Map<String, Object> extraClaims, UserDetails userDetails) {
         return Jwts.builder()
                 .subject(userDetails.getUsername())
@@ -78,21 +76,18 @@ public class JwtProviderImpl implements JwtProvider {
     }
 
     @Override
-    @SneakyThrows
-    public String extractUserName(String token) {
+    public String extractUserName(String token) throws InvalidTokenException, TokenExpiredException {
         return extractClaims(token, Claims::getSubject);
     }
 
     @Override
-    @SneakyThrows
-    public boolean isTokenValid(String token, UserDetails userDetails) {
+    public boolean isTokenValid(String token, UserDetails userDetails) throws InvalidTokenException, TokenExpiredException {
         final String username = extractUserName(token);
         return username.equals(userDetails.getUsername()) && !isTokenExpired(token);
     }
 
     @Override
-    @SneakyThrows
-    public boolean isTokenExpired(String token) {
+    public boolean isTokenExpired(String token) throws InvalidTokenException, TokenExpiredException {
         final Date expiration = extractClaims(token, Claims::getExpiration);
         return expiration.before(new Date());
     }

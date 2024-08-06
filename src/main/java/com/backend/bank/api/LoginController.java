@@ -3,6 +3,7 @@ package com.backend.bank.api;
 import com.backend.bank.dto.request.LoginRequest;
 import com.backend.bank.dto.response.LoginResponse;
 import com.backend.bank.exception.AccountNotExistException;
+import com.backend.bank.security.auth.JwtAuthenticationFilter;
 import com.backend.bank.service.intf.AuthenticationService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -20,6 +21,8 @@ import java.util.Map;
 public class LoginController {
 
     private final AuthenticationService authenticationService;
+
+    private final JwtAuthenticationFilter jwtAuthenticationFilter;
 
     @PostMapping("/login")
     public ResponseEntity<Map<String, Object>> login(@RequestBody LoginRequest loginRequest) {
