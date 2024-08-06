@@ -3,6 +3,7 @@ package com.backend.bank.entity;
 import com.backend.bank.entity.constant.AccountStatus;
 import jakarta.persistence.*;
 import lombok.*;
+
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;

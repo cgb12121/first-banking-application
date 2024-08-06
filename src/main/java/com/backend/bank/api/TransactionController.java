@@ -20,7 +20,7 @@ public class TransactionController {
     private final TransactionService transactionService;
 
     @PostMapping("/deposit")
-    @PreAuthorize("hasAnyRole('ROLE_ADMIN', 'ROLE_MANAGER', 'ROLE_STAFF', 'ROLE_ADMIN')")
+    @PreAuthorize("hasAnyRole('ROLE_ADMIN', 'ROLE_MANAGER', 'ROLE_STAFF')")
     public ResponseEntity<TransactionResponse> deposit(
             @PathVariable Long accountId,
             @RequestBody TransactionRequest transactionRequest)
@@ -54,7 +54,7 @@ public class TransactionController {
 
     @GetMapping("/history")
     @PreAuthorize(
-            "hasAnyRole('ROLE_MANAGER', 'ROLE_ADMIN')" +
+            "hasAnyRole('ROLE_ADMIN', 'ROLE_MANAGER')" +
             " or (hasRole('ROLE_USER') and @securityService.canAccessAccount(#accountId))"
     )
     public ResponseEntity<List<TransactionResponse>> getTransactionHistory(

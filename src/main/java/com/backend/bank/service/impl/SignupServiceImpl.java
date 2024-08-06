@@ -15,7 +15,11 @@ import com.backend.bank.repository.CustomerRepository;
 import com.backend.bank.service.intf.EmailService;
 import com.backend.bank.service.intf.SignupService;
 import com.backend.bank.utils.EmailUtils;
+
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+
+import org.springframework.mail.MailException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -24,6 +28,7 @@ import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
+@Transactional(rollbackOn = Exception.class, dontRollbackOn = MailException.class)
 public class SignupServiceImpl implements SignupService {
 
     private final CustomerRepository customerRepository;

@@ -2,8 +2,10 @@ package com.backend.bank.service.impl;
 
 import com.backend.bank.dto.EmailDetails;
 import com.backend.bank.service.intf.EmailService;
+
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
+
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.mail.MailException;
 import org.springframework.mail.SimpleMailMessage;

@@ -10,6 +10,7 @@ import com.backend.bank.entity.constant.TransactionType;
 import com.backend.bank.exception.*;
 import com.backend.bank.repository.AccountRepository;
 import com.backend.bank.repository.TransactionRepository;
+import com.backend.bank.service.intf.EmailService;
 import com.backend.bank.service.intf.TransactionService;
 
 import jakarta.transaction.Transactional;
@@ -17,6 +18,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.mail.MailException;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
@@ -27,7 +29,10 @@ import java.util.stream.Stream;
 
 @Service
 @RequiredArgsConstructor
-@Transactional(rollbackOn = Exception.class)
+@Transactional(
+        rollbackOn = Exception.class,
+        dontRollbackOn = {MailException.class}
+)
 public class TransactionServiceImpl implements TransactionService {
 
     private final TransactionRepository transactionRepository;
@@ -161,6 +166,10 @@ public class TransactionServiceImpl implements TransactionService {
             forRemoval = true
     )
     @SuppressWarnings("all")
+    @Transactional(
+            rollbackOn = Exception.class,
+            dontRollbackOn = {MailException.class, EmailService.class}
+    )
     private TransactionResponse createTransaction(Long accountId, TransactionRequest transactionRequest) throws AccountNotExistException, InsufficientFundsException, InvalidTransactionAmountException, AccountInactiveException, AccountFrozenException, AccountBannedException {
         if (transactionRequest.getAmount().compareTo(BigDecimal.ZERO) <= 0) {
             throw new InvalidTransactionAmountException("Amount must be greater than 0");
