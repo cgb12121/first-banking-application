@@ -1,5 +1,9 @@
 package com.backend.bank.service.impl;
 
+import com.backend.bank.dto.request.RegisterNewCardRequest;
+import com.backend.bank.dto.request.ChangePasswordRequest;
+import com.backend.bank.dto.response.RegisterNewCardResponse;
+import com.backend.bank.dto.response.ChangePasswordResponse;
 import com.backend.bank.entity.Customer;
 import com.backend.bank.repository.CustomerRepository;
 import com.backend.bank.service.intf.CustomerService;
@@ -28,8 +32,8 @@ public class CustomerServiceImpl implements CustomerService, UserDetailsService 
         return customer.orElseThrow(() -> new UsernameNotFoundException("User not found"));
     }
 
-    public void changePassword(String newPassword) {
-
+    public ChangePasswordResponse changePassword(ChangePasswordRequest request) {
+        return null;
     }
 
     public void changeEmail(String newEmail) {
@@ -38,6 +42,10 @@ public class CustomerServiceImpl implements CustomerService, UserDetailsService 
 
     public void changePhoneNumber(String newPhoneNumber) {
 
+    }
+
+    public RegisterNewCardResponse registerNewCard(RegisterNewCardRequest registerNewCardRequest) {
+        return null;
     }
 
 }

@@ -6,6 +6,6 @@ import lombok.*;
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
-public class ResetPasswordResponse {
+public class ChangePasswordResponse {
     private String message;
 }

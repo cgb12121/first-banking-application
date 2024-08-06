@@ -24,8 +24,8 @@ public class TransactionController {
     public ResponseEntity<TransactionResponse> deposit(
             @PathVariable Long accountId,
             @RequestBody TransactionRequest transactionRequest)
-            throws AccountNotExistException, InvalidTransactionAmountException,
-            AccountFrozenException, AccountBannedException, AccountInactiveException, UnknownTransactionTypeException {
+            throws AccountNotExistException, InvalidTransactionAmountException, AccountFrozenException,
+            AccountBannedException, AccountInactiveException, UnknownTransactionTypeException {
         TransactionResponse response = transactionService.deposit(accountId, transactionRequest);
         return ResponseEntity.ok(response);
     }
@@ -46,8 +46,9 @@ public class TransactionController {
     public ResponseEntity<TransactionResponse> transfer(
             @PathVariable Long accountId,
             @RequestBody TransactionRequest transactionRequest)
-            throws AccountNotExistException, InsufficientFundsException, InvalidTransactionAmountException,
-            AccountFrozenException, AccountBannedException, AccountInactiveException, UnknownTransactionTypeException {
+            throws AccountNotExistException, InsufficientFundsException,
+            InvalidTransactionAmountException, AccountFrozenException,
+            AccountBannedException, AccountInactiveException, UnknownTransactionTypeException {
         TransactionResponse response = transactionService.transfer(accountId, transactionRequest);
         return ResponseEntity.ok(response);
     }

@@ -6,7 +6,7 @@ import lombok.*;
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
-public class ResetPasswordRequest {
+public class ChangePasswordRequest {
     private String email;
     private String oldPassword;
     private String newPassword;
