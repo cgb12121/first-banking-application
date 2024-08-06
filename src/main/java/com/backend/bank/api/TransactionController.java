@@ -48,7 +48,8 @@ public class TransactionController {
             @RequestBody TransactionRequest transactionRequest)
             throws AccountNotExistException, InsufficientFundsException,
             InvalidTransactionAmountException, AccountFrozenException,
-            AccountBannedException, AccountInactiveException, UnknownTransactionTypeException {
+            AccountBannedException, AccountInactiveException,
+            UnknownTransactionTypeException, CantTransferToSelfException {
         TransactionResponse response = transactionService.transfer(accountId, transactionRequest);
         return ResponseEntity.ok(response);
     }

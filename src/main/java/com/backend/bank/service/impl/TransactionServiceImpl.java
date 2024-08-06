@@ -14,11 +14,12 @@ import com.backend.bank.repository.AccountRepository;
 import com.backend.bank.repository.TransactionRepository;
 import com.backend.bank.service.intf.EmailService;
 import com.backend.bank.service.intf.TransactionService;
-
 import com.backend.bank.utils.EmailUtils;
+
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
+
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -32,6 +33,29 @@ import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+/**
+ * <pre>
+ * Implementation of the {@link TransactionService} interface.
+ * Provides methods for handling transactions:
+ * </pre>
+ *
+ * <dl>
+ *   <dt>{@code deposit(Long accountId, TransactionRequest transactionRequest)}</dt>
+ *   <dd>Perform deposit of money into an account.</dd>
+ *   <dd>&nbsp;</dd>
+ *
+ *   <dt>{@code withdraw(Long accountId, TransactionRequest transactionRequest)}</dt>
+ *   <dd>Perform withdrawal of money from an account.</dd>
+ *   <dd>&nbsp;</dd>
+ *
+ *   <dt>{@code transfer(Long accountId, TransactionRequest transactionRequest)}</dt>
+ *   <dd>Perform transfer of money between accounts.</dd>
+ *   <dd>&nbsp;</dd>
+ *
+ *   <dt>{@code getTransactionHistory(Long accountId, int page, int size)}</dt>
+ *   <dd>Fetch the transaction history of a user's account.</dd>
+ * </dl>
+ */
 @Log4j2
 @Service
 @RequiredArgsConstructor
@@ -43,6 +67,15 @@ public class TransactionServiceImpl implements TransactionService {
 
     private final EmailService emailService;
 
+    /**
+     * Retrieves the transaction history for a given account.
+     *
+     * @param accountId The ID of the account.
+     * @param page The page number for pagination.
+     * @param size The size of each page for pagination.
+     * @return A list of {@link TransactionResponse} representing the transaction history.
+     * @throws AccountNotExistException If the account does not exist.
+     */
     @Override
     @Transactional(
             rollbackOn = Exception.class,
@@ -63,6 +96,19 @@ public class TransactionServiceImpl implements TransactionService {
                 .collect(Collectors.toList());
     }
 
+    /**
+     * Deposits a specified amount into an account.
+     *
+     * @param accountId The ID of the account.
+     * @param transactionRequest The details of the deposit transaction.
+     * @return A {@link TransactionResponse} representing the completed transaction.
+     * @throws InvalidTransactionAmountException If the transaction amount is invalid.
+     * @throws AccountNotExistException If the account does not exist.
+     * @throws AccountInactiveException If the account is inactive.
+     * @throws AccountFrozenException If the account is frozen.
+     * @throws AccountBannedException If the account is banned.
+     * @throws UnknownTransactionTypeException If the transaction type is unknown.
+     */
     @Override
     @Transactional(
             rollbackOn = Exception.class,
@@ -85,6 +131,20 @@ public class TransactionServiceImpl implements TransactionService {
         return mapToResponse(transaction);
     }
 
+    /**
+     * Withdraws a specified amount from an account.
+     *
+     * @param accountId The ID of the account.
+     * @param transactionRequest The details of the withdrawal transaction.
+     * @return A {@link TransactionResponse} representing the completed transaction.
+     * @throws InvalidTransactionAmountException If the transaction amount is invalid.
+     * @throws AccountNotExistException If the account does not exist.
+     * @throws AccountInactiveException If the account is inactive.
+     * @throws AccountFrozenException If the account is frozen.
+     * @throws AccountBannedException If the account is banned.
+     * @throws InsufficientFundsException If there are insufficient funds for the withdrawal.
+     * @throws UnknownTransactionTypeException If the transaction type is unknown.
+     */
     @Override
     @Transactional(
             rollbackOn = Exception.class,
@@ -111,12 +171,27 @@ public class TransactionServiceImpl implements TransactionService {
         return mapToResponse(transaction);
     }
 
+    /**
+     * Transfers a specified amount from one account to another.
+     *
+     * @param accountId The ID of the sender's account.
+     * @param transactionRequest The details of the transfer transaction.
+     * @return A {@link TransactionResponse} representing the completed transaction.
+     * @throws InvalidTransactionAmountException If the transaction amount is invalid.
+     * @throws AccountNotExistException If the sender or receiver account does not exist.
+     * @throws AccountInactiveException If the sender or receiver account is inactive.
+     * @throws AccountFrozenException If the sender or receiver account is frozen.
+     * @throws AccountBannedException If the sender or receiver account is banned.
+     * @throws InsufficientFundsException If there are insufficient funds for the transfer.
+     * @throws UnknownTransactionTypeException If the transaction type is unknown.
+     * @throws CantTransferToSelfException If the receiver is the same as the sender.
+     */
     @Override
     @Transactional(
             rollbackOn = Exception.class,
             dontRollbackOn = {MailException.class}
     )
-    public TransactionResponse transfer(Long accountId, TransactionRequest transactionRequest) throws InvalidTransactionAmountException, AccountNotExistException, AccountInactiveException, AccountFrozenException, AccountBannedException, InsufficientFundsException, UnknownTransactionTypeException {
+    public TransactionResponse transfer(Long accountId, TransactionRequest transactionRequest) throws InvalidTransactionAmountException, AccountNotExistException, AccountInactiveException, AccountFrozenException, AccountBannedException, InsufficientFundsException, UnknownTransactionTypeException, CantTransferToSelfException {
         validateAmount(transactionRequest.getAmount());
         Account account = validateAccount(accountId);
 
@@ -126,6 +201,10 @@ public class TransactionServiceImpl implements TransactionService {
 
         Account transferToAccount = accountRepository.findByAccountNumber(transactionRequest.getTransferToAccount())
                 .orElseThrow(() -> new AccountNotExistException("Transfer to account not found"));
+
+        if (account.equals(transferToAccount)) {
+            throw new CantTransferToSelfException("You can't transfer to yourself!");
+        }
 
         validateAccountStatus(transferToAccount);
 
@@ -145,12 +224,28 @@ public class TransactionServiceImpl implements TransactionService {
         return mapToResponse(transaction);
     }
 
+    /**
+     * Validates the transaction amount.
+     *
+     * @param amount The transaction amount to be validated.
+     * @throws InvalidTransactionAmountException If the amount is less than or equal to zero.
+     */
     private void validateAmount(BigDecimal amount) throws InvalidTransactionAmountException {
         if (amount.compareTo(BigDecimal.ZERO) <= 0) {
             throw new InvalidTransactionAmountException("Amount must be greater than 0");
         }
     }
 
+    /**
+     * Validates the account status.
+     *
+     * @param accountId The ID of the account to be validated.
+     * @return The validated {@link Account}.
+     * @throws AccountNotExistException If the account does not exist.
+     * @throws AccountInactiveException If the account is inactive.
+     * @throws AccountFrozenException If the account is frozen.
+     * @throws AccountBannedException If the account is banned.
+     */
     private Account validateAccount(Long accountId) throws AccountNotExistException, AccountInactiveException, AccountFrozenException, AccountBannedException {
         Account account = accountRepository.findById(accountId)
                 .orElseThrow(() -> new AccountNotExistException("Account not found"));
@@ -158,6 +253,15 @@ public class TransactionServiceImpl implements TransactionService {
         return account;
     }
 
+
+    /**
+     * Validates the status of an account.
+     *
+     * @param account The account to be validated.
+     * @throws AccountInactiveException If the account is inactive.
+     * @throws AccountFrozenException If the account is frozen.
+     * @throws AccountBannedException If the account is banned.
+     */
     private void validateAccountStatus(Account account) throws AccountInactiveException, AccountFrozenException, AccountBannedException {
         switch (account.getAccountStatus()) {
             case INACTIVE -> throw new AccountInactiveException("Your account is INACTIVE!");
@@ -166,6 +270,14 @@ public class TransactionServiceImpl implements TransactionService {
         }
     }
 
+    /**
+     * Creates a new transaction.
+     *
+     * @param account The account associated with the transaction.
+     * @param amount The amount of the transaction.
+     * @param type The type of the transaction.
+     * @return The created {@link Transaction}.
+     */
     private Transaction createTransaction(Account account, BigDecimal amount, TransactionType type) {
         Transaction transaction = new Transaction();
         transaction.setAmount(amount);
@@ -176,6 +288,14 @@ public class TransactionServiceImpl implements TransactionService {
         return transaction;
     }
 
+    /**
+     * Sends a success email for the transaction.
+     *
+     * @param customer The customer associated with the transaction.
+     * @param transactionRequest The transaction request details.
+     * @throws UnknownTransactionTypeException If the transaction type is unknown.
+     * @throws AccountNotExistException If the account does not exist.
+     */
     private void sendTransactionSuccessEmail(Customer customer, TransactionRequest transactionRequest) throws UnknownTransactionTypeException, AccountNotExistException {
         EmailDetails emailToCustomer = new EmailDetails();
         emailToCustomer.setReceiver(customer.getEmail());
@@ -208,6 +328,12 @@ public class TransactionServiceImpl implements TransactionService {
         }
     }
 
+    /**
+     * Sends an email notification to the receiver of a transfer.
+     *
+     * @param transactionRequest The transaction request details.
+     * @throws AccountNotExistException If the receiver account does not exist.
+     */
     private void sendTransactionEmailToReceiver(TransactionRequest transactionRequest) throws AccountNotExistException {
         Customer receiver = accountRepository.findByAccountNumber(transactionRequest.getTransferToAccount())
                 .orElseThrow(() -> new AccountNotExistException("Account does not exist: " + transactionRequest.getTransferToAccount()))
@@ -221,6 +347,12 @@ public class TransactionServiceImpl implements TransactionService {
         emailService.sendEmail(emailToReceiver);
     }
 
+    /**
+     * Maps a {@link Transaction} entity to a {@link TransactionResponse}.
+     *
+     * @param transaction The transaction entity.
+     * @return The transaction response.
+     */
     private TransactionResponse mapToResponse(Transaction transaction) {
         TransactionResponse transactionResponse = new TransactionResponse();
         transactionResponse.setId(transaction.getId());
@@ -232,6 +364,10 @@ public class TransactionServiceImpl implements TransactionService {
         return transactionResponse;
     }
 
+    /**
+     * {@code @Deprecated}
+     * This class laid here for no reason. It will never be deleted.
+     */
     @Deprecated(
             since = "development XD",
             forRemoval = true
