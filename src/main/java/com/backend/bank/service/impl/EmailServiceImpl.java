@@ -24,7 +24,8 @@ public class EmailServiceImpl implements EmailService {
     @Value("${spring.mail.username}")
     private String senderEmail;
 
-    private void sendEmail(EmailDetails emailDetails) {
+    @Override
+    public void sendEmail(EmailDetails emailDetails) {
         try {
             SimpleMailMessage message = new SimpleMailMessage();
 
@@ -51,65 +52,5 @@ public class EmailServiceImpl implements EmailService {
             );
             throw new RuntimeException(e.getMessage());
         }
-    }
-
-    @Override
-    public void sendEmailOnSignUp(EmailDetails emailDetails) {
-        sendEmail(emailDetails);
-    }
-
-    @Override
-    public void sendEmailOnTransaction(EmailDetails emailDetails) {
-        sendEmail(emailDetails);
-    }
-
-    @Override
-    public void sendEmailOnLogin(EmailDetails emailDetails) {
-        sendEmail(emailDetails);
-    }
-
-    @Override
-    public void sendEmailOnResetPassword(EmailDetails emailDetails) {
-        sendEmail(emailDetails);
-    }
-
-    @Override
-    public void sendEmailOnAccountStatus(EmailDetails emailDetails) {
-        sendEmail(emailDetails);
-    }
-
-    @Override
-    public void sendEmailOnAddNewCard(EmailDetails emailDetails) {
-        sendEmail(emailDetails);
-    }
-
-    @Override
-    public void sendEmailOnUpgradeAccountType(EmailDetails emailDetails) {
-        sendEmail(emailDetails);
-    }
-
-    @Override
-    public void sendEmailOnTakingLoan(EmailDetails emailDetails) {
-        sendEmail(emailDetails);
-    }
-
-    @Override
-    public void sendEmailOnLoanIncreasedInterest(EmailDetails emailDetails) {
-        sendEmail(emailDetails);
-    }
-
-    @Override
-    public void sendEmailOnLoanDecreasedInterest(EmailDetails emailDetails) {
-        sendEmail(emailDetails);
-    }
-
-    @Override
-    public void sendEmailOnLoanLate(EmailDetails emailDetails) {
-        sendEmail(emailDetails);
-    }
-
-    @Override
-    public void sendEmailOnLoanPaid(EmailDetails emailDetails) {
-        sendEmail(emailDetails);
     }
 }

@@ -6,10 +6,12 @@ import com.backend.bank.dto.response.LoginResponse;
 import com.backend.bank.entity.Customer;
 import com.backend.bank.exception.AccountNotExistException;
 import com.backend.bank.repository.CustomerRepository;
-import com.backend.bank.service.intf.AuthenticationService;
+import com.backend.bank.service.intf.LoginService;
 
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 
+import org.springframework.mail.MailException;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -18,7 +20,7 @@ import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
-public class AuthenticationServiceImpl implements AuthenticationService {
+public class LoginServiceImpl implements LoginService {
 
     private final CustomerRepository customerRepository;
 
@@ -27,6 +29,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
     private final JwtProviderImpl jwtService;
 
     @Override
+    @Transactional(rollbackOn = Exception.class, dontRollbackOn = MailException.class)
     public LoginResponse login(LoginRequest loginRequest) throws AccountNotExistException {
         String identifier = loginRequest.getIdentifier();
         String password = loginRequest.getPassword();

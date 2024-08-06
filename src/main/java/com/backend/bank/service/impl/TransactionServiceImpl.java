@@ -1,8 +1,10 @@
 package com.backend.bank.service.impl;
 
+import com.backend.bank.dto.EmailDetails;
 import com.backend.bank.dto.request.TransactionRequest;
 import com.backend.bank.dto.response.TransactionResponse;
 import com.backend.bank.entity.Account;
+import com.backend.bank.entity.Customer;
 import com.backend.bank.entity.Transaction;
 import com.backend.bank.entity.constant.AccountStatus;
 import com.backend.bank.entity.constant.TransactionStatus;
@@ -13,8 +15,10 @@ import com.backend.bank.repository.TransactionRepository;
 import com.backend.bank.service.intf.EmailService;
 import com.backend.bank.service.intf.TransactionService;
 
+import com.backend.bank.utils.EmailUtils;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.log4j.Log4j2;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -23,23 +27,27 @@ import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+@Log4j2
 @Service
 @RequiredArgsConstructor
-@Transactional(
-        rollbackOn = Exception.class,
-        dontRollbackOn = {MailException.class}
-)
 public class TransactionServiceImpl implements TransactionService {
 
     private final TransactionRepository transactionRepository;
 
     private final AccountRepository accountRepository;
 
+    private final EmailService emailService;
+
     @Override
+    @Transactional(
+            rollbackOn = Exception.class,
+            dontRollbackOn = {MailException.class}
+    )
     public List<TransactionResponse> getTransactionHistory(Long accountId, int page, int size) throws AccountNotExistException {
         Account account = accountRepository.findById(accountId)
                 .orElseThrow(() -> new AccountNotExistException("Account not found"));
@@ -56,7 +64,11 @@ public class TransactionServiceImpl implements TransactionService {
     }
 
     @Override
-    public TransactionResponse deposit(Long accountId, TransactionRequest transactionRequest) throws InvalidTransactionAmountException, AccountNotExistException, AccountInactiveException, AccountFrozenException, AccountBannedException {
+    @Transactional(
+            rollbackOn = Exception.class,
+            dontRollbackOn = {MailException.class}
+    )
+    public TransactionResponse deposit(Long accountId, TransactionRequest transactionRequest) throws InvalidTransactionAmountException, AccountNotExistException, AccountInactiveException, AccountFrozenException, AccountBannedException, UnknownTransactionTypeException {
         validateAmount(transactionRequest.getAmount());
         Account account = validateAccount(accountId);
 
@@ -68,11 +80,17 @@ public class TransactionServiceImpl implements TransactionService {
         transaction.setStatus(TransactionStatus.COMPLETED);
         transaction = transactionRepository.save(transaction);
 
+        sendTransactionSuccessEmail(account.getAccountHolder(), transactionRequest);
+
         return mapToResponse(transaction);
     }
 
     @Override
-    public TransactionResponse withdraw(Long accountId, TransactionRequest transactionRequest) throws InvalidTransactionAmountException, AccountNotExistException, AccountInactiveException, AccountFrozenException, AccountBannedException, InsufficientFundsException {
+    @Transactional(
+            rollbackOn = Exception.class,
+            dontRollbackOn = {MailException.class}
+    )
+    public TransactionResponse withdraw(Long accountId, TransactionRequest transactionRequest) throws InvalidTransactionAmountException, AccountNotExistException, AccountInactiveException, AccountFrozenException, AccountBannedException, InsufficientFundsException, UnknownTransactionTypeException {
         validateAmount(transactionRequest.getAmount());
         Account account = validateAccount(accountId);
 
@@ -88,11 +106,17 @@ public class TransactionServiceImpl implements TransactionService {
         transaction.setStatus(TransactionStatus.COMPLETED);
         transaction = transactionRepository.save(transaction);
 
+        sendTransactionSuccessEmail(account.getAccountHolder(), transactionRequest);
+
         return mapToResponse(transaction);
     }
 
     @Override
-    public TransactionResponse transfer(Long accountId, TransactionRequest transactionRequest) throws InvalidTransactionAmountException, AccountNotExistException, AccountInactiveException, AccountFrozenException, AccountBannedException, InsufficientFundsException {
+    @Transactional(
+            rollbackOn = Exception.class,
+            dontRollbackOn = {MailException.class}
+    )
+    public TransactionResponse transfer(Long accountId, TransactionRequest transactionRequest) throws InvalidTransactionAmountException, AccountNotExistException, AccountInactiveException, AccountFrozenException, AccountBannedException, InsufficientFundsException, UnknownTransactionTypeException {
         validateAmount(transactionRequest.getAmount());
         Account account = validateAccount(accountId);
 
@@ -115,6 +139,8 @@ public class TransactionServiceImpl implements TransactionService {
 
         transaction.setStatus(TransactionStatus.COMPLETED);
         transaction = transactionRepository.save(transaction);
+
+        sendTransactionSuccessEmail(account.getAccountHolder(), transactionRequest);
 
         return mapToResponse(transaction);
     }
@@ -150,6 +176,51 @@ public class TransactionServiceImpl implements TransactionService {
         return transaction;
     }
 
+    private void sendTransactionSuccessEmail(Customer customer, TransactionRequest transactionRequest) throws UnknownTransactionTypeException, AccountNotExistException {
+        EmailDetails emailToCustomer = new EmailDetails();
+        emailToCustomer.setReceiver(customer.getEmail());
+
+        TransactionType transactionType = transactionRequest.getType();
+        emailToCustomer.setSubject(transactionType.toString());
+
+        switch (transactionType) {
+            case WITHDRAWAL:
+                emailToCustomer.setBody(EmailUtils.sendEmailOnWithdrawal(customer, transactionRequest));
+                emailService.sendEmail(emailToCustomer);
+                break;
+            case TRANSFER:
+                emailToCustomer.setBody(EmailUtils.sendEmailOnTransfer(customer, transactionRequest));
+                emailService.sendEmail(emailToCustomer);
+                sendTransactionEmailToReceiver(transactionRequest);
+                break;
+            case DEPOSIT:
+                emailToCustomer.setBody(EmailUtils.sendEmailOnDeposit(customer, transactionRequest));
+                emailService.sendEmail(emailToCustomer);
+                break;
+            default:
+                log.error("[timestamp:{}] Sent {} email to: {} : {}",
+                        new Date(),
+                        emailToCustomer.getSubject().toUpperCase(),
+                        emailToCustomer.getReceiver(),
+                        emailToCustomer.getBody()
+                );
+                throw new UnknownTransactionTypeException("Invalid transaction operation!" + transactionType);
+        }
+    }
+
+    private void sendTransactionEmailToReceiver(TransactionRequest transactionRequest) throws AccountNotExistException {
+        Customer receiver = accountRepository.findByAccountNumber(transactionRequest.getTransferToAccount())
+                .orElseThrow(() -> new AccountNotExistException("Account does not exist: " + transactionRequest.getTransferToAccount()))
+                .getAccountHolder();
+
+        EmailDetails emailToReceiver = new EmailDetails();
+        emailToReceiver.setReceiver(receiver.getEmail());
+        emailToReceiver.setSubject("TRANSFER");
+        emailToReceiver.setBody(EmailUtils.sendEmailOnReceiving(receiver, transactionRequest));
+
+        emailService.sendEmail(emailToReceiver);
+    }
+
     private TransactionResponse mapToResponse(Transaction transaction) {
         TransactionResponse transactionResponse = new TransactionResponse();
         transactionResponse.setId(transaction.getId());
@@ -168,7 +239,7 @@ public class TransactionServiceImpl implements TransactionService {
     @SuppressWarnings("all")
     @Transactional(
             rollbackOn = Exception.class,
-            dontRollbackOn = {MailException.class, EmailService.class}
+            dontRollbackOn = {MailException.class}
     )
     private TransactionResponse createTransaction(Long accountId, TransactionRequest transactionRequest) throws AccountNotExistException, InsufficientFundsException, InvalidTransactionAmountException, AccountInactiveException, AccountFrozenException, AccountBannedException {
         if (transactionRequest.getAmount().compareTo(BigDecimal.ZERO) <= 0) {

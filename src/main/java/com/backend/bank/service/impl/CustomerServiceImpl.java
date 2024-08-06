@@ -27,4 +27,17 @@ public class CustomerServiceImpl implements CustomerService, UserDetailsService 
 
         return customer.orElseThrow(() -> new UsernameNotFoundException("User not found"));
     }
+
+    public void changePassword(String newPassword) {
+
+    }
+
+    public void changeEmail(String newEmail) {
+
+    }
+
+    public void changePhoneNumber(String newPhoneNumber) {
+
+    }
+
 }

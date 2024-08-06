@@ -14,7 +14,8 @@ public class EmailUtils {
                 "Your account details:" +
                 user.getFirstName() + " " + user.getLastName() + "\n" +
                 user.getAccount().getAccountNumber() + "\n" +
-                "Created at: " + LocalTime.now();
+                "Created at: " + LocalTime.now() + "\n"
+                + "Thank you for registering your account.";
     }
 
     public static String sendEmailOnDeposit(Customer customer, TransactionRequest transactionRequest) {
@@ -46,12 +47,13 @@ public class EmailUtils {
                 + "If it was not you, please contact us for further support.";
     }
 
-    public static String sendEmailOnReceiving(Customer customer, TransactionRequest transactionRequest, Customer transferedCustomer) {
-        return transactionRequest.getType().name().toUpperCase() + "\n"
-                + "Dear " + customer.getFirstName() + " " + customer.getLastName() + "\n"
+    public static String sendEmailOnReceiving(Customer receiver, TransactionRequest transactionRequest) {
+        return "TRANSFER" + "\n"
+                + "Dear " + receiver.getFirstName() + " " + receiver.getLastName() + "\n"
                 + "At: " + LocalTime.now() + "\n"
                 + "You have received " + transactionRequest.getAmount()
-                + " from this account" + transferedCustomer.getAccount().getAccountNumber() + "\n"
-                + "Your current balance is: " + customer.getAccount().getBalance() + "\n";
+                + " from account number " + transactionRequest.getTransferToAccount() + "\n"
+                + "Your current balance is: " + receiver.getAccount().getBalance() + "\n"
+                + "Thank you for using our service!";
     }
 }

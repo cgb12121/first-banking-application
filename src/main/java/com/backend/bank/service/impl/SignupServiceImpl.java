@@ -28,7 +28,6 @@ import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
-@Transactional(rollbackOn = Exception.class, dontRollbackOn = MailException.class)
 public class SignupServiceImpl implements SignupService {
 
     private final CustomerRepository customerRepository;
@@ -42,6 +41,7 @@ public class SignupServiceImpl implements SignupService {
     private final EmailService emailService;
 
     @Override
+    @Transactional(rollbackOn = Exception.class, dontRollbackOn = MailException.class)
     public SignupResponse signup(SignupRequest signupRequest) throws AccountAlreadyExistsException {
         checkForExistingAccounts(signupRequest);
 
@@ -117,7 +117,7 @@ public class SignupServiceImpl implements SignupService {
         emailDetails.setReceiver(signupRequest.getEmail());
         emailDetails.setSubject("Signup successful!");
         emailDetails.setBody(EmailUtils.emailAccountCreationSuccess(signupRequest));
-        emailService.sendEmailOnSignUp(emailDetails);
+        emailService.sendEmail(emailDetails);
     }
 
     private SignupResponse createSignupResponse(Customer customer) {

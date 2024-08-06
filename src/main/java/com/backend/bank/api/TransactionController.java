@@ -25,7 +25,7 @@ public class TransactionController {
             @PathVariable Long accountId,
             @RequestBody TransactionRequest transactionRequest)
             throws AccountNotExistException, InvalidTransactionAmountException,
-            AccountFrozenException, AccountBannedException, AccountInactiveException {
+            AccountFrozenException, AccountBannedException, AccountInactiveException, UnknownTransactionTypeException {
         TransactionResponse response = transactionService.deposit(accountId, transactionRequest);
         return ResponseEntity.ok(response);
     }
@@ -36,7 +36,7 @@ public class TransactionController {
             @PathVariable Long accountId,
             @RequestBody TransactionRequest transactionRequest)
             throws AccountNotExistException, InsufficientFundsException, InvalidTransactionAmountException,
-            AccountFrozenException, AccountBannedException, AccountInactiveException {
+            AccountFrozenException, AccountBannedException, AccountInactiveException, UnknownTransactionTypeException {
         TransactionResponse response = transactionService.withdraw(accountId, transactionRequest);
         return ResponseEntity.ok(response);
     }
@@ -47,7 +47,7 @@ public class TransactionController {
             @PathVariable Long accountId,
             @RequestBody TransactionRequest transactionRequest)
             throws AccountNotExistException, InsufficientFundsException, InvalidTransactionAmountException,
-            AccountFrozenException, AccountBannedException, AccountInactiveException {
+            AccountFrozenException, AccountBannedException, AccountInactiveException, UnknownTransactionTypeException {
         TransactionResponse response = transactionService.transfer(accountId, transactionRequest);
         return ResponseEntity.ok(response);
     }

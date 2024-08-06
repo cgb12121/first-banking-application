@@ -35,7 +35,7 @@ public class SignupController {
 
     private Map<String, Object> createSuccessResponse(SignupResponse response) {
         Map<String, Object> responseBody = new LinkedHashMap<>();
-        responseBody.put("timestamp", new Date());
+        responseBody.put("[timestamp]", new Date());
         responseBody.put("status", HttpStatus.OK.value());
         responseBody.put("message", response.getMessage());
         return responseBody;
@@ -43,7 +43,7 @@ public class SignupController {
 
     private Map<String, Object> createErrorResponse(String message) {
         Map<String, Object> responseBody = new LinkedHashMap<>();
-        responseBody.put("timestamp", new Date());
+        responseBody.put("[timestamp]", new Date());
         responseBody.put("status", HttpStatus.CONFLICT.value());
         responseBody.put("message", message);
         return responseBody;

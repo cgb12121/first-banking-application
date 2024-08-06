@@ -7,6 +7,6 @@ import com.backend.bank.exception.AccountNotExistException;
 import org.springframework.stereotype.Service;
 
 @Service
-public interface AuthenticationService {
+public interface LoginService {
     LoginResponse login(LoginRequest loginRequest) throws AccountNotExistException;
 }
