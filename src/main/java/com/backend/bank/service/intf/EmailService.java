@@ -7,6 +7,6 @@ import org.springframework.stereotype.Service;
 
 @Service
 public interface EmailService {
-    @Async
+    @Async(value = "emailTaskExecutor")
     void sendEmailToCustomer(EmailDetails emailDetails);
 }

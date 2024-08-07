@@ -30,6 +30,7 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.Date;
@@ -79,7 +80,9 @@ public class TransactionServiceImpl implements TransactionService {
      *
      * @param accountId          The ID of the account.
      * @param transactionRequest The details of the deposit transaction.
+     *
      * @return A {@link TransactionResponse} representing the completed transaction.
+     *
      * @throws InvalidTransactionAmountException If the transaction amount is invalid.
      * @throws AccountNotExistException          If the account does not exist.
      * @throws AccountInactiveException          If the account is inactive.
@@ -93,8 +96,9 @@ public class TransactionServiceImpl implements TransactionService {
             dontRollbackOn = {MailException.class}
     )
     @Async(value = "transactionTaskExecutor")
-    public CompletableFuture<TransactionResponse> deposit(Long accountId, TransactionRequest transactionRequest)
-            throws InvalidTransactionAmountException, AccountNotExistException,
+    public CompletableFuture<TransactionResponse> deposit(
+            Long accountId, TransactionRequest transactionRequest
+    ) throws InvalidTransactionAmountException, AccountNotExistException,
             AccountInactiveException, AccountFrozenException,
             AccountBannedException, UnknownTransactionTypeException {
 
@@ -119,7 +123,9 @@ public class TransactionServiceImpl implements TransactionService {
      *
      * @param accountId          The ID of the account.
      * @param transactionRequest The details of the withdrawal transaction.
+     *
      * @return A {@link TransactionResponse} representing the completed transaction.
+     *
      * @throws InvalidTransactionAmountException If the transaction amount is invalid.
      * @throws AccountNotExistException          If the account does not exist.
      * @throws AccountInactiveException          If the account is inactive.
@@ -134,7 +140,12 @@ public class TransactionServiceImpl implements TransactionService {
             dontRollbackOn = {MailException.class}
     )
     @Async(value = "transactionTaskExecutor")
-    public CompletableFuture<TransactionResponse> withdraw(Long accountId, TransactionRequest transactionRequest) throws InvalidTransactionAmountException, AccountNotExistException, AccountInactiveException, AccountFrozenException, AccountBannedException, InsufficientFundsException, UnknownTransactionTypeException {
+    public CompletableFuture<TransactionResponse> withdraw(
+            Long accountId, TransactionRequest transactionRequest
+    ) throws InvalidTransactionAmountException, AccountNotExistException,
+            AccountInactiveException, AccountFrozenException, AccountBannedException,
+            InsufficientFundsException, UnknownTransactionTypeException {
+
         validateAmount(transactionRequest.getAmount());
         Account account = validateAccount(accountId);
 
@@ -160,7 +171,9 @@ public class TransactionServiceImpl implements TransactionService {
      *
      * @param accountId          The ID of the sender's account.
      * @param transactionRequest The details of the transfer transaction.
+     *
      * @return A {@link TransactionResponse} representing the completed transaction.
+     *
      * @throws InvalidTransactionAmountException If the transaction amount is invalid.
      * @throws AccountNotExistException          If the sender or receiver account does not exist.
      * @throws AccountInactiveException          If the sender or receiver account is inactive.
@@ -176,7 +189,11 @@ public class TransactionServiceImpl implements TransactionService {
             dontRollbackOn = {MailException.class}
     )
     @Async(value = "transactionTaskExecutor")
-    public CompletableFuture<TransactionResponse> transfer(Long accountId, TransactionRequest transactionRequest) throws InvalidTransactionAmountException, AccountNotExistException, AccountInactiveException, AccountFrozenException, AccountBannedException, InsufficientFundsException, UnknownTransactionTypeException, CantTransferToSelfException {
+    public CompletableFuture<TransactionResponse> transfer(Long accountId, TransactionRequest transactionRequest)
+            throws InvalidTransactionAmountException, AccountNotExistException,
+            AccountInactiveException, AccountFrozenException, AccountBannedException,
+            InsufficientFundsException, UnknownTransactionTypeException, CantTransferToSelfException {
+
         validateAmount(transactionRequest.getAmount());
         Account account = validateAccount(accountId);
 
@@ -215,7 +232,9 @@ public class TransactionServiceImpl implements TransactionService {
      * @param accountId The ID of the account.
      * @param page      The page number for pagination.
      * @param size      The size of each page for pagination.
+     *
      * @return A list of {@link TransactionResponse} representing the transaction history.
+     *
      * @throws AccountNotExistException If the account does not exist.
      */
     @Override
@@ -241,7 +260,9 @@ public class TransactionServiceImpl implements TransactionService {
      * @param accountId The ID of the account.
      * @param page      The page number for pagination.
      * @param size      The size of each page for pagination.
+     *
      * @return A list of {@link TransactionResponse} representing the transaction history.
+     *
      * @throws AccountNotExistException If the account does not exist.
      */
     @Override
@@ -266,7 +287,9 @@ public class TransactionServiceImpl implements TransactionService {
      * @param accountId The ID of the account.
      * @param page      The page number for pagination.
      * @param size      The size of each page for pagination.
+     *
      * @return A list of {@link TransactionResponse} representing the transaction history.
+     *
      * @throws AccountNotExistException If the account does not exist.
      */
     @Override
@@ -291,7 +314,9 @@ public class TransactionServiceImpl implements TransactionService {
      * @param accountId The ID of the account.
      * @param page      The page number for pagination.
      * @param size      The size of each page for pagination.
+     *
      * @return A list of {@link TransactionResponse} representing the transaction history.
+     *
      * @throws AccountNotExistException If the account does not exist.
      */
     @Override
@@ -316,7 +341,9 @@ public class TransactionServiceImpl implements TransactionService {
      * @param accountId The ID of the account.
      * @param page      The page number for pagination.
      * @param size      The size of each page for pagination.
+     *
      * @return A list of {@link TransactionResponse} representing the transaction history.
+     *
      * @throws AccountNotExistException If the account does not exist.
      */
     @Override
@@ -336,7 +363,7 @@ public class TransactionServiceImpl implements TransactionService {
     }
 
     /**
-     * {@code Add interest} to the users' account at the {@code first day of the month}
+     * {@code Add interest} to the users' account at the {@code beginning day of the month}
      */
     @Override
     @Scheduled(cron = "0 0 0 1 * ?")
@@ -348,7 +375,10 @@ public class TransactionServiceImpl implements TransactionService {
             BigDecimal interest = account.getBalance().multiply(interestRate);
             try {
                 interestService.addInterest(account.getAccountNumber(), interest);
-                //TODO: send email on event
+                EmailDetails emailDetails = new EmailDetails();
+                emailDetails.setSubject("RECEIVING MONTHLY INTEREST");
+                emailDetails.setBody(EmailUtils.sendEmailOnReceivingInterest(account, interest, LocalDate.now()));
+                emailService.sendEmailToCustomer(emailDetails);
             } catch (AccountNotExistException e) {
                 log.error("[Timestamp: {}] Error when trying to add interest to account: + {}. [Error] + {} : + {}",
                         LocalTime.now(),
@@ -356,6 +386,15 @@ public class TransactionServiceImpl implements TransactionService {
                         e.getCause(),
                         e.getMessage()
                 );
+            } catch (MailException e) {
+                log.error("[Timestamp: {}] Error when trying send interest email to account: + {}. [Error] + {} : + {}",
+                        LocalTime.now(),
+                        account.getAccountNumber(),
+                        e.getCause(),
+                        e.getMessage()
+                );
+            } catch (Exception e) {
+                log.error("[Timestamp: {}] Something when wrong! {}: {}.",  LocalTime.now(), e.getCause(), e.getMessage());
             }
         }
     }
@@ -364,6 +403,7 @@ public class TransactionServiceImpl implements TransactionService {
      * {@code Validates} the {@code transaction amount}.
      *
      * @param amount The transaction amount to be validated.
+     *
      * @throws InvalidTransactionAmountException If the amount is less than or equal to zero.
      */
     private void validateAmount(BigDecimal amount)
@@ -378,7 +418,9 @@ public class TransactionServiceImpl implements TransactionService {
      * {@code Validates} the {@code account status}.
      *
      * @param accountId The ID of the account to be validated.
+     *
      * @return The validated {@link Account}.
+     *
      * @throws AccountNotExistException If the account does not exist.
      * @throws AccountInactiveException If the account is inactive.
      * @throws AccountFrozenException If the account is frozen.
@@ -398,6 +440,7 @@ public class TransactionServiceImpl implements TransactionService {
      * {@code Validates} the {@code status of an account}.
      *
      * @param account The account to be validated.
+     *
      * @throws AccountInactiveException If the account is inactive.
      * @throws AccountFrozenException If the account is frozen.
      * @throws AccountBannedException If the account is banned.
@@ -418,6 +461,7 @@ public class TransactionServiceImpl implements TransactionService {
      * @param account The account associated with the transaction.
      * @param amount The amount of the transaction.
      * @param type The type of the transaction.
+     *
      * @return The created {@link Transaction}.
      */
     private Transaction createTransaction(Account account, BigDecimal amount, TransactionType type) {
@@ -435,6 +479,7 @@ public class TransactionServiceImpl implements TransactionService {
      *
      * @param customer The customer associated with the transaction.
      * @param transactionRequest The transaction request details.
+     *
      * @throws UnknownTransactionTypeException If the transaction type is unknown.
      * @throws AccountNotExistException If the account does not exist.
      */
@@ -477,6 +522,7 @@ public class TransactionServiceImpl implements TransactionService {
      * Sends an {@code email notification} to the receiver of a transfer.
      *
      * @param transactionRequest The transaction request details.
+     *
      * @throws AccountNotExistException If the receiver account does not exist.
      */
     private void sendTransactionEmailToReceiver(TransactionRequest transactionRequest, Date receivedDate)
@@ -498,6 +544,7 @@ public class TransactionServiceImpl implements TransactionService {
      * Maps a {@link Transaction} entity to a {@link TransactionResponse}.
      *
      * @param transaction The transaction entity.
+     *
      * @return The transaction response.
      */
     private TransactionResponse mapToResponse(Transaction transaction) {

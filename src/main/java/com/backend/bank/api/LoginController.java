@@ -13,6 +13,8 @@ import org.springframework.web.bind.annotation.*;
 import java.util.Date;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
 
 @RestController
 @RequiredArgsConstructor
@@ -24,7 +26,7 @@ public class LoginController {
     @PostMapping("/login")
     public ResponseEntity<Map<String, Object>> login(@RequestBody LoginRequest loginRequest) {
         try {
-            LoginResponse response = loginService.login(loginRequest);
+            CompletableFuture<LoginResponse> response = loginService.login(loginRequest);
             return ResponseEntity.ok(createSuccessResponse(response));
         } catch (AccountNotExistException | BadCredentialsException e) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(createErrorResponse(e.getMessage()));
@@ -33,12 +35,12 @@ public class LoginController {
         }
     }
 
-    private Map<String, Object> createSuccessResponse(LoginResponse response) {
+    private Map<String, Object> createSuccessResponse(CompletableFuture<LoginResponse> response) throws ExecutionException, InterruptedException {
         Map<String, Object> responseBody = new LinkedHashMap<>();
         responseBody.put("[timestamp]", new Date());
         responseBody.put("status", HttpStatus.OK.value());
-        responseBody.put("message", response.getMessage());
-        responseBody.put("token", response.getToken());
+        responseBody.put("message", response.get().getMessage());
+        responseBody.put("token", response.get().getToken());
         return responseBody;
     }
 

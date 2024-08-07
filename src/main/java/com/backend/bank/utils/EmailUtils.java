@@ -3,8 +3,11 @@ package com.backend.bank.utils;
 import com.backend.bank.dto.request.ChangePasswordRequest;
 import com.backend.bank.dto.request.SignupRequest;
 import com.backend.bank.dto.request.TransactionRequest;
+import com.backend.bank.entity.Account;
 import com.backend.bank.entity.Customer;
 
+import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.util.Date;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -61,8 +64,7 @@ public class EmailUtils {
 
     public static String sendEmailOnReceiving(Customer receiver, TransactionRequest transactionRequest, Date now) {
         AtomicReference<StringBuilder> message = new AtomicReference<>(new StringBuilder());
-        message.get().append("TRANSFER").append(NEW_LINE)
-                .append("Dear ").append(receiver.getFirstName()).append(" ").append(receiver.getLastName()).append(NEW_LINE)
+        message.get().append("Dear ").append(receiver.getFirstName()).append(" ").append(receiver.getLastName()).append(NEW_LINE)
                 .append("At: ").append(now).append(NEW_LINE)
                 .append("You have received ").append(transactionRequest.getAmount()).append(" from account number ").append(transactionRequest.getTransferToAccount()).append(NEW_LINE)
                 .append("Your current balance is: ").append(receiver.getAccount().getBalance()).append(NEW_LINE)
@@ -72,11 +74,18 @@ public class EmailUtils {
 
     public static String sendEmailOnChangePassword(ChangePasswordRequest changePasswordRequest, Date changedPasswordDate) {
         AtomicReference<StringBuilder> message = new AtomicReference<>(new StringBuilder());
-        message.get().append("CHANGE PASSWORD").append(NEW_LINE)
-                .append("Dear ").append(changePasswordRequest.getEmail()).append(NEW_LINE)
+        message.get().append("Dear ").append(changePasswordRequest.getEmail()).append(NEW_LINE)
                 .append("At: ").append(changedPasswordDate).append(NEW_LINE)
                 .append("Your account password has been changed successfully. ").append(NEW_LINE)
                 .append("If it was not you, please change your password again to secure your account.").append(NEW_LINE)
+                .append("Thank you for using our service!");
+        return message.toString();
+    }
+
+    public static String sendEmailOnReceivingInterest(Account account, BigDecimal earnedInterest, LocalDate now) {
+        AtomicReference<StringBuilder> message = new AtomicReference<>(new StringBuilder());
+        message.get().append("Dear ").append(account.getAccountHolder().getFirstName()).append(" ").append(account.getAccountHolder().getLastName()).append(NEW_LINE)
+                .append("You have received monthly interest.").append("Amount: ").append(earnedInterest).append(NEW_LINE)
                 .append("Thank you for using our service!");
         return message.toString();
     }

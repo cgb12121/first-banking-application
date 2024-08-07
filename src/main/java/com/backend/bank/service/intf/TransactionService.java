@@ -39,10 +39,6 @@ import java.util.concurrent.CompletableFuture;
  * </dl>
  */
 @Service
-@Transactional(
-        rollbackOn = Exception.class,
-        dontRollbackOn = {MailException.class}
-)
 public interface TransactionService {
     /**
      * {@code Deposits} a specified amount into an account.
