@@ -13,6 +13,8 @@ import org.springframework.web.bind.annotation.*;
 import java.util.Date;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
 
 @RestController
 @RequiredArgsConstructor
@@ -24,7 +26,7 @@ public class SignupController {
     @PostMapping("/signup")
     public ResponseEntity<Map<String, Object>> signup(@RequestBody SignupRequest signupRequest) {
         try {
-            SignupResponse response = signupService.signup(signupRequest);
+            CompletableFuture<SignupResponse> response = signupService.signup(signupRequest);
             return ResponseEntity.ok(createSuccessResponse(response));
         } catch (AccountAlreadyExistsException e) {
             return ResponseEntity.status(HttpStatus.CONFLICT).body(createErrorResponse(e.getMessage()));
@@ -33,11 +35,11 @@ public class SignupController {
         }
     }
 
-    private Map<String, Object> createSuccessResponse(SignupResponse response) {
+    private Map<String, Object> createSuccessResponse(CompletableFuture<SignupResponse> response) throws ExecutionException, InterruptedException {
         Map<String, Object> responseBody = new LinkedHashMap<>();
         responseBody.put("[timestamp]", new Date());
         responseBody.put("status", HttpStatus.OK.value());
-        responseBody.put("message", response.getMessage());
+        responseBody.put("message", response.get().getMessage());
         return responseBody;
     }
 

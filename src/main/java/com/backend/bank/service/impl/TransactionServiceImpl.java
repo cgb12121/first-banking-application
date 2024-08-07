@@ -24,12 +24,14 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.mail.MailException;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.Date;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -70,22 +72,23 @@ public class TransactionServiceImpl implements TransactionService {
     /**
      * {@code Deposits} a specified amount into an account.
      *
-     * @param accountId The ID of the account.
+     * @param accountId          The ID of the account.
      * @param transactionRequest The details of the deposit transaction.
      * @return A {@link TransactionResponse} representing the completed transaction.
      * @throws InvalidTransactionAmountException If the transaction amount is invalid.
-     * @throws AccountNotExistException If the account does not exist.
-     * @throws AccountInactiveException If the account is inactive.
-     * @throws AccountFrozenException If the account is frozen.
-     * @throws AccountBannedException If the account is banned.
-     * @throws UnknownTransactionTypeException If the transaction type is unknown.
+     * @throws AccountNotExistException          If the account does not exist.
+     * @throws AccountInactiveException          If the account is inactive.
+     * @throws AccountFrozenException            If the account is frozen.
+     * @throws AccountBannedException            If the account is banned.
+     * @throws UnknownTransactionTypeException   If the transaction type is unknown.
      */
     @Override
     @Transactional(
             rollbackOn = Exception.class,
             dontRollbackOn = {MailException.class}
     )
-    public TransactionResponse deposit(Long accountId, TransactionRequest transactionRequest) throws InvalidTransactionAmountException, AccountNotExistException, AccountInactiveException, AccountFrozenException, AccountBannedException, UnknownTransactionTypeException {
+    @Async(value = "transactionTaskExecutor")
+    public CompletableFuture<TransactionResponse> deposit(Long accountId, TransactionRequest transactionRequest) throws InvalidTransactionAmountException, AccountNotExistException, AccountInactiveException, AccountFrozenException, AccountBannedException, UnknownTransactionTypeException {
         validateAmount(transactionRequest.getAmount());
         Account account = validateAccount(accountId);
 
@@ -99,29 +102,30 @@ public class TransactionServiceImpl implements TransactionService {
 
         sendTransactionSuccessEmail(account.getAccountHolder(), transactionRequest);
 
-        return mapToResponse(transaction);
+        return CompletableFuture.completedFuture(mapToResponse(transaction));
     }
 
     /**
      * {@code Withdraws} a specified amount from an account.
      *
-     * @param accountId The ID of the account.
+     * @param accountId          The ID of the account.
      * @param transactionRequest The details of the withdrawal transaction.
      * @return A {@link TransactionResponse} representing the completed transaction.
      * @throws InvalidTransactionAmountException If the transaction amount is invalid.
-     * @throws AccountNotExistException If the account does not exist.
-     * @throws AccountInactiveException If the account is inactive.
-     * @throws AccountFrozenException If the account is frozen.
-     * @throws AccountBannedException If the account is banned.
-     * @throws InsufficientFundsException If there are insufficient funds for the withdrawal.
-     * @throws UnknownTransactionTypeException If the transaction type is unknown.
+     * @throws AccountNotExistException          If the account does not exist.
+     * @throws AccountInactiveException          If the account is inactive.
+     * @throws AccountFrozenException            If the account is frozen.
+     * @throws AccountBannedException            If the account is banned.
+     * @throws InsufficientFundsException        If there are insufficient funds for the withdrawal.
+     * @throws UnknownTransactionTypeException   If the transaction type is unknown.
      */
     @Override
     @Transactional(
             rollbackOn = Exception.class,
             dontRollbackOn = {MailException.class}
     )
-    public TransactionResponse withdraw(Long accountId, TransactionRequest transactionRequest) throws InvalidTransactionAmountException, AccountNotExistException, AccountInactiveException, AccountFrozenException, AccountBannedException, InsufficientFundsException, UnknownTransactionTypeException {
+    @Async(value = "transactionTaskExecutor")
+    public CompletableFuture<TransactionResponse> withdraw(Long accountId, TransactionRequest transactionRequest) throws InvalidTransactionAmountException, AccountNotExistException, AccountInactiveException, AccountFrozenException, AccountBannedException, InsufficientFundsException, UnknownTransactionTypeException {
         validateAmount(transactionRequest.getAmount());
         Account account = validateAccount(accountId);
 
@@ -139,30 +143,31 @@ public class TransactionServiceImpl implements TransactionService {
 
         sendTransactionSuccessEmail(account.getAccountHolder(), transactionRequest);
 
-        return mapToResponse(transaction);
+        return CompletableFuture.completedFuture(mapToResponse(transaction));
     }
 
     /**
      * {@code Transfers} a specified amount from one account to another.
      *
-     * @param accountId The ID of the sender's account.
+     * @param accountId          The ID of the sender's account.
      * @param transactionRequest The details of the transfer transaction.
      * @return A {@link TransactionResponse} representing the completed transaction.
      * @throws InvalidTransactionAmountException If the transaction amount is invalid.
-     * @throws AccountNotExistException If the sender or receiver account does not exist.
-     * @throws AccountInactiveException If the sender or receiver account is inactive.
-     * @throws AccountFrozenException If the sender or receiver account is frozen.
-     * @throws AccountBannedException If the sender or receiver account is banned.
-     * @throws InsufficientFundsException If there are insufficient funds for the transfer.
-     * @throws UnknownTransactionTypeException If the transaction type is unknown.
-     * @throws CantTransferToSelfException If the receiver is the same as the sender.
+     * @throws AccountNotExistException          If the sender or receiver account does not exist.
+     * @throws AccountInactiveException          If the sender or receiver account is inactive.
+     * @throws AccountFrozenException            If the sender or receiver account is frozen.
+     * @throws AccountBannedException            If the sender or receiver account is banned.
+     * @throws InsufficientFundsException        If there are insufficient funds for the transfer.
+     * @throws UnknownTransactionTypeException   If the transaction type is unknown.
+     * @throws CantTransferToSelfException       If the receiver is the same as the sender.
      */
     @Override
     @Transactional(
             rollbackOn = Exception.class,
             dontRollbackOn = {MailException.class}
     )
-    public TransactionResponse transfer(Long accountId, TransactionRequest transactionRequest) throws InvalidTransactionAmountException, AccountNotExistException, AccountInactiveException, AccountFrozenException, AccountBannedException, InsufficientFundsException, UnknownTransactionTypeException, CantTransferToSelfException {
+    @Async(value = "transactionTaskExecutor")
+    public CompletableFuture<TransactionResponse> transfer(Long accountId, TransactionRequest transactionRequest) throws InvalidTransactionAmountException, AccountNotExistException, AccountInactiveException, AccountFrozenException, AccountBannedException, InsufficientFundsException, UnknownTransactionTypeException, CantTransferToSelfException {
         validateAmount(transactionRequest.getAmount());
         Account account = validateAccount(accountId);
 
@@ -192,20 +197,21 @@ public class TransactionServiceImpl implements TransactionService {
 
         sendTransactionSuccessEmail(account.getAccountHolder(), transactionRequest);
 
-        return mapToResponse(transaction);
+        return CompletableFuture.completedFuture(mapToResponse(transaction));
     }
 
     /**
      * {@code Retrieves} all the {@code transaction history} for a given account.
      *
      * @param accountId The ID of the account.
-     * @param page The page number for pagination.
-     * @param size The size of each page for pagination.
+     * @param page      The page number for pagination.
+     * @param size      The size of each page for pagination.
      * @return A list of {@link TransactionResponse} representing the transaction history.
      * @throws AccountNotExistException If the account does not exist.
      */
     @Override
-    public List<TransactionResponse> getTransactionHistory(Long accountId, int page, int size) throws AccountNotExistException {
+    @Async(value = "transactionTaskExecutor")
+    public CompletableFuture<List<TransactionResponse>> getTransactionHistory(Long accountId, int page, int size) throws AccountNotExistException {
         Account account = accountRepository.findById(accountId)
                 .orElseThrow(() -> new AccountNotExistException("Account not found"));
         String accountNumber = account.getAccountNumber();
@@ -214,23 +220,24 @@ public class TransactionServiceImpl implements TransactionService {
         Page<Transaction> sentTransactions = transactionRepository.findByAccount_AccountNumber(accountNumber, pageable);
         Page<Transaction> receivedTransactions = transactionRepository.findByTransferToAccount(accountNumber, pageable);
 
-        return Stream.concat(sentTransactions.stream(), receivedTransactions.stream())
+        return CompletableFuture.completedFuture(Stream.concat(sentTransactions.stream(), receivedTransactions.stream())
                 .sorted((t1, t2) -> t2.getTimestamp().compareTo(t1.getTimestamp()))
                 .map(this::mapToResponse)
-                .collect(Collectors.toList());
+                .collect(Collectors.toList()));
     }
 
     /**
      * {@code Retrieves} the {@code deposit transaction history} for a given account.
      *
      * @param accountId The ID of the account.
-     * @param page The page number for pagination.
-     * @param size The size of each page for pagination.
+     * @param page      The page number for pagination.
+     * @param size      The size of each page for pagination.
      * @return A list of {@link TransactionResponse} representing the transaction history.
      * @throws AccountNotExistException If the account does not exist.
      */
     @Override
-    public List<TransactionResponse> getDepositTransactionHistory(Long accountId, int page, int size) throws AccountNotExistException {
+    @Async(value = "transactionTaskExecutor")
+    public CompletableFuture<List<TransactionResponse>> getDepositTransactionHistory(Long accountId, int page, int size) throws AccountNotExistException {
         Account account = accountRepository.findById(accountId)
                 .orElseThrow(() -> new AccountNotExistException("Account not found"));
         String accountNumber = account.getAccountNumber();
@@ -238,23 +245,24 @@ public class TransactionServiceImpl implements TransactionService {
         Pageable pageable = PageRequest.of(page, size);
         Page<Transaction> transactions = transactionRepository.findByAccount_AccountNumber(accountNumber, pageable);
 
-        return transactions.stream()
+        return CompletableFuture.completedFuture(transactions.stream()
                 .filter(transaction -> transaction.getType() == TransactionType.DEPOSIT)
                 .sorted((t1, t2) -> t2.getTimestamp().compareTo(t1.getTimestamp()))
-                .map(this::mapToResponse).collect(Collectors.toList());
+                .map(this::mapToResponse).collect(Collectors.toList()));
     }
 
     /**
      * {@code Retrieves} the {@code withdrawal transaction history} for a given account.
      *
      * @param accountId The ID of the account.
-     * @param page The page number for pagination.
-     * @param size The size of each page for pagination.
+     * @param page      The page number for pagination.
+     * @param size      The size of each page for pagination.
      * @return A list of {@link TransactionResponse} representing the transaction history.
      * @throws AccountNotExistException If the account does not exist.
      */
     @Override
-    public List<TransactionResponse> getWithdrawTransactionHistory(Long accountId, int page, int size) throws AccountNotExistException {
+    @Async(value = "transactionTaskExecutor")
+    public CompletableFuture<List<TransactionResponse>> getWithdrawTransactionHistory(Long accountId, int page, int size) throws AccountNotExistException {
         Account account = accountRepository.findById(accountId)
                 .orElseThrow(() -> new AccountNotExistException("Account not found"));
         String accountNumber = account.getAccountNumber();
@@ -262,23 +270,24 @@ public class TransactionServiceImpl implements TransactionService {
         Pageable pageable = PageRequest.of(page, size);
         Page<Transaction> transactions = transactionRepository.findByAccount_AccountNumber(accountNumber, pageable);
 
-        return transactions.stream()
+        return CompletableFuture.completedFuture(transactions.stream()
                 .filter(transaction -> transaction.getType() == TransactionType.WITHDRAWAL)
                 .sorted((t1, t2) -> t2.getTimestamp().compareTo(t1.getTimestamp()))
-                .map(this::mapToResponse).collect(Collectors.toList());
+                .map(this::mapToResponse).collect(Collectors.toList()));
     }
 
     /**
      * {@code Retrieves} the {@code transferred transaction history} for a given account.
      *
      * @param accountId The ID of the account.
-     * @param page The page number for pagination.
-     * @param size The size of each page for pagination.
+     * @param page      The page number for pagination.
+     * @param size      The size of each page for pagination.
      * @return A list of {@link TransactionResponse} representing the transaction history.
      * @throws AccountNotExistException If the account does not exist.
      */
     @Override
-    public List<TransactionResponse> getSentTransactionHistory(Long accountId, int page, int size) throws AccountNotExistException {
+    @Async(value = "transactionTaskExecutor")
+    public CompletableFuture<List<TransactionResponse>> getSentTransactionHistory(Long accountId, int page, int size) throws AccountNotExistException {
         Account account = accountRepository.findById(accountId)
                 .orElseThrow(() -> new AccountNotExistException("Account not found"));
         String accountNumber = account.getAccountNumber();
@@ -286,23 +295,24 @@ public class TransactionServiceImpl implements TransactionService {
         Pageable pageable = PageRequest.of(page, size);
         Page<Transaction> transactions = transactionRepository.findByAccount_AccountNumber(accountNumber, pageable);
 
-        return transactions.stream()
+        return CompletableFuture.completedFuture(transactions.stream()
                 .filter(transaction -> transaction.getType() == TransactionType.TRANSFER)
                 .sorted((t1, t2) -> t2.getTimestamp().compareTo(t1.getTimestamp()))
-                .map(this::mapToResponse).collect(Collectors.toList());
+                .map(this::mapToResponse).collect(Collectors.toList()));
     }
 
     /**
      * {@code Retrieves} the {@code received transaction history} for a given account.
      *
      * @param accountId The ID of the account.
-     * @param page The page number for pagination.
-     * @param size The size of each page for pagination.
+     * @param page      The page number for pagination.
+     * @param size      The size of each page for pagination.
      * @return A list of {@link TransactionResponse} representing the transaction history.
      * @throws AccountNotExistException If the account does not exist.
      */
     @Override
-    public List<TransactionResponse> getReceivedTransactionHistory(Long accountId, int page, int size) throws AccountNotExistException {
+    @Async(value = "transactionTaskExecutor")
+    public CompletableFuture<List<TransactionResponse>> getReceivedTransactionHistory(Long accountId, int page, int size) throws AccountNotExistException {
         Account account = accountRepository.findById(accountId)
                 .orElseThrow(() -> new AccountNotExistException("Account not found"));
         String accountNumber = account.getAccountNumber();
@@ -310,10 +320,10 @@ public class TransactionServiceImpl implements TransactionService {
         Pageable pageable = PageRequest.of(page, size);
         Page<Transaction> transactions = transactionRepository.findAllByTransferToAccount(accountNumber, pageable);
 
-        return transactions.stream()
+        return CompletableFuture.completedFuture(transactions.stream()
                 .filter(transaction -> transaction.getType() == TransactionType.TRANSFER)
                 .sorted((t1, t2) -> t2.getTimestamp().compareTo(t1.getTimestamp()))
-                .map(this::mapToResponse).collect(Collectors.toList());
+                .map(this::mapToResponse).collect(Collectors.toList()));
     }
 
     /**
@@ -396,16 +406,17 @@ public class TransactionServiceImpl implements TransactionService {
 
         switch (transactionType) {
             case WITHDRAWAL:
-                emailToCustomer.setBody(EmailUtils.sendEmailOnWithdrawal(customer, transactionRequest));
+                emailToCustomer.setBody(EmailUtils.sendEmailOnWithdrawal(customer, transactionRequest, new Date()));
                 emailService.sendEmail(emailToCustomer);
                 break;
             case TRANSFER:
-                emailToCustomer.setBody(EmailUtils.sendEmailOnTransfer(customer, transactionRequest));
+                Date transferDate = new Date();
+                emailToCustomer.setBody(EmailUtils.sendEmailOnTransfer(customer, transactionRequest, transferDate));
                 emailService.sendEmail(emailToCustomer);
-                sendTransactionEmailToReceiver(transactionRequest);
+                sendTransactionEmailToReceiver(transactionRequest, transferDate);
                 break;
             case DEPOSIT:
-                emailToCustomer.setBody(EmailUtils.sendEmailOnDeposit(customer, transactionRequest));
+                emailToCustomer.setBody(EmailUtils.sendEmailOnDeposit(customer, transactionRequest, new Date()));
                 emailService.sendEmail(emailToCustomer);
                 break;
             default:
@@ -425,7 +436,7 @@ public class TransactionServiceImpl implements TransactionService {
      * @param transactionRequest The transaction request details.
      * @throws AccountNotExistException If the receiver account does not exist.
      */
-    private void sendTransactionEmailToReceiver(TransactionRequest transactionRequest) throws AccountNotExistException {
+    private void sendTransactionEmailToReceiver(TransactionRequest transactionRequest, Date receivedDate) throws AccountNotExistException {
         Customer receiver = accountRepository.findByAccountNumber(transactionRequest.getTransferToAccount())
                 .orElseThrow(() -> new AccountNotExistException("Account does not exist: " + transactionRequest.getTransferToAccount()))
                 .getAccountHolder();
@@ -433,7 +444,7 @@ public class TransactionServiceImpl implements TransactionService {
         EmailDetails emailToReceiver = new EmailDetails();
         emailToReceiver.setReceiver(receiver.getEmail());
         emailToReceiver.setSubject("TRANSFER");
-        emailToReceiver.setBody(EmailUtils.sendEmailOnReceiving(receiver, transactionRequest));
+        emailToReceiver.setBody(EmailUtils.sendEmailOnReceiving(receiver, transactionRequest, receivedDate));
 
         emailService.sendEmail(emailToReceiver);
     }

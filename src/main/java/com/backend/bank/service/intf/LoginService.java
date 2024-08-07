@@ -6,7 +6,9 @@ import com.backend.bank.exception.AccountNotExistException;
 
 import org.springframework.stereotype.Service;
 
+import java.util.concurrent.CompletableFuture;
+
 @Service
 public interface LoginService {
-    LoginResponse login(LoginRequest loginRequest) throws AccountNotExistException;
+    CompletableFuture<LoginResponse> login(LoginRequest loginRequest) throws AccountNotExistException;
 }

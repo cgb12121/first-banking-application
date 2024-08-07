@@ -11,6 +11,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
 
 @RestController
 @RequiredArgsConstructor
@@ -21,36 +22,36 @@ public class TransactionController {
 
     @PostMapping("/deposit")
     @PreAuthorize("hasAnyRole('ROLE_ADMIN', 'ROLE_MANAGER', 'ROLE_STAFF')")
-    public ResponseEntity<TransactionResponse> deposit(
+    public ResponseEntity<CompletableFuture<TransactionResponse>> deposit(
             @PathVariable Long accountId,
             @RequestBody TransactionRequest transactionRequest
     ) throws AccountNotExistException, InvalidTransactionAmountException, AccountFrozenException,
             AccountBannedException, AccountInactiveException, UnknownTransactionTypeException {
-        TransactionResponse response = transactionService.deposit(accountId, transactionRequest);
+        CompletableFuture<TransactionResponse> response = transactionService.deposit(accountId, transactionRequest);
         return ResponseEntity.ok(response);
     }
 
     @PostMapping("/withdraw")
     @PreAuthorize("hasRole('ROLE_USER') and @securityService.canAccessAccount(#accountId)")
-    public ResponseEntity<TransactionResponse> withdraw(
+    public ResponseEntity<CompletableFuture<TransactionResponse>> withdraw(
             @PathVariable Long accountId,
             @RequestBody TransactionRequest transactionRequest
     ) throws AccountNotExistException, InsufficientFundsException, InvalidTransactionAmountException,
             AccountFrozenException, AccountBannedException, AccountInactiveException, UnknownTransactionTypeException {
-        TransactionResponse response = transactionService.withdraw(accountId, transactionRequest);
+        CompletableFuture<TransactionResponse> response = transactionService.withdraw(accountId, transactionRequest);
         return ResponseEntity.ok(response);
     }
 
     @PostMapping("/transfer")
     @PreAuthorize("hasRole('ROLE_USER') and @securityService.canAccessAccount(#accountId)")
-    public ResponseEntity<TransactionResponse> transfer(
+    public ResponseEntity<CompletableFuture<TransactionResponse>> transfer(
             @PathVariable Long accountId,
             @RequestBody TransactionRequest transactionRequest
     ) throws AccountNotExistException, InsufficientFundsException,
             InvalidTransactionAmountException, AccountFrozenException,
             AccountBannedException, AccountInactiveException,
             UnknownTransactionTypeException, CantTransferToSelfException {
-        TransactionResponse response = transactionService.transfer(accountId, transactionRequest);
+        CompletableFuture<TransactionResponse> response = transactionService.transfer(accountId, transactionRequest);
         return ResponseEntity.ok(response);
     }
 
@@ -59,12 +60,12 @@ public class TransactionController {
             "hasAnyRole('ROLE_ADMIN', 'ROLE_MANAGER')" +
             " or (hasRole('ROLE_USER') and @securityService.canAccessAccount(#accountId))"
     )
-    public ResponseEntity<List<TransactionResponse>> getTransactionHistory(
+    public ResponseEntity<CompletableFuture<List<TransactionResponse>>> getTransactionHistory(
             @PathVariable Long accountId,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size
     ) throws AccountNotExistException {
-        List<TransactionResponse> response = transactionService.getTransactionHistory(accountId, page, size);
+        CompletableFuture<List<TransactionResponse>> response = transactionService.getTransactionHistory(accountId, page, size);
         return ResponseEntity.ok(response);
     }
 
@@ -73,12 +74,12 @@ public class TransactionController {
             "hasAnyRole('ROLE_ADMIN', 'ROLE_MANAGER')" +
             " or (hasRole('ROLE_USER') and @securityService.canAccessAccount(#accountId))"
     )
-    public ResponseEntity<List<TransactionResponse>> getDepositTransactionHistory(
+    public ResponseEntity<CompletableFuture<List<TransactionResponse>>> getDepositTransactionHistory(
             @PathVariable Long accountId,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size
     ) throws AccountNotExistException {
-        List<TransactionResponse> response = transactionService.getDepositTransactionHistory(accountId, page, size);
+        CompletableFuture<List<TransactionResponse>> response = transactionService.getDepositTransactionHistory(accountId, page, size);
         return ResponseEntity.ok(response);
     }
 
@@ -87,12 +88,12 @@ public class TransactionController {
             "hasAnyRole('ROLE_ADMIN', 'ROLE_MANAGER')" +
             " or (hasRole('ROLE_USER') and @securityService.canAccessAccount(#accountId))"
     )
-    public ResponseEntity<List<TransactionResponse>> getWithdrawTransactionHistory(
+    public ResponseEntity<CompletableFuture<List<TransactionResponse>>> getWithdrawTransactionHistory(
             @PathVariable Long accountId,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size
     ) throws AccountNotExistException {
-        List<TransactionResponse> response = transactionService.getWithdrawTransactionHistory(accountId, page, size);
+        CompletableFuture<List<TransactionResponse>> response = transactionService.getWithdrawTransactionHistory(accountId, page, size);
         return ResponseEntity.ok(response);
     }
 
@@ -101,12 +102,12 @@ public class TransactionController {
             "hasAnyRole('ROLE_ADMIN', 'ROLE_MANAGER')" +
             " or (hasRole('ROLE_USER') and @securityService.canAccessAccount(#accountId))"
     )
-    public ResponseEntity<List<TransactionResponse>> getTransferredTransactionHistory(
+    public ResponseEntity<CompletableFuture<List<TransactionResponse>>> getTransferredTransactionHistory(
             @PathVariable Long accountId,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size
     ) throws AccountNotExistException {
-        List<TransactionResponse> response = transactionService.getSentTransactionHistory(accountId, page, size);
+        CompletableFuture<List<TransactionResponse>> response = transactionService.getSentTransactionHistory(accountId, page, size);
         return ResponseEntity.ok(response);
     }
 
@@ -115,12 +116,12 @@ public class TransactionController {
             "hasAnyRole('ROLE_ADMIN', 'ROLE_MANAGER')" +
             " or (hasRole('ROLE_USER') and @securityService.canAccessAccount(#accountId))"
     )
-    public ResponseEntity<List<TransactionResponse>> getReceivedTransactionHistory(
+    public ResponseEntity<CompletableFuture<List<TransactionResponse>>> getReceivedTransactionHistory(
             @PathVariable Long accountId,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size
     ) throws AccountNotExistException {
-        List<TransactionResponse> response = transactionService.getReceivedTransactionHistory(accountId, page, size);
+        CompletableFuture<List<TransactionResponse>> response = transactionService.getReceivedTransactionHistory(accountId, page, size);
         return ResponseEntity.ok(response);
     }
 

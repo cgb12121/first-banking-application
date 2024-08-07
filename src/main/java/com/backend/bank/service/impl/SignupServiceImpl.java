@@ -19,11 +19,15 @@ import com.backend.bank.utils.EmailUtils;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 
+import org.apache.commons.lang3.RandomStringUtils;
 import org.springframework.mail.MailException;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.util.Date;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
 @Service
@@ -40,9 +44,10 @@ public class SignupServiceImpl implements SignupService {
 
     private final EmailService emailService;
 
+    @Async
     @Override
     @Transactional(rollbackOn = Exception.class, dontRollbackOn = MailException.class)
-    public SignupResponse signup(SignupRequest signupRequest) throws AccountAlreadyExistsException {
+    public CompletableFuture<SignupResponse> signup(SignupRequest signupRequest) throws AccountAlreadyExistsException {
         checkForExistingAccounts(signupRequest);
 
         Customer customer = createCustomer(signupRequest);
@@ -56,7 +61,7 @@ public class SignupServiceImpl implements SignupService {
 
         sendSignupSuccessEmail(signupRequest);
 
-        return createSignupResponse(customer);
+        return CompletableFuture.completedFuture(createSignupResponse(customer));
     }
 
     private void checkForExistingAccounts(SignupRequest signupRequest) throws AccountAlreadyExistsException {
@@ -116,7 +121,20 @@ public class SignupServiceImpl implements SignupService {
         EmailDetails emailDetails = new EmailDetails();
         emailDetails.setReceiver(signupRequest.getEmail());
         emailDetails.setSubject("Signup successful!");
-        emailDetails.setBody(EmailUtils.emailAccountCreationSuccess(signupRequest));
+        emailDetails.setBody(EmailUtils.emailAccountCreationSuccess(signupRequest, new Date()));
+
+        emailService.sendEmail(emailDetails);
+    }
+
+    private void sendVerificationEmail(SignupRequest signupRequest) {
+        Customer customer = customerRepository.findByEmail(signupRequest.getEmail()).orElseThrow();
+        String verificationLink = generateVerificationCode(customer);
+
+        EmailDetails emailDetails = new EmailDetails();
+        emailDetails.setReceiver(customer.getEmail());
+        emailDetails.setSubject("Verification Email");
+        emailDetails.setBody("Verification Link: " + verificationLink);
+
         emailService.sendEmail(emailDetails);
     }
 
@@ -125,5 +143,12 @@ public class SignupServiceImpl implements SignupService {
         response.setCustomerId(customer.getId());
         response.setMessage("Signup successful! Please check your email!");
         return response;
+    }
+
+    private String generateVerificationCode(Customer Customer) {
+        String siteVerifyURL = "localhost:8080/auth/verify=?";
+        // TODO: save to verification data base
+        // TODO: (include RandomStringUtils.randomAlphanumeric(30), issued date, expire date (15 min later))
+        return siteVerifyURL + RandomStringUtils.randomAlphanumeric(30);
     }
 }

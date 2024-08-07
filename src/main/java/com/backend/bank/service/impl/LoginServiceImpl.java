@@ -12,11 +12,13 @@ import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 
 import org.springframework.mail.MailException;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
 
 @Service
 @RequiredArgsConstructor
@@ -28,9 +30,10 @@ public class LoginServiceImpl implements LoginService {
 
     private final JwtProviderImpl jwtService;
 
+    @Async
     @Override
     @Transactional(rollbackOn = Exception.class, dontRollbackOn = MailException.class)
-    public LoginResponse login(LoginRequest loginRequest) throws AccountNotExistException {
+    public CompletableFuture<LoginResponse> login(LoginRequest loginRequest) throws AccountNotExistException {
         String identifier = loginRequest.getIdentifier();
         String password = loginRequest.getPassword();
 
@@ -45,7 +48,8 @@ public class LoginServiceImpl implements LoginService {
         }
 
         String token = jwtService.generateToken(customer);
-        return new LoginResponse("Login successful", token);
+
+        return CompletableFuture.completedFuture(new LoginResponse("Login successful", token));
     }
 
     private Optional<Customer> findCustomerByIdentifier(String identifier) {

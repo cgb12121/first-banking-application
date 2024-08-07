@@ -6,7 +6,9 @@ import com.backend.bank.exception.AccountAlreadyExistsException;
 
 import org.springframework.stereotype.Service;
 
+import java.util.concurrent.CompletableFuture;
+
 @Service
 public interface SignupService {
-    SignupResponse signup(SignupRequest signupRequest) throws AccountAlreadyExistsException;
+    CompletableFuture<SignupResponse> signup(SignupRequest signupRequest) throws AccountAlreadyExistsException;
 }
