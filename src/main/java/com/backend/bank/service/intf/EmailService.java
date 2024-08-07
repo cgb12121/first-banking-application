@@ -8,5 +8,5 @@ import org.springframework.stereotype.Service;
 @Service
 public interface EmailService {
     @Async
-    void sendEmail(EmailDetails emailDetails);
+    void sendEmailToCustomer(EmailDetails emailDetails);
 }

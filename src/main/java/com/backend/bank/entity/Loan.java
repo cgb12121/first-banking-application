@@ -22,8 +22,11 @@ public class Loan {
     @Column(name = "id")
     private Long id;
 
-    @Column(name = "amount", nullable = false)
+    @Column(name = "origianal_loan", nullable = false)
     private BigDecimal amount;
+
+    @Column(name = "interest_loan")
+    private BigDecimal interestAmount;
 
     @Column(name = "interest_rate", nullable = false)
     private BigDecimal interestRate;
@@ -34,12 +37,15 @@ public class Loan {
     @Column(name = "end_date", nullable = false)
     private LocalDateTime endDate;
 
+    @Column(name = "late_date")
+    private LocalDateTime lateDate;
+
     @Enumerated(EnumType.STRING)
     @Column(name = "take_loan_status", nullable = false)
     private TakeLoanStatus takeLoanStatus;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "loan_status", nullable = false)
+    @Column(name = "loan_status")
     private LoanStatus loanStatus;
 
     @ManyToOne

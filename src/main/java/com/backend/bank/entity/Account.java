@@ -28,12 +28,15 @@ public class Account {
     @Column(name = "balance", nullable = false)
     private BigDecimal balance;
 
+    @Column(name = "interest", nullable = false)
+    private BigDecimal interest;
+
     @Enumerated(EnumType.STRING)
-    @Column(name = "account_type", nullable = false)
+    @Column(name = "account_type", nullable = false, columnDefinition = "VARCHAR(255) DEFAULT 'REGULAR'")
     private AccountType accountType;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "account_status", nullable = false)
+    @Column(name = "account_status", nullable = false, columnDefinition = "VARCHAR(255) DEFAULT 'INACTIVE'")
     private AccountStatus accountStatus;
 
     @OneToOne

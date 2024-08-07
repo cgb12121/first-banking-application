@@ -9,6 +9,7 @@ import jakarta.transaction.Transactional;
 
 import org.springframework.mail.MailException;
 import org.springframework.scheduling.annotation.Async;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -160,4 +161,12 @@ public interface TransactionService {
     @Async(value = "transactionTaskExecutor")
     CompletableFuture<List<TransactionResponse>> getReceivedTransactionHistory(Long accountId, int page, int size) throws AccountNotExistException;
 
+    /**
+     * {@code Add interest} to the users' account at the {@code first day of the month}
+     *
+     * @throws AccountNotExistException if the account does not exist.
+     */
+    @Scheduled(cron = "0 0 0 1 * ?")
+    @Transactional(rollbackOn = Exception.class, dontRollbackOn = MailException.class)
+    void calculateInterest() throws AccountNotExistException;
 }

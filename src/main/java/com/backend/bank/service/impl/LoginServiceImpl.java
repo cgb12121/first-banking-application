@@ -1,5 +1,8 @@
 package com.backend.bank.service.impl;
 
+import com.backend.bank.entity.constant.AccountStatus;
+import com.backend.bank.exception.AccountBannedException;
+import com.backend.bank.exception.AccountInactiveException;
 import com.backend.bank.security.auth.JwtProviderImpl;
 import com.backend.bank.dto.request.LoginRequest;
 import com.backend.bank.dto.response.LoginResponse;
@@ -33,7 +36,8 @@ public class LoginServiceImpl implements LoginService {
     @Async
     @Override
     @Transactional(rollbackOn = Exception.class, dontRollbackOn = MailException.class)
-    public CompletableFuture<LoginResponse> login(LoginRequest loginRequest) throws AccountNotExistException {
+    public CompletableFuture<LoginResponse> login(LoginRequest loginRequest)
+            throws AccountNotExistException, AccountBannedException, AccountInactiveException {
         String identifier = loginRequest.getIdentifier();
         String password = loginRequest.getPassword();
 
@@ -45,6 +49,12 @@ public class LoginServiceImpl implements LoginService {
         Customer customer = optionalCustomer.get();
         if (!passwordEncoder.matches(password, customer.getPassword())) {
             throw new BadCredentialsException("Invalid password");
+        }
+        if (customer.getAccount().getAccountStatus().equals(AccountStatus.INACTIVE)) {
+            throw new AccountInactiveException("Your account is not active right now. Please contact us to active your account again.");
+        }
+        if (customer.getAccount().getAccountStatus() == AccountStatus.BANNED) {
+            throw new AccountBannedException("You are banned from using our services!");
         }
 
         String token = jwtService.generateToken(customer);

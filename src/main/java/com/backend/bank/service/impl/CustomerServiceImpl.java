@@ -84,6 +84,6 @@ public class CustomerServiceImpl implements CustomerService, UserDetailsService 
         emailDetails.setReceiver(changePasswordRequest.getEmail());
         emailDetails.setSubject("Signup successful!");
         emailDetails.setBody(EmailUtils.sendEmailOnChangePassword(changePasswordRequest, changedPasswordDate));
-        emailService.sendEmail(emailDetails);
+        emailService.sendEmailToCustomer(emailDetails);
     }
 }

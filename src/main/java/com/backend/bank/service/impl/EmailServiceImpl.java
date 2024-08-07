@@ -11,12 +11,14 @@ import org.springframework.mail.MailException;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.scheduling.annotation.Async;
+import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.scheduling.annotation.Schedules;
 import org.springframework.stereotype.Service;
 
 import java.util.Date;
 
-@Service
 @Log4j2
+@Service
 @RequiredArgsConstructor
 public class EmailServiceImpl implements EmailService {
 
@@ -25,34 +27,59 @@ public class EmailServiceImpl implements EmailService {
     @Value("${spring.mail.username}")
     private String senderEmail;
 
-    @Async
     @Override
-    public void sendEmail(EmailDetails emailDetails) {
+    @Async(value = "emailTaskExecutor")
+    public void sendEmailToCustomer(EmailDetails emailDetails) {
         try {
-            SimpleMailMessage message = new SimpleMailMessage();
-
-            message.setFrom(senderEmail);
-            message.setTo(emailDetails.getReceiver());
-            message.setSubject(emailDetails.getSubject());
-            message.setText(emailDetails.getBody());
-
-            javaMailSender.send(message);
-            log.info("[timestamp:{}] Sent {} email to: {} : {}",
-                    new Date(),
-                    emailDetails.getSubject().toUpperCase(),
-                    emailDetails.getReceiver(),
-                    emailDetails.getBody()
-            );
+            sendEmail(emailDetails);
+            logEmailSentSuccessfully(emailDetails);
         } catch (MailException e) {
-            log.error("[timestamp:{}] {} : {} When trying to send email to: \n {} {} \n {}",
-                    new Date(),
-                    e.getCause(),
-                    e.getMessage(),
-                    emailDetails.getReceiver(),
-                    emailDetails.getSubject(),
-                    emailDetails.getBody()
-            );
+            logEmailSentError(emailDetails, e);
             throw new RuntimeException(e.getMessage());
         }
     }
+
+    @Schedules({
+            @Scheduled(cron = "0 30 9 * * Mon"),
+            @Scheduled(cron = "0 0 0 1 1 *")
+    })
+    @Async(value = "emailTaskExecutor")
+    public void sendHelloMessage(EmailDetails emailDetails) {
+        try {
+            sendEmail(emailDetails);
+            logEmailSentSuccessfully(emailDetails);
+        } catch (MailException e) {
+            logEmailSentError(emailDetails, e);
+        }
+    }
+
+    private void sendEmail(EmailDetails emailDetails) {
+        SimpleMailMessage message = new SimpleMailMessage();
+        message.setFrom(senderEmail);
+        message.setTo(emailDetails.getReceiver());
+        message.setSubject(emailDetails.getSubject());
+        message.setText(emailDetails.getBody());
+        javaMailSender.send(message);
+    }
+
+    private void logEmailSentSuccessfully(EmailDetails emailDetails) {
+        log.info("[timestamp:{}] Sent {} email to: {} : {}",
+                new Date(),
+                emailDetails.getSubject().toUpperCase(),
+                emailDetails.getReceiver(),
+                emailDetails.getBody()
+        );
+    }
+
+    private void logEmailSentError(EmailDetails emailDetails, MailException e) {
+        log.error("[timestamp:{}] {} : {} When trying to send email to: \n {} {} \n {}",
+                new Date(),
+                e.getCause(),
+                e.getMessage(),
+                emailDetails.getReceiver(),
+                emailDetails.getSubject().toUpperCase(),
+                emailDetails.getBody()
+        );
+    }
+
 }

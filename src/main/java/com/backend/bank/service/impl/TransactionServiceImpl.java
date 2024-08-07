@@ -13,6 +13,7 @@ import com.backend.bank.exception.*;
 import com.backend.bank.repository.AccountRepository;
 import com.backend.bank.repository.TransactionRepository;
 import com.backend.bank.service.intf.EmailService;
+import com.backend.bank.service.intf.InterestService;
 import com.backend.bank.service.intf.TransactionService;
 import com.backend.bank.utils.EmailUtils;
 
@@ -25,10 +26,12 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.mail.MailException;
 import org.springframework.scheduling.annotation.Async;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.util.Date;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
@@ -69,6 +72,8 @@ public class TransactionServiceImpl implements TransactionService {
 
     private final EmailService emailService;
 
+    private final InterestService interestService;
+
     /**
      * {@code Deposits} a specified amount into an account.
      *
@@ -88,7 +93,11 @@ public class TransactionServiceImpl implements TransactionService {
             dontRollbackOn = {MailException.class}
     )
     @Async(value = "transactionTaskExecutor")
-    public CompletableFuture<TransactionResponse> deposit(Long accountId, TransactionRequest transactionRequest) throws InvalidTransactionAmountException, AccountNotExistException, AccountInactiveException, AccountFrozenException, AccountBannedException, UnknownTransactionTypeException {
+    public CompletableFuture<TransactionResponse> deposit(Long accountId, TransactionRequest transactionRequest)
+            throws InvalidTransactionAmountException, AccountNotExistException,
+            AccountInactiveException, AccountFrozenException,
+            AccountBannedException, UnknownTransactionTypeException {
+
         validateAmount(transactionRequest.getAmount());
         Account account = validateAccount(accountId);
 
@@ -327,12 +336,39 @@ public class TransactionServiceImpl implements TransactionService {
     }
 
     /**
+     * {@code Add interest} to the users' account at the {@code first day of the month}
+     */
+    @Override
+    @Scheduled(cron = "0 0 0 1 * ?")
+    @Async(value = "transactionTaskExecutor")
+    public void calculateInterest() {
+        Iterable<Account> accounts = accountRepository.findAll();
+        for (Account account : accounts) {
+            BigDecimal interestRate = account.getInterest();
+            BigDecimal interest = account.getBalance().multiply(interestRate);
+            try {
+                interestService.addInterest(account.getAccountNumber(), interest);
+                //TODO: send email on event
+            } catch (AccountNotExistException e) {
+                log.error("[Timestamp: {}] Error when trying to add interest to account: + {}. [Error] + {} : + {}",
+                        LocalTime.now(),
+                        account.getAccountNumber(),
+                        e.getCause(),
+                        e.getMessage()
+                );
+            }
+        }
+    }
+
+    /**
      * {@code Validates} the {@code transaction amount}.
      *
      * @param amount The transaction amount to be validated.
      * @throws InvalidTransactionAmountException If the amount is less than or equal to zero.
      */
-    private void validateAmount(BigDecimal amount) throws InvalidTransactionAmountException {
+    private void validateAmount(BigDecimal amount)
+            throws InvalidTransactionAmountException {
+
         if (amount.compareTo(BigDecimal.ZERO) <= 0) {
             throw new InvalidTransactionAmountException("Amount must be greater than 0");
         }
@@ -348,7 +384,10 @@ public class TransactionServiceImpl implements TransactionService {
      * @throws AccountFrozenException If the account is frozen.
      * @throws AccountBannedException If the account is banned.
      */
-    private Account validateAccount(Long accountId) throws AccountNotExistException, AccountInactiveException, AccountFrozenException, AccountBannedException {
+    private Account validateAccount(Long accountId)
+            throws AccountNotExistException, AccountInactiveException,
+            AccountFrozenException, AccountBannedException {
+
         Account account = accountRepository.findById(accountId)
                 .orElseThrow(() -> new AccountNotExistException("Account not found"));
         validateAccountStatus(account);
@@ -363,7 +402,9 @@ public class TransactionServiceImpl implements TransactionService {
      * @throws AccountFrozenException If the account is frozen.
      * @throws AccountBannedException If the account is banned.
      */
-    private void validateAccountStatus(Account account) throws AccountInactiveException, AccountFrozenException, AccountBannedException {
+    private void validateAccountStatus(Account account)
+            throws AccountInactiveException, AccountFrozenException, AccountBannedException {
+
         switch (account.getAccountStatus()) {
             case INACTIVE -> throw new AccountInactiveException("Your account is INACTIVE!");
             case FROZEN -> throw new AccountFrozenException("Your account is frozen! You cannot perform any transactions!");
@@ -397,7 +438,9 @@ public class TransactionServiceImpl implements TransactionService {
      * @throws UnknownTransactionTypeException If the transaction type is unknown.
      * @throws AccountNotExistException If the account does not exist.
      */
-    private void sendTransactionSuccessEmail(Customer customer, TransactionRequest transactionRequest) throws UnknownTransactionTypeException, AccountNotExistException {
+    private void sendTransactionSuccessEmail(Customer customer, TransactionRequest transactionRequest)
+            throws UnknownTransactionTypeException, AccountNotExistException {
+
         EmailDetails emailToCustomer = new EmailDetails();
         emailToCustomer.setReceiver(customer.getEmail());
 
@@ -407,17 +450,17 @@ public class TransactionServiceImpl implements TransactionService {
         switch (transactionType) {
             case WITHDRAWAL:
                 emailToCustomer.setBody(EmailUtils.sendEmailOnWithdrawal(customer, transactionRequest, new Date()));
-                emailService.sendEmail(emailToCustomer);
+                emailService.sendEmailToCustomer(emailToCustomer);
                 break;
             case TRANSFER:
                 Date transferDate = new Date();
                 emailToCustomer.setBody(EmailUtils.sendEmailOnTransfer(customer, transactionRequest, transferDate));
-                emailService.sendEmail(emailToCustomer);
+                emailService.sendEmailToCustomer(emailToCustomer);
                 sendTransactionEmailToReceiver(transactionRequest, transferDate);
                 break;
             case DEPOSIT:
                 emailToCustomer.setBody(EmailUtils.sendEmailOnDeposit(customer, transactionRequest, new Date()));
-                emailService.sendEmail(emailToCustomer);
+                emailService.sendEmailToCustomer(emailToCustomer);
                 break;
             default:
                 log.error("[timestamp:{}] Sent {} email to: {} : {}",
@@ -436,7 +479,9 @@ public class TransactionServiceImpl implements TransactionService {
      * @param transactionRequest The transaction request details.
      * @throws AccountNotExistException If the receiver account does not exist.
      */
-    private void sendTransactionEmailToReceiver(TransactionRequest transactionRequest, Date receivedDate) throws AccountNotExistException {
+    private void sendTransactionEmailToReceiver(TransactionRequest transactionRequest, Date receivedDate)
+            throws AccountNotExistException {
+
         Customer receiver = accountRepository.findByAccountNumber(transactionRequest.getTransferToAccount())
                 .orElseThrow(() -> new AccountNotExistException("Account does not exist: " + transactionRequest.getTransferToAccount()))
                 .getAccountHolder();
@@ -446,7 +491,7 @@ public class TransactionServiceImpl implements TransactionService {
         emailToReceiver.setSubject("TRANSFER");
         emailToReceiver.setBody(EmailUtils.sendEmailOnReceiving(receiver, transactionRequest, receivedDate));
 
-        emailService.sendEmail(emailToReceiver);
+        emailService.sendEmailToCustomer(emailToReceiver);
     }
 
     /**
@@ -468,6 +513,30 @@ public class TransactionServiceImpl implements TransactionService {
 
     /**
      * {@code @Deprecated}
+     *
+     * This method is being considered to replace its old counterpart.
+     * But not now!
+     */
+    @Deprecated(
+            since = "development XD",
+            forRemoval = true
+    )
+    @Transactional(
+            rollbackOn = Exception.class,
+            dontRollbackOn = {MailException.class}
+    )
+    public void transferV2(Long fromAccount, String toAccount, TransactionRequest amount)
+            throws AccountNotExistException, InsufficientFundsException,
+            UnknownTransactionTypeException, AccountFrozenException, AccountBannedException,
+            AccountInactiveException, InvalidTransactionAmountException {
+
+        withdraw(fromAccount, amount);
+        deposit(Long.valueOf(toAccount), amount);
+    }
+
+    /**
+     * {@code @Deprecated}
+     *
      * This method laid here for no reason. It will never be deleted.
      */
     @Deprecated(

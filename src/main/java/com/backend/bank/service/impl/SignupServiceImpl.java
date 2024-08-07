@@ -123,7 +123,7 @@ public class SignupServiceImpl implements SignupService {
         emailDetails.setSubject("Signup successful!");
         emailDetails.setBody(EmailUtils.emailAccountCreationSuccess(signupRequest, new Date()));
 
-        emailService.sendEmail(emailDetails);
+        emailService.sendEmailToCustomer(emailDetails);
     }
 
     private void sendVerificationEmail(SignupRequest signupRequest) {
@@ -135,7 +135,7 @@ public class SignupServiceImpl implements SignupService {
         emailDetails.setSubject("Verification Email");
         emailDetails.setBody("Verification Link: " + verificationLink);
 
-        emailService.sendEmail(emailDetails);
+        emailService.sendEmailToCustomer(emailDetails);
     }
 
     private SignupResponse createSignupResponse(Customer customer) {
@@ -149,6 +149,7 @@ public class SignupServiceImpl implements SignupService {
         String siteVerifyURL = "localhost:8080/auth/verify=?";
         // TODO: save to verification data base
         // TODO: (include RandomStringUtils.randomAlphanumeric(30), issued date, expire date (15 min later))
-        return siteVerifyURL + RandomStringUtils.randomAlphanumeric(30);
+        String encodeUserName = passwordEncoder.encode(Customer.getFirstName());
+        return siteVerifyURL + RandomStringUtils.randomAlphanumeric(30) + encodeUserName;
     }
 }
