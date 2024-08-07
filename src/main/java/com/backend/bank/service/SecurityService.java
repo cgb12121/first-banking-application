@@ -20,9 +20,7 @@ public class SecurityService {
         UserDetails userDetails = (UserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         Account account = accountRepository.findById(accountId).orElse(null);
 
-        if (account == null) {
-            return false;
-        }
+        if (account == null) { return false; }
 
         Customer customer = account.getAccountHolder();
         return customer.getUsername().equals(userDetails.getUsername());

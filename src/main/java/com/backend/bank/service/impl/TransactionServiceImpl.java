@@ -68,7 +68,7 @@ public class TransactionServiceImpl implements TransactionService {
     private final EmailService emailService;
 
     /**
-     * Deposits a specified amount into an account.
+     * {@code Deposits} a specified amount into an account.
      *
      * @param accountId The ID of the account.
      * @param transactionRequest The details of the deposit transaction.
@@ -103,7 +103,7 @@ public class TransactionServiceImpl implements TransactionService {
     }
 
     /**
-     * Withdraws a specified amount from an account.
+     * {@code Withdraws} a specified amount from an account.
      *
      * @param accountId The ID of the account.
      * @param transactionRequest The details of the withdrawal transaction.
@@ -143,7 +143,7 @@ public class TransactionServiceImpl implements TransactionService {
     }
 
     /**
-     * Transfers a specified amount from one account to another.
+     * {@code Transfers} a specified amount from one account to another.
      *
      * @param accountId The ID of the sender's account.
      * @param transactionRequest The details of the transfer transaction.
@@ -196,7 +196,7 @@ public class TransactionServiceImpl implements TransactionService {
     }
 
     /**
-     * Retrieves all the transaction history for a given account.
+     * {@code Retrieves} all the {@code transaction history} for a given account.
      *
      * @param accountId The ID of the account.
      * @param page The page number for pagination.
@@ -221,7 +221,7 @@ public class TransactionServiceImpl implements TransactionService {
     }
 
     /**
-     * Retrieves the deposit transaction history for a given account.
+     * {@code Retrieves} the {@code deposit transaction history} for a given account.
      *
      * @param accountId The ID of the account.
      * @param page The page number for pagination.
@@ -245,7 +245,7 @@ public class TransactionServiceImpl implements TransactionService {
     }
 
     /**
-     * Retrieves the withdrawal transaction history for a given account.
+     * {@code Retrieves} the {@code withdrawal transaction history} for a given account.
      *
      * @param accountId The ID of the account.
      * @param page The page number for pagination.
@@ -269,7 +269,7 @@ public class TransactionServiceImpl implements TransactionService {
     }
 
     /**
-     * Retrieves the transferred transaction history for a given account.
+     * {@code Retrieves} the {@code transferred transaction history} for a given account.
      *
      * @param accountId The ID of the account.
      * @param page The page number for pagination.
@@ -293,7 +293,7 @@ public class TransactionServiceImpl implements TransactionService {
     }
 
     /**
-     * Retrieves the received transaction history for a given account.
+     * {@code Retrieves} the {@code received transaction history} for a given account.
      *
      * @param accountId The ID of the account.
      * @param page The page number for pagination.
@@ -317,7 +317,7 @@ public class TransactionServiceImpl implements TransactionService {
     }
 
     /**
-     * Validates the transaction amount.
+     * {@code Validates} the {@code transaction amount}.
      *
      * @param amount The transaction amount to be validated.
      * @throws InvalidTransactionAmountException If the amount is less than or equal to zero.
@@ -329,7 +329,7 @@ public class TransactionServiceImpl implements TransactionService {
     }
 
     /**
-     * Validates the account status.
+     * {@code Validates} the {@code account status}.
      *
      * @param accountId The ID of the account to be validated.
      * @return The validated {@link Account}.
@@ -346,7 +346,7 @@ public class TransactionServiceImpl implements TransactionService {
     }
 
     /**
-     * Validates the status of an account.
+     * {@code Validates} the {@code status of an account}.
      *
      * @param account The account to be validated.
      * @throws AccountInactiveException If the account is inactive.
@@ -362,7 +362,7 @@ public class TransactionServiceImpl implements TransactionService {
     }
 
     /**
-     * Creates a new transaction.
+     * {@code Creates} a new {@code transaction}.
      *
      * @param account The account associated with the transaction.
      * @param amount The amount of the transaction.
@@ -380,7 +380,7 @@ public class TransactionServiceImpl implements TransactionService {
     }
 
     /**
-     * Sends a success email for the transaction.
+     * {@code Sends} a success {@code email} for the {@code transaction}.
      *
      * @param customer The customer associated with the transaction.
      * @param transactionRequest The transaction request details.
@@ -420,7 +420,7 @@ public class TransactionServiceImpl implements TransactionService {
     }
 
     /**
-     * Sends an email notification to the receiver of a transfer.
+     * Sends an {@code email notification} to the receiver of a transfer.
      *
      * @param transactionRequest The transaction request details.
      * @throws AccountNotExistException If the receiver account does not exist.
@@ -457,7 +457,7 @@ public class TransactionServiceImpl implements TransactionService {
 
     /**
      * {@code @Deprecated}
-     * This class laid here for no reason. It will never be deleted.
+     * This method laid here for no reason. It will never be deleted.
      */
     @Deprecated(
             since = "development XD",

@@ -42,7 +42,7 @@ import java.util.List;
 )
 public interface TransactionService {
     /**
-     * Deposits a specified amount into an account.
+     * {@code Deposits} a specified amount into an account.
      *
      * @param accountId The ID of the account.
      * @param transactionRequest The details of the deposit transaction.
@@ -58,7 +58,7 @@ public interface TransactionService {
     TransactionResponse deposit(Long accountId, TransactionRequest transactionRequest) throws InvalidTransactionAmountException, AccountNotExistException, AccountInactiveException, AccountFrozenException, AccountBannedException, UnknownTransactionTypeException;
 
     /**
-     * Withdraws a specified amount from an account.
+     * {@code Withdraws} a specified amount from an account.
      *
      * @param accountId The ID of the account.
      * @param transactionRequest The details of the withdrawal transaction.
@@ -75,7 +75,7 @@ public interface TransactionService {
     TransactionResponse withdraw(Long accountId, TransactionRequest transactionRequest) throws AccountInactiveException, AccountNotExistException, AccountFrozenException, AccountBannedException, InvalidTransactionAmountException, InsufficientFundsException, UnknownTransactionTypeException;
 
     /**
-     * Transfers a specified amount from one account to another.
+     * {@code Transfers} a specified amount from one account to another.
      *
      * @param accountId The ID of the sender's account.
      * @param transactionRequest The details of the transfer transaction.
@@ -96,7 +96,7 @@ public interface TransactionService {
             UnknownTransactionTypeException, CantTransferToSelfException;
 
     /**
-     * Retrieves all the transaction history for a given account.
+     * {@code Retrieves} all the {@code transaction history} for a given account.
      *
      * @param accountId The ID of the account.
      * @param page The page number for pagination.
@@ -107,7 +107,7 @@ public interface TransactionService {
     List<TransactionResponse> getTransactionHistory(Long accountId, int page, int size) throws AccountNotExistException;
 
     /**
-     * Retrieves the deposit transaction history for a given account.
+     * {@code Retrieves} the {@code deposit transaction history} for a given account.
      *
      * @param accountId The ID of the account.
      * @param page The page number for pagination.
@@ -118,7 +118,7 @@ public interface TransactionService {
     List<TransactionResponse> getDepositTransactionHistory(Long accountId, int page, int size) throws AccountNotExistException;
 
     /**
-     * Retrieves the withdrawal transaction history for a given account.
+     * {@code Retrieves} the {@code withdrawal transaction history} for a given account.
      *
      * @param accountId The ID of the account.
      * @param page The page number for pagination.
@@ -129,7 +129,7 @@ public interface TransactionService {
     List<TransactionResponse> getWithdrawTransactionHistory(Long accountId, int page, int size) throws AccountNotExistException;
 
     /**
-     * Retrieves the transferred transaction history for a given account.
+     * {@code Retrieves} the {@code transferred transaction history} for a given account.
      *
      * @param accountId The ID of the account.
      * @param page The page number for pagination.
@@ -140,7 +140,7 @@ public interface TransactionService {
     List<TransactionResponse> getSentTransactionHistory(Long accountId, int page, int size) throws AccountNotExistException;
 
     /**
-     * Retrieves the received transaction history for a given account.
+     * {@code Retrieves} the {@code received transaction history} for a given account.
      *
      * @param accountId The ID of the account.
      * @param page The page number for pagination.
