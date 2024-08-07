@@ -23,8 +23,8 @@ public class TransactionController {
     @PreAuthorize("hasAnyRole('ROLE_ADMIN', 'ROLE_MANAGER', 'ROLE_STAFF')")
     public ResponseEntity<TransactionResponse> deposit(
             @PathVariable Long accountId,
-            @RequestBody TransactionRequest transactionRequest)
-            throws AccountNotExistException, InvalidTransactionAmountException, AccountFrozenException,
+            @RequestBody TransactionRequest transactionRequest
+    ) throws AccountNotExistException, InvalidTransactionAmountException, AccountFrozenException,
             AccountBannedException, AccountInactiveException, UnknownTransactionTypeException {
         TransactionResponse response = transactionService.deposit(accountId, transactionRequest);
         return ResponseEntity.ok(response);
@@ -34,8 +34,8 @@ public class TransactionController {
     @PreAuthorize("hasRole('ROLE_USER') and @securityService.canAccessAccount(#accountId)")
     public ResponseEntity<TransactionResponse> withdraw(
             @PathVariable Long accountId,
-            @RequestBody TransactionRequest transactionRequest)
-            throws AccountNotExistException, InsufficientFundsException, InvalidTransactionAmountException,
+            @RequestBody TransactionRequest transactionRequest
+    ) throws AccountNotExistException, InsufficientFundsException, InvalidTransactionAmountException,
             AccountFrozenException, AccountBannedException, AccountInactiveException, UnknownTransactionTypeException {
         TransactionResponse response = transactionService.withdraw(accountId, transactionRequest);
         return ResponseEntity.ok(response);
@@ -45,8 +45,8 @@ public class TransactionController {
     @PreAuthorize("hasRole('ROLE_USER') and @securityService.canAccessAccount(#accountId)")
     public ResponseEntity<TransactionResponse> transfer(
             @PathVariable Long accountId,
-            @RequestBody TransactionRequest transactionRequest)
-            throws AccountNotExistException, InsufficientFundsException,
+            @RequestBody TransactionRequest transactionRequest
+    ) throws AccountNotExistException, InsufficientFundsException,
             InvalidTransactionAmountException, AccountFrozenException,
             AccountBannedException, AccountInactiveException,
             UnknownTransactionTypeException, CantTransferToSelfException {
@@ -54,7 +54,7 @@ public class TransactionController {
         return ResponseEntity.ok(response);
     }
 
-    @GetMapping("/history")
+    @GetMapping("/history/all")
     @PreAuthorize(
             "hasAnyRole('ROLE_ADMIN', 'ROLE_MANAGER')" +
             " or (hasRole('ROLE_USER') and @securityService.canAccessAccount(#accountId))"
@@ -62,8 +62,65 @@ public class TransactionController {
     public ResponseEntity<List<TransactionResponse>> getTransactionHistory(
             @PathVariable Long accountId,
             @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size) throws AccountNotExistException {
+            @RequestParam(defaultValue = "10") int size
+    ) throws AccountNotExistException {
         List<TransactionResponse> response = transactionService.getTransactionHistory(accountId, page, size);
+        return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("/history/deposit")
+    @PreAuthorize(
+            "hasAnyRole('ROLE_ADMIN', 'ROLE_MANAGER')" +
+            " or (hasRole('ROLE_USER') and @securityService.canAccessAccount(#accountId))"
+    )
+    public ResponseEntity<List<TransactionResponse>> getDepositTransactionHistory(
+            @PathVariable Long accountId,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size
+    ) throws AccountNotExistException {
+        List<TransactionResponse> response = transactionService.getDepositTransactionHistory(accountId, page, size);
+        return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("/history/deposit")
+    @PreAuthorize(
+            "hasAnyRole('ROLE_ADMIN', 'ROLE_MANAGER')" +
+            " or (hasRole('ROLE_USER') and @securityService.canAccessAccount(#accountId))"
+    )
+    public ResponseEntity<List<TransactionResponse>> getWithdrawTransactionHistory(
+            @PathVariable Long accountId,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size
+    ) throws AccountNotExistException {
+        List<TransactionResponse> response = transactionService.getWithdrawTransactionHistory(accountId, page, size);
+        return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("/history/deposit")
+    @PreAuthorize(
+            "hasAnyRole('ROLE_ADMIN', 'ROLE_MANAGER')" +
+            " or (hasRole('ROLE_USER') and @securityService.canAccessAccount(#accountId))"
+    )
+    public ResponseEntity<List<TransactionResponse>> getTransferredTransactionHistory(
+            @PathVariable Long accountId,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size
+    ) throws AccountNotExistException {
+        List<TransactionResponse> response = transactionService.getSentTransactionHistory(accountId, page, size);
+        return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("/history/deposit")
+    @PreAuthorize(
+            "hasAnyRole('ROLE_ADMIN', 'ROLE_MANAGER')" +
+            " or (hasRole('ROLE_USER') and @securityService.canAccessAccount(#accountId))"
+    )
+    public ResponseEntity<List<TransactionResponse>> getReceivedTransactionHistory(
+            @PathVariable Long accountId,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size
+    ) throws AccountNotExistException {
+        List<TransactionResponse> response = transactionService.getReceivedTransactionHistory(accountId, page, size);
         return ResponseEntity.ok(response);
     }
 

@@ -21,18 +21,22 @@ import java.util.Map;
 @Component
 public class JwtProviderImpl implements JwtProvider {
 
-    @Value("${PRIVATE_KEY}")
-    private String SECRET_KEY;
+    @Value("${security.jwt.secret-key}")
+    private String secretKey;
+
+    @Value("${security.jwt.issuer}")
+    private String issuer;
 
     private static final int ONE_DAY = 86400000;
 
     @Override
     public String generateToken(UserDetails userDetails) {
         return Jwts.builder()
+                .issuer(issuer)
+                .issuedAt(new Date(System.currentTimeMillis()))
+                .expiration(new Date(System.currentTimeMillis() + ONE_DAY) )
                 .subject(userDetails.getUsername())
                 .claim("authority: ", userDetails.getAuthorities())
-                .issuedAt(new Date(System.currentTimeMillis()))
-                .expiration(new Date(System.currentTimeMillis() + ONE_DAY))
                 .signWith(getSigningKey())
                 .compact();
     }
@@ -40,16 +44,17 @@ public class JwtProviderImpl implements JwtProvider {
     @Override
     public String generateRefreshToken(Map<String, Object> extraClaims, UserDetails userDetails) {
         return Jwts.builder()
+                .issuer(issuer)
+                .issuedAt(new Date(System.currentTimeMillis()))
+                .expiration(new Date(System.currentTimeMillis() + ONE_DAY))
                 .subject(userDetails.getUsername())
                 .claims(extraClaims)
-                .issuedAt(new Date(System.currentTimeMillis()))
-                .expiration(new Date(System.currentTimeMillis() + ONE_DAY) )
                 .signWith(getSigningKey())
                 .compact();
     }
 
     private SecretKey getSigningKey() {
-       byte[] key = Decoders.BASE64URL.decode(SECRET_KEY);
+       byte[] key = Decoders.BASE64URL.decode(secretKey);
        return Keys.hmacShaKeyFor(key);
     }
 

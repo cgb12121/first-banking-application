@@ -68,35 +68,6 @@ public class TransactionServiceImpl implements TransactionService {
     private final EmailService emailService;
 
     /**
-     * Retrieves the transaction history for a given account.
-     *
-     * @param accountId The ID of the account.
-     * @param page The page number for pagination.
-     * @param size The size of each page for pagination.
-     * @return A list of {@link TransactionResponse} representing the transaction history.
-     * @throws AccountNotExistException If the account does not exist.
-     */
-    @Override
-    @Transactional(
-            rollbackOn = Exception.class,
-            dontRollbackOn = {MailException.class}
-    )
-    public List<TransactionResponse> getTransactionHistory(Long accountId, int page, int size) throws AccountNotExistException {
-        Account account = accountRepository.findById(accountId)
-                .orElseThrow(() -> new AccountNotExistException("Account not found"));
-        String accountNumber = account.getAccountNumber();
-
-        Pageable pageable = PageRequest.of(page, size);
-        Page<Transaction> sentTransactions = transactionRepository.findByAccountId(accountId, pageable);
-        Page<Transaction> receivedTransactions = transactionRepository.findByTransferToAccount(accountNumber, pageable);
-
-        return Stream.concat(sentTransactions.stream(), receivedTransactions.stream())
-                .sorted((t1, t2) -> t2.getTimestamp().compareTo(t1.getTimestamp()))
-                .map(this::mapToResponse)
-                .collect(Collectors.toList());
-    }
-
-    /**
      * Deposits a specified amount into an account.
      *
      * @param accountId The ID of the account.
@@ -225,6 +196,127 @@ public class TransactionServiceImpl implements TransactionService {
     }
 
     /**
+     * Retrieves all the transaction history for a given account.
+     *
+     * @param accountId The ID of the account.
+     * @param page The page number for pagination.
+     * @param size The size of each page for pagination.
+     * @return A list of {@link TransactionResponse} representing the transaction history.
+     * @throws AccountNotExistException If the account does not exist.
+     */
+    @Override
+    public List<TransactionResponse> getTransactionHistory(Long accountId, int page, int size) throws AccountNotExistException {
+        Account account = accountRepository.findById(accountId)
+                .orElseThrow(() -> new AccountNotExistException("Account not found"));
+        String accountNumber = account.getAccountNumber();
+
+        Pageable pageable = PageRequest.of(page, size);
+        Page<Transaction> sentTransactions = transactionRepository.findByAccount_AccountNumber(accountNumber, pageable);
+        Page<Transaction> receivedTransactions = transactionRepository.findByTransferToAccount(accountNumber, pageable);
+
+        return Stream.concat(sentTransactions.stream(), receivedTransactions.stream())
+                .sorted((t1, t2) -> t2.getTimestamp().compareTo(t1.getTimestamp()))
+                .map(this::mapToResponse)
+                .collect(Collectors.toList());
+    }
+
+    /**
+     * Retrieves the deposit transaction history for a given account.
+     *
+     * @param accountId The ID of the account.
+     * @param page The page number for pagination.
+     * @param size The size of each page for pagination.
+     * @return A list of {@link TransactionResponse} representing the transaction history.
+     * @throws AccountNotExistException If the account does not exist.
+     */
+    @Override
+    public List<TransactionResponse> getDepositTransactionHistory(Long accountId, int page, int size) throws AccountNotExistException {
+        Account account = accountRepository.findById(accountId)
+                .orElseThrow(() -> new AccountNotExistException("Account not found"));
+        String accountNumber = account.getAccountNumber();
+
+        Pageable pageable = PageRequest.of(page, size);
+        Page<Transaction> transactions = transactionRepository.findByAccount_AccountNumber(accountNumber, pageable);
+
+        return transactions.stream()
+                .filter(transaction -> transaction.getType() == TransactionType.DEPOSIT)
+                .sorted((t1, t2) -> t2.getTimestamp().compareTo(t1.getTimestamp()))
+                .map(this::mapToResponse).collect(Collectors.toList());
+    }
+
+    /**
+     * Retrieves the withdrawal transaction history for a given account.
+     *
+     * @param accountId The ID of the account.
+     * @param page The page number for pagination.
+     * @param size The size of each page for pagination.
+     * @return A list of {@link TransactionResponse} representing the transaction history.
+     * @throws AccountNotExistException If the account does not exist.
+     */
+    @Override
+    public List<TransactionResponse> getWithdrawTransactionHistory(Long accountId, int page, int size) throws AccountNotExistException {
+        Account account = accountRepository.findById(accountId)
+                .orElseThrow(() -> new AccountNotExistException("Account not found"));
+        String accountNumber = account.getAccountNumber();
+
+        Pageable pageable = PageRequest.of(page, size);
+        Page<Transaction> transactions = transactionRepository.findByAccount_AccountNumber(accountNumber, pageable);
+
+        return transactions.stream()
+                .filter(transaction -> transaction.getType() == TransactionType.WITHDRAWAL)
+                .sorted((t1, t2) -> t2.getTimestamp().compareTo(t1.getTimestamp()))
+                .map(this::mapToResponse).collect(Collectors.toList());
+    }
+
+    /**
+     * Retrieves the transferred transaction history for a given account.
+     *
+     * @param accountId The ID of the account.
+     * @param page The page number for pagination.
+     * @param size The size of each page for pagination.
+     * @return A list of {@link TransactionResponse} representing the transaction history.
+     * @throws AccountNotExistException If the account does not exist.
+     */
+    @Override
+    public List<TransactionResponse> getSentTransactionHistory(Long accountId, int page, int size) throws AccountNotExistException {
+        Account account = accountRepository.findById(accountId)
+                .orElseThrow(() -> new AccountNotExistException("Account not found"));
+        String accountNumber = account.getAccountNumber();
+
+        Pageable pageable = PageRequest.of(page, size);
+        Page<Transaction> transactions = transactionRepository.findByAccount_AccountNumber(accountNumber, pageable);
+
+        return transactions.stream()
+                .filter(transaction -> transaction.getType() == TransactionType.TRANSFER)
+                .sorted((t1, t2) -> t2.getTimestamp().compareTo(t1.getTimestamp()))
+                .map(this::mapToResponse).collect(Collectors.toList());
+    }
+
+    /**
+     * Retrieves the received transaction history for a given account.
+     *
+     * @param accountId The ID of the account.
+     * @param page The page number for pagination.
+     * @param size The size of each page for pagination.
+     * @return A list of {@link TransactionResponse} representing the transaction history.
+     * @throws AccountNotExistException If the account does not exist.
+     */
+    @Override
+    public List<TransactionResponse> getReceivedTransactionHistory(Long accountId, int page, int size) throws AccountNotExistException {
+        Account account = accountRepository.findById(accountId)
+                .orElseThrow(() -> new AccountNotExistException("Account not found"));
+        String accountNumber = account.getAccountNumber();
+
+        Pageable pageable = PageRequest.of(page, size);
+        Page<Transaction> transactions = transactionRepository.findAllByTransferToAccount(accountNumber, pageable);
+
+        return transactions.stream()
+                .filter(transaction -> transaction.getType() == TransactionType.TRANSFER)
+                .sorted((t1, t2) -> t2.getTimestamp().compareTo(t1.getTimestamp()))
+                .map(this::mapToResponse).collect(Collectors.toList());
+    }
+
+    /**
      * Validates the transaction amount.
      *
      * @param amount The transaction amount to be validated.
@@ -252,7 +344,6 @@ public class TransactionServiceImpl implements TransactionService {
         validateAccountStatus(account);
         return account;
     }
-
 
     /**
      * Validates the status of an account.
@@ -372,12 +463,11 @@ public class TransactionServiceImpl implements TransactionService {
             since = "development XD",
             forRemoval = true
     )
-    @SuppressWarnings("all")
     @Transactional(
             rollbackOn = Exception.class,
             dontRollbackOn = {MailException.class}
     )
-    private TransactionResponse createTransaction(Long accountId, TransactionRequest transactionRequest) throws AccountNotExistException, InsufficientFundsException, InvalidTransactionAmountException, AccountInactiveException, AccountFrozenException, AccountBannedException {
+    public TransactionResponse createTransaction(Long accountId, TransactionRequest transactionRequest) throws AccountNotExistException, InsufficientFundsException, InvalidTransactionAmountException, AccountInactiveException, AccountFrozenException, AccountBannedException {
         if (transactionRequest.getAmount().compareTo(BigDecimal.ZERO) <= 0) {
             throw new InvalidTransactionAmountException("Amount must be greater than 0");
         }

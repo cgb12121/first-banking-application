@@ -42,17 +42,6 @@ import java.util.List;
 )
 public interface TransactionService {
     /**
-     * Retrieves the transaction history for a given account.
-     *
-     * @param accountId The ID of the account.
-     * @param page The page number for pagination.
-     * @param size The size of each page for pagination.
-     * @return A list of {@link TransactionResponse} representing the transaction history.
-     * @throws AccountNotExistException If the account does not exist.
-     */
-    List<TransactionResponse> getTransactionHistory(Long accountId, int page, int size) throws AccountNotExistException;
-
-    /**
      * Deposits a specified amount into an account.
      *
      * @param accountId The ID of the account.
@@ -65,6 +54,7 @@ public interface TransactionService {
      * @throws AccountBannedException If the account is banned.
      * @throws UnknownTransactionTypeException If the transaction type is unknown.
      */
+    @Transactional(rollbackOn = Exception.class, dontRollbackOn = {MailException.class})
     TransactionResponse deposit(Long accountId, TransactionRequest transactionRequest) throws InvalidTransactionAmountException, AccountNotExistException, AccountInactiveException, AccountFrozenException, AccountBannedException, UnknownTransactionTypeException;
 
     /**
@@ -81,6 +71,7 @@ public interface TransactionService {
      * @throws InsufficientFundsException If there are insufficient funds for the withdrawal.
      * @throws UnknownTransactionTypeException If the transaction type is unknown.
      */
+    @Transactional(rollbackOn = Exception.class, dontRollbackOn = {MailException.class})
     TransactionResponse withdraw(Long accountId, TransactionRequest transactionRequest) throws AccountInactiveException, AccountNotExistException, AccountFrozenException, AccountBannedException, InvalidTransactionAmountException, InsufficientFundsException, UnknownTransactionTypeException;
 
     /**
@@ -98,5 +89,65 @@ public interface TransactionService {
      * @throws UnknownTransactionTypeException If the transaction type is unknown.
      * @throws CantTransferToSelfException If the receiver is the same as the sender.
      */
-    TransactionResponse transfer(Long accountId, TransactionRequest transactionRequest) throws InvalidTransactionAmountException, AccountNotExistException, AccountInactiveException, AccountFrozenException, AccountBannedException, InsufficientFundsException, UnknownTransactionTypeException, CantTransferToSelfException;
+    @Transactional(rollbackOn = Exception.class, dontRollbackOn = {MailException.class})
+    TransactionResponse transfer(Long accountId, TransactionRequest transactionRequest)
+            throws InvalidTransactionAmountException, AccountNotExistException, AccountInactiveException,
+            AccountFrozenException, AccountBannedException, InsufficientFundsException,
+            UnknownTransactionTypeException, CantTransferToSelfException;
+
+    /**
+     * Retrieves all the transaction history for a given account.
+     *
+     * @param accountId The ID of the account.
+     * @param page The page number for pagination.
+     * @param size The size of each page for pagination.
+     * @return A list of {@link TransactionResponse} representing the transaction history.
+     * @throws AccountNotExistException If the account does not exist.
+     */
+    List<TransactionResponse> getTransactionHistory(Long accountId, int page, int size) throws AccountNotExistException;
+
+    /**
+     * Retrieves the deposit transaction history for a given account.
+     *
+     * @param accountId The ID of the account.
+     * @param page The page number for pagination.
+     * @param size The size of each page for pagination.
+     * @return A list of {@link TransactionResponse} representing the transaction history.
+     * @throws AccountNotExistException If the account does not exist.
+     */
+    List<TransactionResponse> getDepositTransactionHistory(Long accountId, int page, int size) throws AccountNotExistException;
+
+    /**
+     * Retrieves the withdrawal transaction history for a given account.
+     *
+     * @param accountId The ID of the account.
+     * @param page The page number for pagination.
+     * @param size The size of each page for pagination.
+     * @return A list of {@link TransactionResponse} representing the transaction history.
+     * @throws AccountNotExistException If the account does not exist.
+     */
+    List<TransactionResponse> getWithdrawTransactionHistory(Long accountId, int page, int size) throws AccountNotExistException;
+
+    /**
+     * Retrieves the transferred transaction history for a given account.
+     *
+     * @param accountId The ID of the account.
+     * @param page The page number for pagination.
+     * @param size The size of each page for pagination.
+     * @return A list of {@link TransactionResponse} representing the transaction history.
+     * @throws AccountNotExistException If the account does not exist.
+     */
+    List<TransactionResponse> getSentTransactionHistory(Long accountId, int page, int size) throws AccountNotExistException;
+
+    /**
+     * Retrieves the received transaction history for a given account.
+     *
+     * @param accountId The ID of the account.
+     * @param page The page number for pagination.
+     * @param size The size of each page for pagination.
+     * @return A list of {@link TransactionResponse} representing the transaction history.
+     * @throws AccountNotExistException If the account does not exist.
+     */
+    List<TransactionResponse> getReceivedTransactionHistory(Long accountId, int page, int size) throws AccountNotExistException;
+
 }
