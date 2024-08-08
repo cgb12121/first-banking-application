@@ -18,5 +18,5 @@ public class RegisterNewCardRequest {
     private BigDecimal creditLimit;
     private String expirationDate;
     @ManyToOne
-    Customer customer;
+    private Customer customer;
 }

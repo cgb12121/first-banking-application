@@ -89,4 +89,27 @@ public class EmailUtils {
                 .append("Thank you for using our service!");
         return message.toString();
     }
+
+    public static String sendChangeEmailConfirmation(String newEmail, String confirmLink) {
+        AtomicReference<StringBuilder> message = new AtomicReference<>(new StringBuilder());
+        message.get().append("CHANGE EMAIL CONFIRMATION").append(System.lineSeparator())
+                .append("Dear user,").append(System.lineSeparator())
+                .append("Your account have requested to change to a new email: ").append(newEmail).append(System.lineSeparator())
+                .append("Please click the following link to confirm your email change:").append(System.lineSeparator())
+                .append(confirmLink).append(System.lineSeparator())
+                .append("If it was not you, please contact us for further support.")
+                .append("Thank you for using our service!");
+        return message.toString();
+    }
+
+    public static String sendChangePhoneNumberConfirmation(String newPhoneNumber, String confirmLink) {
+        AtomicReference<StringBuilder> message = new AtomicReference<>(new StringBuilder());
+        message.get().append("CHANGE PHONE NUMBER CONFIRMATION").append(System.lineSeparator())
+                .append("Dear user,").append(System.lineSeparator())
+                .append("Your account have requested to change to a new phone number: ").append(newPhoneNumber).append(System.lineSeparator())
+                .append("Please click the following link to confirm your phone number change:").append(System.lineSeparator())
+                .append(confirmLink).append(System.lineSeparator())
+                .append("Thank you for using our service!");
+        return message.toString();
+    }
 }
