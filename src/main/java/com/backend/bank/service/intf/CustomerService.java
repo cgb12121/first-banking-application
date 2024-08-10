@@ -27,7 +27,7 @@ public interface CustomerService {
     ChangePhoneNumberResponse changePhoneNumber(ChangePhoneNumberRequest request);
 
     @Transactional(rollbackOn = Exception.class, dontRollbackOn = MailException.class)
-    String confirmPhoneNumberChange(String token);
+    String confirmPhoneNumberChangeByLinkOnEmail(String token);
 
     @Transactional(rollbackOn = Exception.class, dontRollbackOn = MailException.class)
     String confirmPhoneNumberChangeByOTP(String otp, String newPhoneNumber);

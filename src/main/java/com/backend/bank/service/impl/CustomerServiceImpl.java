@@ -162,12 +162,12 @@ public class CustomerServiceImpl implements CustomerService, UserDetailsService 
         String otp = otpService.generateOTP(request.getNewPhoneNumber());
         otpService.sendOTP(request.getNewPhoneNumber(), otp);
 
-        return new ChangePhoneNumberResponse("Confirmation link sent to email and OTP sent to new phone number.", otp);
+        return new ChangePhoneNumberResponse("Confirmation link sent to email and OTP sent to new phone number.");
     }
 
     @Override
     @Transactional(rollbackOn = Exception.class, dontRollbackOn = MailException.class)
-    public String confirmPhoneNumberChange(String token) {
+    public String confirmPhoneNumberChangeByLinkOnEmail(String token) {
         PhoneChangeToken phoneChangeToken = phoneChangeTokenRepository.findByToken(token)
                 .orElseThrow(() -> new IllegalArgumentException("Invalid token"));
 

@@ -11,5 +11,4 @@ import lombok.Setter;
 @NoArgsConstructor
 public class ChangePhoneNumberResponse {
     private String message;
-    private String confirmLinkOrOTP;
 }

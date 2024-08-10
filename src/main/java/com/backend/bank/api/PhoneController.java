@@ -20,7 +20,7 @@ public class PhoneController {
 
     @GetMapping("/confirm-phone-change/{token}")
     public String confirmPhoneNumberChange(@PathVariable String token) {
-        return customerService.confirmPhoneNumberChange(token);
+        return customerService.confirmPhoneNumberChangeByLinkOnEmail(token);
     }
 
     @PostMapping("/confirm-phone-change-otp")
