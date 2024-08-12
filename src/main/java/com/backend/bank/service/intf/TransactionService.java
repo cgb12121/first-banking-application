@@ -66,7 +66,9 @@ public interface TransactionService {
      *
      * @param accountId          The ID of the account.
      * @param transactionRequest The details of the deposit transaction.
+     *
      * @return A {@link TransactionResponse} representing the completed transaction.
+     *
      * @throws InvalidTransactionAmountException If the transaction amount is invalid.
      * @throws AccountNotExistException          If the account does not exist.
      * @throws AccountInactiveException          If the account is inactive.
@@ -83,7 +85,9 @@ public interface TransactionService {
      *
      * @param accountId          The ID of the account.
      * @param transactionRequest The details of the withdrawal transaction.
+     *
      * @return A {@link TransactionResponse} representing the completed transaction.
+     *
      * @throws InvalidTransactionAmountException If the transaction amount is invalid.
      * @throws AccountNotExistException          If the account does not exist.
      * @throws AccountInactiveException          If the account is inactive.
@@ -101,7 +105,9 @@ public interface TransactionService {
      *
      * @param accountId          The ID of the sender's account.
      * @param transactionRequest The details of the transfer transaction.
+     *
      * @return A {@link TransactionResponse} representing the completed transaction.
+     *
      * @throws InvalidTransactionAmountException If the transaction amount is invalid.
      * @throws AccountNotExistException          If the sender or receiver account does not exist.
      * @throws AccountInactiveException          If the sender or receiver account is inactive.
@@ -124,7 +130,9 @@ public interface TransactionService {
      * @param accountId The ID of the account.
      * @param page      The page number for pagination.
      * @param size      The size of each page for pagination.
+     *
      * @return A list of {@link TransactionResponse} representing the transaction history.
+     *
      * @throws AccountNotExistException If the account does not exist.
      */
     @Async(value = "transactionTaskExecutor")
@@ -136,7 +144,9 @@ public interface TransactionService {
      * @param accountId The ID of the account.
      * @param page      The page number for pagination.
      * @param size      The size of each page for pagination.
+     *
      * @return A list of {@link TransactionResponse} representing the transaction history.
+     *
      * @throws AccountNotExistException If the account does not exist.
      */
     @Async(value = "transactionTaskExecutor")
@@ -148,7 +158,9 @@ public interface TransactionService {
      * @param accountId The ID of the account.
      * @param page      The page number for pagination.
      * @param size      The size of each page for pagination.
+     *
      * @return A list of {@link TransactionResponse} representing the transaction history.
+     *
      * @throws AccountNotExistException If the account does not exist.
      */
     @Async(value = "transactionTaskExecutor")
@@ -160,7 +172,9 @@ public interface TransactionService {
      * @param accountId The ID of the account.
      * @param page      The page number for pagination.
      * @param size      The size of each page for pagination.
+     *
      * @return A list of {@link TransactionResponse} representing the transaction history.
+     *
      * @throws AccountNotExistException If the account does not exist.
      */
     @Async(value = "transactionTaskExecutor")
@@ -172,7 +186,9 @@ public interface TransactionService {
      * @param accountId The ID of the account.
      * @param page      The page number for pagination.
      * @param size      The size of each page for pagination.
+     *
      * @return A list of {@link TransactionResponse} representing the transaction history.
+     *
      * @throws AccountNotExistException If the account does not exist.
      */
     @Async(value = "transactionTaskExecutor")

@@ -387,6 +387,10 @@ public class TransactionServiceImpl implements TransactionService {
      * {@code Add interest} to the users' account at the {@code beginning day of the month}
      */
     @Override
+    @Transactional(
+            rollbackOn = Exception.class,
+            dontRollbackOn = MailException.class
+    )
     @Scheduled(cron = "0 0 0 1 * ?")
     @Async(value = "transactionTaskExecutor")
     public void calculateInterest() {

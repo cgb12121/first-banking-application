@@ -21,7 +21,7 @@ public class AsyncConfig {
         return executor;
     }
 
-    @Bean(name = "verify")
+    @Bean(name = "verifyTaskExecutor")
     public Executor verifyTaskExecutor() {
         ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
         executor.setCorePoolSize(5);
