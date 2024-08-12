@@ -28,7 +28,7 @@ public class TransactionController {
     ) throws AccountNotExistException, InvalidTransactionAmountException, AccountFrozenException,
             AccountBannedException, AccountInactiveException, UnknownTransactionTypeException {
         CompletableFuture<TransactionResponse> response =
-                transactionService.deposit(accountId, transactionRequest);
+                this.transactionService.deposit(accountId, transactionRequest);
         return ResponseEntity.ok(response);
     }
 
@@ -40,7 +40,7 @@ public class TransactionController {
     ) throws AccountNotExistException, InsufficientFundsException, InvalidTransactionAmountException,
             AccountFrozenException, AccountBannedException, AccountInactiveException, UnknownTransactionTypeException {
         CompletableFuture<TransactionResponse> response =
-                transactionService.withdraw(accountId, transactionRequest);
+                this.transactionService.withdraw(accountId, transactionRequest);
         return ResponseEntity.ok(response);
     }
 
@@ -52,7 +52,7 @@ public class TransactionController {
     ) throws AccountNotExistException, InsufficientFundsException, InvalidTransactionAmountException, AccountFrozenException,
             AccountBannedException, AccountInactiveException, UnknownTransactionTypeException, CantTransferToSelfException {
         CompletableFuture<TransactionResponse> response =
-                transactionService.transfer(accountId, transactionRequest);
+                this.transactionService.transfer(accountId, transactionRequest);
         return ResponseEntity.ok(response);
     }
 
@@ -67,7 +67,7 @@ public class TransactionController {
             @RequestParam(value = "10") int size
     ) throws AccountNotExistException {
         CompletableFuture<List<TransactionResponse>> response =
-                transactionService.getTransactionHistory(accountId, page, size);
+                this.transactionService.getTransactionHistory(accountId, page, size);
         return ResponseEntity.ok(response);
     }
 
@@ -82,7 +82,7 @@ public class TransactionController {
             @RequestParam(value = "10") int size
     ) throws AccountNotExistException {
         CompletableFuture<List<TransactionResponse>> response =
-                transactionService.getDepositTransactionHistory(accountId, page, size);
+                this.transactionService.getDepositTransactionHistory(accountId, page, size);
         return ResponseEntity.ok(response);
     }
 
@@ -97,7 +97,7 @@ public class TransactionController {
             @RequestParam(value = "10") int size
     ) throws AccountNotExistException {
         CompletableFuture<List<TransactionResponse>> response =
-                transactionService.getWithdrawTransactionHistory(accountId, page, size);
+                this.transactionService.getWithdrawTransactionHistory(accountId, page, size);
         return ResponseEntity.ok(response);
     }
 
@@ -112,7 +112,7 @@ public class TransactionController {
             @RequestParam(value = "10") int size
     ) throws AccountNotExistException {
         CompletableFuture<List<TransactionResponse>> response =
-                transactionService.getSentTransactionHistory(accountId, page, size);
+                this.transactionService.getSentTransactionHistory(accountId, page, size);
         return ResponseEntity.ok(response);
     }
 
@@ -127,7 +127,7 @@ public class TransactionController {
             @RequestParam(value = "10") int size
     ) throws AccountNotExistException {
         CompletableFuture<List<TransactionResponse>> response =
-                transactionService.getReceivedTransactionHistory(accountId, page, size);
+                this.transactionService.getReceivedTransactionHistory(accountId, page, size);
         return ResponseEntity.ok(response);
     }
 

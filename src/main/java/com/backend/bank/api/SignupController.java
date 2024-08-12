@@ -27,8 +27,8 @@ public class SignupController {
     @PostMapping("/signup")
     public ResponseEntity<Map<String, Object>> signup(@RequestBody SignupRequest signupRequest) {
         try {
-            CompletableFuture<SignupResponse> response = signupService.signup(signupRequest);
-            return ResponseEntity.ok(createSuccessResponse(response));
+            CompletableFuture<SignupResponse> response = this.signupService.signup(signupRequest);
+            return ResponseEntity.ok(this.createSuccessResponse(response));
         } catch (AccountAlreadyExistsException e) {
             return ResponseEntity.status(HttpStatus.CONFLICT).body(createErrorResponse(e.getMessage()));
         } catch (Exception e) {
@@ -38,20 +38,20 @@ public class SignupController {
 
     @GetMapping("/verify")
     public ResponseEntity<String> verifyAccount(@RequestParam("code") String verificationCode) throws InvalidVerifyLink {
-        CompletableFuture<String> result = signupService.verifyUser(verificationCode);
+        CompletableFuture<String> result = this.signupService.verifyUser(verificationCode);
         return ResponseEntity.ok(result.join());
     }
 
     @GetMapping("/resend-verify-email")
     public void resendVerifyEmail(@RequestBody SignupRequest signupRequest) {
-        signupService.resendVerificationEmail(signupRequest);
+        this.signupService.resendVerificationEmail(signupRequest);
     }
 
     private Map<String, Object> createSuccessResponse(CompletableFuture<SignupResponse> response) throws ExecutionException, InterruptedException {
         Map<String, Object> responseBody = new LinkedHashMap<>();
         responseBody.put("[timestamp]", new Date());
         responseBody.put("status", HttpStatus.OK.value());
-        responseBody.put("message", response.get().getMessage());
+        responseBody.put("message", response.get().message());
         return responseBody;
     }
 

@@ -15,11 +15,11 @@ public class EmailController {
 
     @PostMapping("/change")
     public ChangeEmailResponse changeEmail(@RequestBody ChangeEmailRequest request) {
-        return customerService.changeEmail(request);
+        return this.customerService.changeEmail(request);
     }
 
     @GetMapping("/confirm-email-change/{token}")
     public String confirmEmailChange(@PathVariable String token) {
-        return customerService.confirmEmailChange(token);
+        return this.customerService.confirmEmailChange(token);
     }
 }

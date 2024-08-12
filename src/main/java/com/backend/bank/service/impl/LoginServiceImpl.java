@@ -38,8 +38,8 @@ public class LoginServiceImpl implements LoginService {
     @Transactional(rollbackOn = Exception.class, dontRollbackOn = MailException.class)
     public CompletableFuture<LoginResponse> login(LoginRequest loginRequest)
             throws AccountNotExistException, AccountBannedException, AccountInactiveException {
-        String identifier = loginRequest.getIdentifier();
-        String password = loginRequest.getPassword();
+        String identifier = loginRequest.identifier();
+        String password = loginRequest.password();
 
         Optional<Customer> optionalCustomer = findCustomerByIdentifier(identifier);
         if (optionalCustomer.isEmpty()) {

@@ -27,7 +27,7 @@ public class LoginController {
     public ResponseEntity<Map<String, Object>> login(@RequestBody LoginRequest loginRequest) {
         try {
             CompletableFuture<LoginResponse> response = loginService.login(loginRequest);
-            return ResponseEntity.ok(createSuccessResponse(response));
+            return ResponseEntity.ok(this.createSuccessResponse(response));
         } catch (AccountNotExistException | BadCredentialsException e) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(createErrorResponse(e.getMessage()));
         } catch (Exception e) {
@@ -39,8 +39,8 @@ public class LoginController {
         Map<String, Object> responseBody = new LinkedHashMap<>();
         responseBody.put("[timestamp]", new Date());
         responseBody.put("status", HttpStatus.OK.value());
-        responseBody.put("message", response.get().getMessage());
-        responseBody.put("token", response.get().getToken());
+        responseBody.put("message", response.get().message());
+        responseBody.put("token", response.get().token());
         return responseBody;
     }
 

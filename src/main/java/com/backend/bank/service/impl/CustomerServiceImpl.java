@@ -67,13 +67,13 @@ public class CustomerServiceImpl implements CustomerService, UserDetailsService 
     @Override
     @Transactional(rollbackOn = Exception.class, dontRollbackOn = MailException.class)
     public ChangePasswordResponse changePassword(ChangePasswordRequest request) {
-        Account accountRequest = accountRepository.findByAccountHolder_Email(request.getEmail())
+        Account accountRequest = accountRepository.findByAccountHolder_Email(request.email())
                 .orElseThrow(() -> new UsernameNotFoundException("Account not found"));
-        if (!passwordEncoder.matches(request.getOldPassword(), accountRequest.getAccountHolder().getPassword())) {
+        if (!passwordEncoder.matches(request.oldPassword(), accountRequest.getAccountHolder().getPassword())) {
             throw new BadCredentialsException("Wrong password");
         }
 
-        accountRequest.getAccountHolder().setPassword(passwordEncoder.encode(request.getNewPassword()));
+        accountRequest.getAccountHolder().setPassword(passwordEncoder.encode(request.newPassword()));
         accountRepository.save(accountRequest);
 
         sendChangedPasswordSuccessEmail(request, new Date());
@@ -84,26 +84,26 @@ public class CustomerServiceImpl implements CustomerService, UserDetailsService 
     @Override
     @Transactional(rollbackOn = Exception.class, dontRollbackOn = MailException.class)
     public ChangeEmailResponse changeEmail(ChangeEmailRequest request) {
-        Account account = accountRepository.findByAccountHolder_Email(request.getOldEmail())
+        Account account = accountRepository.findByAccountHolder_Email(request.oldEmail())
                 .orElseThrow(() -> new UsernameNotFoundException("Account not found"));
 
-        if (!passwordEncoder.matches(request.getConfirmPassword(), account.getAccountHolder().getPassword())) {
+        if (!passwordEncoder.matches(request.confirmPassword(), account.getAccountHolder().getPassword())) {
             throw new BadCredentialsException("Wrong password");
         }
 
         String token = UUID.randomUUID().toString();
         EmailChangeToken emailChangeToken = new EmailChangeToken();
         emailChangeToken.setToken(token);
-        emailChangeToken.setNewEmail(request.getNewEmail());
-        emailChangeToken.setOldEmail(request.getOldEmail());
+        emailChangeToken.setNewEmail(request.newEmail());
+        emailChangeToken.setOldEmail(request.oldEmail());
         emailChangeToken.setExpiryDate(new Date(System.currentTimeMillis() + 3600000)); // 1 hour
         emailChangeTokenRepository.save(emailChangeToken);
 
         String confirmLink = "https://localhost:8080/confirm-email-change?token=" + token;
-        String emailContent = EmailUtils.sendChangeEmailConfirmation(request.getNewEmail(), confirmLink);
+        String emailContent = EmailUtils.sendChangeEmailConfirmation(request.newEmail(), confirmLink);
 
         EmailDetails changeEmailMessage = new EmailDetails();
-        changeEmailMessage.setReceiver(request.getOldEmail());
+        changeEmailMessage.setReceiver(request.oldEmail());
         changeEmailMessage.setSubject("CHANGE EMAIL");
         changeEmailMessage.setBody(emailContent);
         notificationService.sendEmailToCustomer(changeEmailMessage);
@@ -135,23 +135,23 @@ public class CustomerServiceImpl implements CustomerService, UserDetailsService 
     @Override
     @Transactional(rollbackOn = Exception.class, dontRollbackOn = MailException.class)
     public ChangePhoneNumberResponse changePhoneNumber(ChangePhoneNumberRequest request) {
-        Account account = accountRepository.findByAccountHolder_PhoneNumber(request.getOldPhoneNumber())
+        Account account = accountRepository.findByAccountHolder_PhoneNumber(request.oldPhoneNumber())
                 .orElseThrow(() -> new UsernameNotFoundException("Account not found"));
 
-        if (!passwordEncoder.matches(request.getConfirmPassword(), account.getAccountHolder().getPassword())) {
+        if (!passwordEncoder.matches(request.confirmPassword(), account.getAccountHolder().getPassword())) {
             throw new BadCredentialsException("Wrong password");
         }
 
         String token = UUID.randomUUID().toString();
         PhoneChangeToken phoneChangeToken = new PhoneChangeToken();
         phoneChangeToken.setToken(token);
-        phoneChangeToken.setNewPhoneNumber(request.getNewPhoneNumber());
-        phoneChangeToken.setOldPhoneNumber(request.getOldPhoneNumber());
+        phoneChangeToken.setNewPhoneNumber(request.newPhoneNumber());
+        phoneChangeToken.setOldPhoneNumber(request.oldPhoneNumber());
         phoneChangeToken.setExpiryDate(new Date(System.currentTimeMillis() + 3600000)); // 1 hour expiry
         phoneChangeTokenRepository.save(phoneChangeToken);
 
         String confirmLink = "https://localhost:8080/api/phone/confirm-phone-change/" + token;
-        String emailContent = EmailUtils.sendChangePhoneNumberConfirmation(request.getNewPhoneNumber(), confirmLink);
+        String emailContent = EmailUtils.sendChangePhoneNumberConfirmation(request.newPhoneNumber(), confirmLink);
 
         EmailDetails changePhoneNumberEmail = new EmailDetails();
         changePhoneNumberEmail.setReceiver(account.getAccountHolder().getEmail());
@@ -159,8 +159,8 @@ public class CustomerServiceImpl implements CustomerService, UserDetailsService 
         changePhoneNumberEmail.setBody(emailContent);
         notificationService.sendEmailToCustomer(changePhoneNumberEmail);
 
-        String otp = otpService.generateOTP(request.getNewPhoneNumber());
-        otpService.sendOTP(request.getNewPhoneNumber(), otp);
+        String otp = otpService.generateOTP(request.newPhoneNumber());
+        otpService.sendOTP(request.newPhoneNumber(), otp);
 
         return new ChangePhoneNumberResponse("Confirmation link sent to email and OTP sent to new phone number.");
     }
@@ -214,7 +214,7 @@ public class CustomerServiceImpl implements CustomerService, UserDetailsService 
 
     private void sendChangedPasswordSuccessEmail(ChangePasswordRequest changePasswordRequest, Date changedPasswordDate) {
         EmailDetails emailDetails = new EmailDetails();
-        emailDetails.setReceiver(changePasswordRequest.getEmail());
+        emailDetails.setReceiver(changePasswordRequest.email());
         emailDetails.setSubject("Signup successful!");
         emailDetails.setBody(EmailUtils.sendEmailOnChangePassword(changePasswordRequest, changedPasswordDate));
         notificationService.sendEmailToCustomer(emailDetails);

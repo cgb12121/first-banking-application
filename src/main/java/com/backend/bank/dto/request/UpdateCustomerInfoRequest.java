@@ -1,15 +1,9 @@
 package com.backend.bank.dto.request;
 
-import lombok.*;
-
-@Getter
-@Setter
-@AllArgsConstructor
-@NoArgsConstructor
-public class UpdateCustomerInfoRequest {
-    private Long customerId;
-    private String firstName;
-    private String lastName;
-    private String email;
-    private String phoneNumber;
+public record UpdateCustomerInfoRequest(
+        Long customerId,
+        String firstName,
+        String lastName,
+        String email,
+        String phoneNumber) {
 }

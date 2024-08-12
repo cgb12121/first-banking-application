@@ -95,7 +95,6 @@ public class TransactionServiceImpl implements TransactionService {
     private final NotificationService notificationService;
 
     private final InterestService interestService;
-
     /**
      * {@code Deposits} a specified amount into an account.
      *
@@ -123,12 +122,12 @@ public class TransactionServiceImpl implements TransactionService {
             AccountInactiveException, AccountFrozenException,
             AccountBannedException, UnknownTransactionTypeException {
 
-        validateAmount(transactionRequest.getAmount());
+        validateAmount(transactionRequest.amount());
         Account account = validateAccount(accountId);
 
-        Transaction transaction = createTransaction(account, transactionRequest.getAmount(), TransactionType.DEPOSIT);
+        Transaction transaction = createTransaction(account, transactionRequest.amount(), TransactionType.DEPOSIT);
 
-        account.setBalance(account.getBalance().add(transactionRequest.getAmount()));
+        account.setBalance(account.getBalance().add(transactionRequest.amount()));
         accountRepository.save(account);
 
         transaction.setStatus(TransactionStatus.COMPLETED);
@@ -167,16 +166,16 @@ public class TransactionServiceImpl implements TransactionService {
             AccountInactiveException, AccountFrozenException, AccountBannedException,
             InsufficientFundsException, UnknownTransactionTypeException {
 
-        validateAmount(transactionRequest.getAmount());
+        validateAmount(transactionRequest.amount());
         Account account = validateAccount(accountId);
 
-        if (account.getBalance().compareTo(transactionRequest.getAmount()) < 0) {
+        if (account.getBalance().compareTo(transactionRequest.amount()) < 0) {
             throw new InsufficientFundsException("Insufficient funds for withdrawal");
         }
 
-        Transaction transaction = createTransaction(account, transactionRequest.getAmount(), TransactionType.WITHDRAWAL);
+        Transaction transaction = createTransaction(account, transactionRequest.amount(), TransactionType.WITHDRAWAL);
 
-        account.setBalance(account.getBalance().subtract(transactionRequest.getAmount()));
+        account.setBalance(account.getBalance().subtract(transactionRequest.amount()));
         accountRepository.save(account);
 
         transaction.setStatus(TransactionStatus.COMPLETED);
@@ -215,14 +214,14 @@ public class TransactionServiceImpl implements TransactionService {
             AccountInactiveException, AccountFrozenException, AccountBannedException,
             InsufficientFundsException, UnknownTransactionTypeException, CantTransferToSelfException {
 
-        validateAmount(transactionRequest.getAmount());
+        validateAmount(transactionRequest.amount());
         Account account = validateAccount(accountId);
 
-        if (account.getBalance().compareTo(transactionRequest.getAmount()) < 0) {
+        if (account.getBalance().compareTo(transactionRequest.amount()) < 0) {
             throw new InsufficientFundsException("Insufficient funds for transfer");
         }
 
-        Account transferToAccount = accountRepository.findByAccountNumber(transactionRequest.getTransferToAccount())
+        Account transferToAccount = accountRepository.findByAccountNumber(transactionRequest.transferToAccount())
                 .orElseThrow(() -> new AccountNotExistException("Transfer to account not found"));
 
         if (account.equals(transferToAccount)) {
@@ -231,11 +230,11 @@ public class TransactionServiceImpl implements TransactionService {
 
         validateAccountStatus(transferToAccount);
 
-        Transaction transaction = createTransaction(account, transactionRequest.getAmount(), TransactionType.TRANSFER);
-        transaction.setTransferToAccount(transactionRequest.getTransferToAccount());
+        Transaction transaction = createTransaction(account, transactionRequest.amount(), TransactionType.TRANSFER);
+        transaction.setTransferToAccount(transactionRequest.transferToAccount());
 
-        account.setBalance(account.getBalance().subtract(transactionRequest.getAmount()));
-        transferToAccount.setBalance(transferToAccount.getBalance().add(transactionRequest.getAmount()));
+        account.setBalance(account.getBalance().subtract(transactionRequest.amount()));
+        transferToAccount.setBalance(transferToAccount.getBalance().add(transactionRequest.amount()));
         accountRepository.save(account);
         accountRepository.save(transferToAccount);
 
@@ -514,7 +513,7 @@ public class TransactionServiceImpl implements TransactionService {
         EmailDetails emailToCustomer = new EmailDetails();
         emailToCustomer.setReceiver(customer.getEmail());
 
-        TransactionType transactionType = transactionRequest.getType();
+        TransactionType transactionType = transactionRequest.type();
         emailToCustomer.setSubject(transactionType.toString());
 
         switch (transactionType) {
@@ -553,8 +552,8 @@ public class TransactionServiceImpl implements TransactionService {
     private void sendTransactionEmailToReceiver(TransactionRequest transactionRequest, Date receivedDate)
             throws AccountNotExistException {
 
-        Customer receiver = accountRepository.findByAccountNumber(transactionRequest.getTransferToAccount())
-                .orElseThrow(() -> new AccountNotExistException("Account does not exist: " + transactionRequest.getTransferToAccount()))
+        Customer receiver = accountRepository.findByAccountNumber(transactionRequest.transferToAccount())
+                .orElseThrow(() -> new AccountNotExistException("Account does not exist: " + transactionRequest.transferToAccount()))
                 .getAccountHolder();
 
         EmailDetails emailToReceiver = new EmailDetails();
@@ -573,14 +572,14 @@ public class TransactionServiceImpl implements TransactionService {
      * @return The transaction response.
      */
     private TransactionResponse mapToResponse(Transaction transaction) {
-        TransactionResponse transactionResponse = new TransactionResponse();
-        transactionResponse.setId(transaction.getId());
-        transactionResponse.setAmount(transaction.getAmount());
-        transactionResponse.setTimestamp(transaction.getTimestamp());
-        transactionResponse.setType(transaction.getType());
-        transactionResponse.setStatus(transaction.getStatus());
-        transactionResponse.setTransferToAccount(transaction.getTransferToAccount());
-        return transactionResponse;
+        return new TransactionResponse(
+                transaction.getId(),
+                transaction.getAmount(),
+                transaction.getTimestamp(),
+                transaction.getType(),
+                transaction.getStatus(),
+                transaction.getTransferToAccount()
+        );
     }
 
     /**
@@ -620,7 +619,7 @@ public class TransactionServiceImpl implements TransactionService {
             dontRollbackOn = {MailException.class}
     )
     public TransactionResponse createTransaction(Long accountId, TransactionRequest transactionRequest) throws AccountNotExistException, InsufficientFundsException, InvalidTransactionAmountException, AccountInactiveException, AccountFrozenException, AccountBannedException {
-        if (transactionRequest.getAmount().compareTo(BigDecimal.ZERO) <= 0) {
+        if (transactionRequest.amount().compareTo(BigDecimal.ZERO) <= 0) {
             throw new InvalidTransactionAmountException("Amount must be greater than 0");
         }
 
@@ -636,39 +635,39 @@ public class TransactionServiceImpl implements TransactionService {
         }
 
         Transaction transaction = new Transaction();
-        transaction.setAmount(transactionRequest.getAmount());
+        transaction.setAmount(transactionRequest.amount());
         transaction.setTimestamp(LocalDateTime.now());
-        transaction.setType(transactionRequest.getType());
+        transaction.setType(transactionRequest.type());
         transaction.setStatus(TransactionStatus.PENDING);
         transaction.setAccount(account);
 
-        if (transactionRequest.getType() == TransactionType.TRANSFER) {
-            if (transactionRequest.getTransferToAccount() == null || transactionRequest.getTransferToAccount().isEmpty()) {
+        if (transactionRequest.type() == TransactionType.TRANSFER) {
+            if (transactionRequest.transferToAccount() == null || transactionRequest.transferToAccount().isEmpty()) {
                 throw new IllegalArgumentException("Transfer to account cannot be null or empty for TRANSFER transactions");
             }
-            transaction.setTransferToAccount(transactionRequest.getTransferToAccount());
+            transaction.setTransferToAccount(transactionRequest.transferToAccount());
         }
 
-        switch (transactionRequest.getType()) {
+        switch (transactionRequest.type()) {
             case DEPOSIT:
-                if (transactionRequest.getAmount().compareTo(BigDecimal.ZERO) < 0) {
+                if (transactionRequest.amount().compareTo(BigDecimal.ZERO) < 0) {
                     throw new InsufficientFundsException("Insufficient funds for deposit");
                 }
-                account.setBalance(account.getBalance().add(transactionRequest.getAmount()));
+                account.setBalance(account.getBalance().add(transactionRequest.amount()));
                 transaction.setStatus(TransactionStatus.COMPLETED);
                 break;
             case WITHDRAWAL:
-                if (account.getBalance().compareTo(transactionRequest.getAmount()) < 0) {
+                if (account.getBalance().compareTo(transactionRequest.amount()) < 0) {
                     throw new InsufficientFundsException("Insufficient funds for withdrawal");
                 }
-                account.setBalance(account.getBalance().subtract(transactionRequest.getAmount()));
+                account.setBalance(account.getBalance().subtract(transactionRequest.amount()));
                 transaction.setStatus(TransactionStatus.COMPLETED);
                 break;
             case TRANSFER:
-                if (account.getBalance().compareTo(transactionRequest.getAmount()) < 0) {
+                if (account.getBalance().compareTo(transactionRequest.amount()) < 0) {
                     throw new InsufficientFundsException("Insufficient funds for transfer");
                 }
-                Account transferToAccount = accountRepository.findByAccountNumber(transactionRequest.getTransferToAccount())
+                Account transferToAccount = accountRepository.findByAccountNumber(transactionRequest.transferToAccount())
                         .orElseThrow(() -> new AccountNotExistException("Transfer to account not found"));
 
                 switch (transferToAccount.getAccountStatus()) {
@@ -677,8 +676,8 @@ public class TransactionServiceImpl implements TransactionService {
                     case BANNED -> throw new AccountBannedException("The receiver are banned!!!");
                 }
 
-                account.setBalance(account.getBalance().subtract(transactionRequest.getAmount()));
-                transferToAccount.setBalance(transferToAccount.getBalance().add(transactionRequest.getAmount()));
+                account.setBalance(account.getBalance().subtract(transactionRequest.amount()));
+                transferToAccount.setBalance(transferToAccount.getBalance().add(transactionRequest.amount()));
                 accountRepository.save(transferToAccount);
                 transaction.setStatus(TransactionStatus.COMPLETED);
                 break;

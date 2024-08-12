@@ -21,8 +21,8 @@ public class EmailUtils {
         message.get().append("Congratulations!").append(NEW_LINE)
                 .append("Your account has been created successfully.").append(NEW_LINE)
                 .append("Your account details:").append(NEW_LINE)
-                .append(user.getFirstName()).append(" ").append(user.getLastName()).append(NEW_LINE)
-                .append(user.getAccount().getAccountNumber()).append(NEW_LINE)
+                .append(user.firstName()).append(" ").append(user.lastName()).append(NEW_LINE)
+                .append(user.account().accountNumber()).append(NEW_LINE)
                 .append("Created at: ").append(now).append(NEW_LINE)
                 .append("Thank you for registering your account.");
         return message.toString();
@@ -30,10 +30,10 @@ public class EmailUtils {
 
     public static String sendEmailOnDeposit(Customer customer, TransactionRequest transactionRequest, Date now) {
         AtomicReference<StringBuilder> message = new AtomicReference<>(new StringBuilder());
-        message.get().append(transactionRequest.getType().name().toUpperCase()).append(NEW_LINE)
+        message.get().append(transactionRequest.type().name().toUpperCase()).append(NEW_LINE)
                 .append("Dear ").append(customer.getFirstName()).append(" ").append(customer.getLastName()).append(NEW_LINE)
                 .append("At: ").append(now).append(NEW_LINE)
-                .append("You have deposited ").append(transactionRequest.getAmount()).append(" into your account.").append(NEW_LINE)
+                .append("You have deposited ").append(transactionRequest.amount()).append(" into your account.").append(NEW_LINE)
                 .append("Your current balance is: ").append(customer.getAccount().getBalance()).append(NEW_LINE)
                 .append("Thank you for your deposit transaction!");
         return message.toString();
@@ -41,10 +41,10 @@ public class EmailUtils {
 
     public static String sendEmailOnWithdrawal(Customer customer, TransactionRequest transactionRequest, Date now) {
         AtomicReference<StringBuilder> message = new AtomicReference<>(new StringBuilder());
-        message.get().append(transactionRequest.getType().name().toUpperCase()).append(NEW_LINE)
+        message.get().append(transactionRequest.type().name().toUpperCase()).append(NEW_LINE)
                 .append("Dear ").append(customer.getFirstName()).append(" ").append(customer.getLastName()).append(NEW_LINE)
                 .append("At: ").append(now).append(NEW_LINE)
-                .append("You have withdrawn ").append(transactionRequest.getAmount()).append(" from your account.").append(NEW_LINE)
+                .append("You have withdrawn ").append(transactionRequest.amount()).append(" from your account.").append(NEW_LINE)
                 .append("Your current balance is: ").append(customer.getAccount().getBalance()).append(NEW_LINE)
                 .append("If it was not you, please contact us for further support.");
         return message.toString();
@@ -52,10 +52,10 @@ public class EmailUtils {
 
     public static String sendEmailOnTransfer(Customer customer, TransactionRequest transactionRequest, Date now) {
         AtomicReference<StringBuilder> message = new AtomicReference<>(new StringBuilder());
-        message.get().append(transactionRequest.getType().name().toUpperCase()).append(NEW_LINE)
+        message.get().append(transactionRequest.type().name().toUpperCase()).append(NEW_LINE)
                 .append("Dear ").append(customer.getFirstName()).append(" ").append(customer.getLastName()).append(NEW_LINE)
                 .append("At: ").append(now).append(NEW_LINE)
-                .append("You have transferred ").append(transactionRequest.getAmount()).append(" into this account: ").append(transactionRequest.getTransferToAccount()).append(NEW_LINE)
+                .append("You have transferred ").append(transactionRequest.amount()).append(" into this account: ").append(transactionRequest.transferToAccount()).append(NEW_LINE)
                 .append("Your current balance is: ").append(customer.getAccount().getBalance()).append(NEW_LINE)
                 .append("Thank you for your transfer transaction!").append(NEW_LINE)
                 .append("If it was not you, please contact us for further support.");
@@ -66,7 +66,7 @@ public class EmailUtils {
         AtomicReference<StringBuilder> message = new AtomicReference<>(new StringBuilder());
         message.get().append("Dear ").append(receiver.getFirstName()).append(" ").append(receiver.getLastName()).append(NEW_LINE)
                 .append("At: ").append(now).append(NEW_LINE)
-                .append("You have received ").append(transactionRequest.getAmount()).append(" from account number ").append(transactionRequest.getTransferToAccount()).append(NEW_LINE)
+                .append("You have received ").append(transactionRequest.amount()).append(" from account number ").append(transactionRequest.transferToAccount()).append(NEW_LINE)
                 .append("Your current balance is: ").append(receiver.getAccount().getBalance()).append(NEW_LINE)
                 .append("Thank you for using our service!");
         return message.toString();
@@ -74,7 +74,7 @@ public class EmailUtils {
 
     public static String sendEmailOnChangePassword(ChangePasswordRequest changePasswordRequest, Date changedPasswordDate) {
         AtomicReference<StringBuilder> message = new AtomicReference<>(new StringBuilder());
-        message.get().append("Dear ").append(changePasswordRequest.getEmail()).append(NEW_LINE)
+        message.get().append("Dear ").append(changePasswordRequest.email()).append(NEW_LINE)
                 .append("At: ").append(changedPasswordDate).append(NEW_LINE)
                 .append("Your account password has been changed successfully. ").append(NEW_LINE)
                 .append("If it was not you, please change your password again to secure your account.").append(NEW_LINE)

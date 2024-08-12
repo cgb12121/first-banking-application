@@ -58,8 +58,8 @@ public class SignupServiceImpl implements SignupService {
         checkForExistingAccounts(signupRequest);
 
         Customer customer = createCustomer(signupRequest);
-        Account account = createAccount(signupRequest.getAccount(), customer);
-        List<Card> cards = createCards(signupRequest.getCard(), customer);
+        Account account = createAccount(signupRequest.account(), customer);
+        List<Card> cards = createCards(signupRequest.card(), customer);
 
         customer.setAccount(account);
         customer.setCards(cards);
@@ -97,41 +97,41 @@ public class SignupServiceImpl implements SignupService {
     }
 
     private void checkForExistingAccounts(SignupRequest signupRequest) throws AccountAlreadyExistsException {
-        if (customerRepository.existsByEmail(signupRequest.getEmail())) {
-            throw new AccountAlreadyExistsException("Email already exists: " + signupRequest.getEmail());
+        if (customerRepository.existsByEmail(signupRequest.email())) {
+            throw new AccountAlreadyExistsException("Email already exists: " + signupRequest.email());
         }
 
-        if (customerRepository.existsByPhoneNumber(signupRequest.getPhoneNumber())) {
-            throw new AccountAlreadyExistsException("Phone number already exists: " + signupRequest.getPhoneNumber());
+        if (customerRepository.existsByPhoneNumber(signupRequest.phoneNumber())) {
+            throw new AccountAlreadyExistsException("Phone number already exists: " + signupRequest.phoneNumber());
         }
 
-        if (accountRepository.existsByAccountNumber(signupRequest.getAccount().getAccountNumber())) {
-            throw new AccountAlreadyExistsException("Account number already exists: " + signupRequest.getAccount().getAccountNumber());
+        if (accountRepository.existsByAccountNumber(signupRequest.account().accountNumber())) {
+            throw new AccountAlreadyExistsException("Account number already exists: " + signupRequest.account().accountNumber());
         }
 
-        for (CardRequest cardRequest : signupRequest.getCard()) {
-            if (cardRepository.existsByCardNumber(cardRequest.getCardNumber())) {
-                throw new AccountAlreadyExistsException("Card number: " + cardRequest.getCardNumber() + " already exists");
+        for (CardRequest cardRequest : signupRequest.card()) {
+            if (cardRepository.existsByCardNumber(cardRequest.cardNumber())) {
+                throw new AccountAlreadyExistsException("Card number: " + cardRequest.cardNumber() + " already exists");
             }
         }
     }
 
     private Customer createCustomer(SignupRequest signupRequest) {
         Customer customer = new Customer();
-        customer.setEmail(signupRequest.getEmail());
-        customer.setPhoneNumber(signupRequest.getPhoneNumber());
-        customer.setPassword(passwordEncoder.encode(signupRequest.getPassword()));
-        customer.setFirstName(signupRequest.getFirstName());
-        customer.setLastName(signupRequest.getLastName());
+        customer.setEmail(signupRequest.email());
+        customer.setPhoneNumber(signupRequest.phoneNumber());
+        customer.setPassword(passwordEncoder.encode(signupRequest.password()));
+        customer.setFirstName(signupRequest.firstName());
+        customer.setLastName(signupRequest.lastName());
         return customer;
     }
 
     private Account createAccount(AccountRequest accountRequest, Customer customer) {
         Account account = new Account();
-        account.setAccountNumber(accountRequest.getAccountNumber());
-        account.setBalance(accountRequest.getBalance());
-        account.setAccountType(accountRequest.getAccountType());
-        account.setAccountStatus(accountRequest.getAccountStatus());
+        account.setAccountNumber(accountRequest.accountNumber());
+        account.setBalance(accountRequest.balance());
+        account.setAccountType(accountRequest.accountType());
+        account.setAccountStatus(accountRequest.accountStatus());
         account.setAccountHolder(customer);
         return account;
     }
@@ -139,11 +139,11 @@ public class SignupServiceImpl implements SignupService {
     private List<Card> createCards(List<CardRequest> cardRequests, Customer customer) {
         return cardRequests.stream().map(cardRequest -> {
             Card card = new Card();
-            card.setCardNumber(cardRequest.getCardNumber());
-            card.setCardType(cardRequest.getCardType());
-            card.setExpiryDate(cardRequest.getExpiryDate());
-            card.setCreditLimit(cardRequest.getCreditLimit());
-            card.setBalance(cardRequest.getBalance());
+            card.setCardNumber(cardRequest.cardNumber());
+            card.setCardType(cardRequest.cardType());
+            card.setExpiryDate(cardRequest.expiryDate());
+            card.setCreditLimit(cardRequest.creditLimit());
+            card.setBalance(cardRequest.balance());
             card.setCustomer(customer);
             return card;
         }).collect(Collectors.toList());
@@ -151,7 +151,7 @@ public class SignupServiceImpl implements SignupService {
 
     private void sendSignupSuccessEmail(SignupRequest signupRequest) {
         EmailDetails emailDetails = new EmailDetails();
-        emailDetails.setReceiver(signupRequest.getEmail());
+        emailDetails.setReceiver(signupRequest.email());
         emailDetails.setSubject("Signup successful!");
         emailDetails.setBody(EmailUtils.emailAccountCreationSuccess(signupRequest, new Date()));
 
@@ -159,7 +159,7 @@ public class SignupServiceImpl implements SignupService {
     }
 
     private void sendVerificationEmail(SignupRequest signupRequest) {
-        Customer customer = customerRepository.findByEmail(signupRequest.getEmail()).orElseThrow();
+        Customer customer = customerRepository.findByEmail(signupRequest.email()).orElseThrow();
         String verificationLink = generateVerificationCode(customer);
 
         EmailDetails emailDetails = new EmailDetails();
@@ -171,10 +171,10 @@ public class SignupServiceImpl implements SignupService {
     }
 
     private SignupResponse createSignupResponse(Customer customer) {
-        SignupResponse response = new SignupResponse();
-        response.setCustomerId(customer.getId());
-        response.setMessage("Signup successful! Please check your email!");
-        return response;
+        return new SignupResponse(
+                customer.getId(),
+                "Signup successful! Please check your email!"
+        );
     }
 
     private String generateVerificationCode(Customer Customer) {
