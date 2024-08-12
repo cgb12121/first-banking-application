@@ -44,7 +44,7 @@ public class LoanServiceImpl implements LoanService {
 
         BigDecimal interestRateDecimal = request.interestRate().divide(BigDecimal.valueOf(100));
         BigDecimal interestAmount = request.amount().multiply(interestRateDecimal)
-                .multiply(BigDecimal.valueOf(request.termInMonths())).divide(BigDecimal.valueOf(12), BigDecimal.ROUND_HALF_UP);
+                .multiply(BigDecimal.valueOf(request.termInMonths())).divide(BigDecimal.valueOf(12));
 
         LocalDateTime startDate = LocalDateTime.now();
         LocalDateTime endDate = startDate.plusMonths(request.termInMonths());
@@ -66,7 +66,7 @@ public class LoanServiceImpl implements LoanService {
     }
 
     @Override
-    public LoanApplicationResponse approveLoan(LoanApprovalRequest request) throws LoanNotFoundException, InvalidLoanStatusException {
+    public LoanApplicationResponse approveLoan(LoanApprovalRequest request) throws LoanNotFoundException, InvalidLoanStatusException, AccountNotExistException {
         Loan loan = loanRepository.findById(request.loanId())
                 .orElseThrow(() -> new LoanNotFoundException("Loan not found"));
 
@@ -76,8 +76,7 @@ public class LoanServiceImpl implements LoanService {
 
         if (request.approve()) {
             loan.setTakeLoanStatus(TakeLoanStatus.APPROVED);
-            // Disburse loan amount to customer's account
-            Account account = accountRepository.findByCustomerId(loan.getCustomer().getId())
+            Account account = accountRepository.findByAccountHolder_Id(loan.getCustomer().getId())
                     .orElseThrow(() -> new AccountNotExistException("Account not found for customer."));
             account.setBalance(account.getBalance().add(loan.getAmount()));
             accountRepository.save(account);
@@ -89,7 +88,7 @@ public class LoanServiceImpl implements LoanService {
     }
 
     @Override
-    public LoanRepaymentResponse makeRepayment(LoanRepaymentRequest request) throws LoanNotFoundException, InvalidRepaymentAmountException, InsufficientFundsException {
+    public LoanRepaymentResponse makeRepayment(LoanRepaymentRequest request) throws LoanNotFoundException, InvalidRepaymentAmountException, InsufficientFundsException, AccountNotExistException {
         Loan loan = loanRepository.findById(request.loanId())
                 .orElseThrow(() -> new LoanNotFoundException("Loan not found"));
 
@@ -109,7 +108,7 @@ public class LoanServiceImpl implements LoanService {
             throw new InvalidRepaymentAmountException("Repayment amount exceeds the remaining loan amount.");
         }
 
-        Account account = accountRepository.findByCustomerId(loan.getCustomer().getId())
+        Account account = accountRepository.findByAccountHolder_Id(loan.getCustomer().getId())
                 .orElseThrow(() -> new AccountNotExistException("Account not found for customer."));
         if (account.getBalance().compareTo(request.repaymentAmount()) < 0) {
             throw new InsufficientFundsException("Insufficient funds in account for repayment.");
@@ -118,7 +117,6 @@ public class LoanServiceImpl implements LoanService {
         account.setBalance(account.getBalance().subtract(request.repaymentAmount()));
         accountRepository.save(account);
 
-        // Update loan repayment status
         amountPaid = amountPaid.add(request.repaymentAmount());
         if (amountPaid.compareTo(totalOwed) >= 0) {
             loan.setLoanStatus(LoanStatus.PAID);
@@ -189,9 +187,7 @@ public class LoanServiceImpl implements LoanService {
     }
 
     private BigDecimal getTotalAmountPaid(Loan loan) {
-        // Assuming you have a LoanRepayment entity/table to track repayments
-        // For simplicity, we'll assume no repayments have been made
-        // You can implement this method based on your actual repayment tracking
+        //TODO: a table to track paid attempts
         return BigDecimal.ZERO;
     }
 }
