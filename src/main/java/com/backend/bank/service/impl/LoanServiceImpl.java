@@ -22,7 +22,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
-import java.math.RoundingMode;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -43,10 +42,9 @@ public class LoanServiceImpl implements LoanService {
         Customer customer = customerRepository.findById(request.customerId())
                 .orElseThrow(() -> new CustomerNotFoundException("Customer not found"));
 
-        BigDecimal interestRateDecimal = request.interestRate().divide(BigDecimal.valueOf(100), RoundingMode.UNNECESSARY);
+        BigDecimal interestRateDecimal = request.interestRate().divide(BigDecimal.valueOf(100));
         BigDecimal interestAmount = request.amount().multiply(interestRateDecimal)
-                .multiply(BigDecimal.valueOf(request.termInMonths()))
-                .divide(BigDecimal.valueOf(12), RoundingMode.UNNECESSARY);
+                .multiply(BigDecimal.valueOf(request.termInMonths())).divide(BigDecimal.valueOf(12));
 
         LocalDateTime startDate = LocalDateTime.now();
         LocalDateTime endDate = startDate.plusMonths(request.termInMonths());
