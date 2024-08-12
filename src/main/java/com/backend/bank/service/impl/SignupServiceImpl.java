@@ -8,11 +8,15 @@ import com.backend.bank.dto.response.SignupResponse;
 import com.backend.bank.entity.Account;
 import com.backend.bank.entity.Card;
 import com.backend.bank.entity.Customer;
+import com.backend.bank.entity.Verify;
+import com.backend.bank.entity.constant.AccountStatus;
 import com.backend.bank.exception.AccountAlreadyExistsException;
+import com.backend.bank.exception.InvalidVerifyLink;
 import com.backend.bank.repository.AccountRepository;
 import com.backend.bank.repository.CardRepository;
 import com.backend.bank.repository.CustomerRepository;
-import com.backend.bank.service.intf.EmailService;
+import com.backend.bank.repository.VerifyRepository;
+import com.backend.bank.service.intf.NotificationService;
 import com.backend.bank.service.intf.SignupService;
 import com.backend.bank.utils.EmailUtils;
 
@@ -25,6 +29,7 @@ import org.springframework.scheduling.annotation.Async;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
@@ -42,7 +47,9 @@ public class SignupServiceImpl implements SignupService {
 
     private final CardRepository cardRepository;
 
-    private final EmailService emailService;
+    private final NotificationService notificationService;
+
+    private final VerifyRepository verifyRepository;
 
     @Async
     @Override
@@ -60,8 +67,33 @@ public class SignupServiceImpl implements SignupService {
         customerRepository.save(customer);
 
         sendSignupSuccessEmail(signupRequest);
+        sendVerificationEmail(signupRequest);
 
         return CompletableFuture.completedFuture(createSignupResponse(customer));
+    }
+
+    @Async
+    @Override
+    public void resendVerificationEmail(SignupRequest signupRequest) {
+        sendVerificationEmail(signupRequest);
+    }
+
+    @Override
+    @Async(value = "verify")
+    public CompletableFuture<String> verifyUser(String httpRequest) throws InvalidVerifyLink {
+        Verify userVerify = verifyRepository.findByVerifyLink(httpRequest)
+                .orElseThrow(() -> new InvalidVerifyLink("Invalid verify request: " + httpRequest));
+
+        boolean isExpired = userVerify.getCreateDate().after(userVerify.getExpiryDate());
+        if (isExpired) {
+            throw new InvalidVerifyLink("Verify link expired: " + httpRequest);
+        }
+
+        Customer customer = userVerify.getCustomer();
+        customer.getAccount().setAccountStatus(AccountStatus.ACTIVE);
+        verifyRepository.delete(userVerify);
+
+        return CompletableFuture.completedFuture("Verified successfully");
     }
 
     private void checkForExistingAccounts(SignupRequest signupRequest) throws AccountAlreadyExistsException {
@@ -123,7 +155,7 @@ public class SignupServiceImpl implements SignupService {
         emailDetails.setSubject("Signup successful!");
         emailDetails.setBody(EmailUtils.emailAccountCreationSuccess(signupRequest, new Date()));
 
-        emailService.sendEmailToCustomer(emailDetails);
+        notificationService.sendEmailToCustomer(emailDetails);
     }
 
     private void sendVerificationEmail(SignupRequest signupRequest) {
@@ -135,7 +167,7 @@ public class SignupServiceImpl implements SignupService {
         emailDetails.setSubject("Verification Email");
         emailDetails.setBody("Verification Link: " + verificationLink);
 
-        emailService.sendEmailToCustomer(emailDetails);
+        notificationService.sendEmailToCustomer(emailDetails);
     }
 
     private SignupResponse createSignupResponse(Customer customer) {
@@ -147,9 +179,24 @@ public class SignupServiceImpl implements SignupService {
 
     private String generateVerificationCode(Customer Customer) {
         String siteVerifyURL = "localhost:8080/auth/verify=?";
-        // TODO: save to verification data base
-        // TODO: (include RandomStringUtils.randomAlphanumeric(30), issued date, expire date (15 min later))
         String encodeUserName = passwordEncoder.encode(Customer.getFirstName());
-        return siteVerifyURL + RandomStringUtils.randomAlphanumeric(30) + encodeUserName;
+        String userVerifyPath = RandomStringUtils.randomAlphanumeric(30) + "/" + encodeUserName;
+        String verifyLink = siteVerifyURL + userVerifyPath;
+
+        Date currentTime = new Date();
+
+        Calendar calendar = Calendar.getInstance();
+        calendar.setTime(currentTime);
+        calendar.add(Calendar.MINUTE, 15);
+
+        Verify verify = new Verify();
+        verify.setVerifyLink(verifyLink);
+        verify.setCreateDate(currentTime);
+        verify.setExpiryDate(calendar.getTime());
+        verify.setCustomer(Customer);
+
+        verifyRepository.save(verify);
+
+        return verifyLink;
     }
 }

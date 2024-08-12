@@ -12,7 +12,7 @@ import com.backend.bank.entity.constant.TransactionType;
 import com.backend.bank.exception.*;
 import com.backend.bank.repository.AccountRepository;
 import com.backend.bank.repository.TransactionRepository;
-import com.backend.bank.service.intf.EmailService;
+import com.backend.bank.service.intf.NotificationService;
 import com.backend.bank.service.intf.InterestService;
 import com.backend.bank.service.intf.TransactionService;
 import com.backend.bank.utils.EmailUtils;
@@ -41,8 +41,8 @@ import java.util.stream.Stream;
 
 /**
  * <pre>
- * Implementation of the {@link TransactionService} interface.
- * Provides methods for handling transactions:
+ * Interface of the {@link TransactionServiceImpl}.
+ * Provides methods for handling transactions and transaction history:
  * </pre>
  *
  * <dl>
@@ -59,9 +59,30 @@ import java.util.stream.Stream;
  *   <dd>&nbsp;</dd>
  *
  *   <dt>{@code getTransactionHistory(Long accountId, int page, int size)}</dt>
- *   <dd>Fetch the transaction history of a user's account.</dd>
+ *   <dd>Fetch the full transaction history of a user's account.</dd>
+ *   <dd>&nbsp;</dd>
+ *
+ *   <dt>{@code getDepositTransactionHistory(Long accountId, int page, int size)}</dt>
+ *   <dd>Fetch the deposit transaction history of a user's account.</dd>
+ *   <dd>&nbsp;</dd>
+ *
+ *   <dt>{@code getWithdrawTransactionHistory(Long accountId, int page, int size)}</dt>
+ *   <dd>Fetch the withdrawal transaction history of a user's account.</dd>
+ *   <dd>&nbsp;</dd>
+ *
+ *   <dt>{@code getSentTransactionHistory(Long accountId, int page, int size)}</dt>
+ *   <dd>Fetch the history of transactions sent from a user's account.</dd>
+ *   <dd>&nbsp;</dd>
+ *
+ *   <dt>{@code getReceivedTransactionHistory(Long accountId, int page, int size)}</dt>
+ *   <dd>Fetch the history of transactions received by a user's account.</dd>
+ *   <dd>&nbsp;</dd>
+ *
+ *   <dt>{@code calculateInterest()}</dt>
+ *   <dd>Calculate and add interest to users' accounts on the first day of the month.</dd>
  * </dl>
  */
+
 @Log4j2
 @Service
 @RequiredArgsConstructor
@@ -71,7 +92,7 @@ public class TransactionServiceImpl implements TransactionService {
 
     private final AccountRepository accountRepository;
 
-    private final EmailService emailService;
+    private final NotificationService notificationService;
 
     private final InterestService interestService;
 
@@ -378,7 +399,7 @@ public class TransactionServiceImpl implements TransactionService {
                 EmailDetails emailDetails = new EmailDetails();
                 emailDetails.setSubject("RECEIVING MONTHLY INTEREST");
                 emailDetails.setBody(EmailUtils.sendEmailOnReceivingInterest(account, interest, LocalDate.now()));
-                emailService.sendEmailToCustomer(emailDetails);
+                notificationService.sendEmailToCustomer(emailDetails);
             } catch (AccountNotExistException e) {
                 log.error("[Timestamp: {}] Error when trying to add interest to account: + {}. [Error] + {} : + {}",
                         LocalTime.now(),
@@ -495,17 +516,17 @@ public class TransactionServiceImpl implements TransactionService {
         switch (transactionType) {
             case WITHDRAWAL:
                 emailToCustomer.setBody(EmailUtils.sendEmailOnWithdrawal(customer, transactionRequest, new Date()));
-                emailService.sendEmailToCustomer(emailToCustomer);
+                notificationService.sendEmailToCustomer(emailToCustomer);
                 break;
             case TRANSFER:
                 Date transferDate = new Date();
                 emailToCustomer.setBody(EmailUtils.sendEmailOnTransfer(customer, transactionRequest, transferDate));
-                emailService.sendEmailToCustomer(emailToCustomer);
+                notificationService.sendEmailToCustomer(emailToCustomer);
                 sendTransactionEmailToReceiver(transactionRequest, transferDate);
                 break;
             case DEPOSIT:
                 emailToCustomer.setBody(EmailUtils.sendEmailOnDeposit(customer, transactionRequest, new Date()));
-                emailService.sendEmailToCustomer(emailToCustomer);
+                notificationService.sendEmailToCustomer(emailToCustomer);
                 break;
             default:
                 log.error("[timestamp:{}] Sent {} email to: {} : {}",
@@ -537,7 +558,7 @@ public class TransactionServiceImpl implements TransactionService {
         emailToReceiver.setSubject("TRANSFER");
         emailToReceiver.setBody(EmailUtils.sendEmailOnReceiving(receiver, transactionRequest, receivedDate));
 
-        emailService.sendEmailToCustomer(emailToReceiver);
+        notificationService.sendEmailToCustomer(emailToReceiver);
     }
 
     /**

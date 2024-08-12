@@ -1,7 +1,7 @@
 package com.backend.bank.service.impl;
 
 import com.backend.bank.dto.EmailDetails;
-import com.backend.bank.service.intf.EmailService;
+import com.backend.bank.service.intf.NotificationService;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
@@ -20,7 +20,7 @@ import java.util.Date;
 @Log4j2
 @Service
 @RequiredArgsConstructor
-public class EmailServiceImpl implements EmailService {
+public class NotificationServiceImpl implements NotificationService {
 
     private final JavaMailSender javaMailSender;
 

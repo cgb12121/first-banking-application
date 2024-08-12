@@ -1,7 +1,6 @@
 package com.backend.bank.service.impl;
 
 import com.backend.bank.entity.Account;
-import com.backend.bank.exception.AccountNotExistException;
 import com.backend.bank.repository.AccountRepository;
 import com.backend.bank.service.intf.InterestService;
 import jakarta.transaction.Transactional;
@@ -21,6 +20,7 @@ public class InterestServiceImpl implements InterestService {
 
     /**
      * {@code Add interest} to the users' account based on {@code user's interest}.
+     *
      * @param accountNumber user's account number
      * @param interest  interest rate
      */

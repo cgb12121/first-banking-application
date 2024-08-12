@@ -6,7 +6,7 @@ import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
 @Service
-public interface EmailService {
+public interface NotificationService {
     @Async(value = "emailTaskExecutor")
     void sendEmailToCustomer(EmailDetails emailDetails);
 }

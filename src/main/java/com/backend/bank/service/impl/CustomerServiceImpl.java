@@ -19,7 +19,7 @@ import com.backend.bank.repository.EmailChangeTokenRepository;
 import com.backend.bank.repository.PhoneChangeTokenRepository;
 import com.backend.bank.service.intf.CustomerService;
 
-import com.backend.bank.service.intf.EmailService;
+import com.backend.bank.service.intf.NotificationService;
 import com.backend.bank.service.intf.OtpService;
 import com.backend.bank.utils.EmailUtils;
 import jakarta.transaction.Transactional;
@@ -47,7 +47,7 @@ public class CustomerServiceImpl implements CustomerService, UserDetailsService 
 
     private final AccountRepository accountRepository;
 
-    private final EmailService emailService;
+    private final NotificationService notificationService;
 
     private final EmailChangeTokenRepository emailChangeTokenRepository;
 
@@ -106,7 +106,7 @@ public class CustomerServiceImpl implements CustomerService, UserDetailsService 
         changeEmailMessage.setReceiver(request.getOldEmail());
         changeEmailMessage.setSubject("CHANGE EMAIL");
         changeEmailMessage.setBody(emailContent);
-        emailService.sendEmailToCustomer(changeEmailMessage);
+        notificationService.sendEmailToCustomer(changeEmailMessage);
 
         return new ChangeEmailResponse("Confirmation link sent to new email.", confirmLink);
     }
@@ -157,7 +157,7 @@ public class CustomerServiceImpl implements CustomerService, UserDetailsService 
         changePhoneNumberEmail.setReceiver(account.getAccountHolder().getEmail());
         changePhoneNumberEmail.setSubject("CHANGE PHONE NUMBER");
         changePhoneNumberEmail.setBody(emailContent);
-        emailService.sendEmailToCustomer(changePhoneNumberEmail);
+        notificationService.sendEmailToCustomer(changePhoneNumberEmail);
 
         String otp = otpService.generateOTP(request.getNewPhoneNumber());
         otpService.sendOTP(request.getNewPhoneNumber(), otp);
@@ -217,6 +217,6 @@ public class CustomerServiceImpl implements CustomerService, UserDetailsService 
         emailDetails.setReceiver(changePasswordRequest.getEmail());
         emailDetails.setSubject("Signup successful!");
         emailDetails.setBody(EmailUtils.sendEmailOnChangePassword(changePasswordRequest, changedPasswordDate));
-        emailService.sendEmailToCustomer(emailDetails);
+        notificationService.sendEmailToCustomer(emailDetails);
     }
 }

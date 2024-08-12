@@ -3,6 +3,7 @@ package com.backend.bank.api;
 import com.backend.bank.dto.request.SignupRequest;
 import com.backend.bank.dto.response.SignupResponse;
 import com.backend.bank.exception.AccountAlreadyExistsException;
+import com.backend.bank.exception.InvalidVerifyLink;
 import com.backend.bank.service.intf.SignupService;
 
 import lombok.RequiredArgsConstructor;
@@ -33,6 +34,17 @@ public class SignupController {
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(createErrorResponse("An error occurred"));
         }
+    }
+
+    @GetMapping("/verify")
+    public ResponseEntity<String> verifyAccount(@RequestParam("code") String verificationCode) throws InvalidVerifyLink {
+        CompletableFuture<String> result = signupService.verifyUser(verificationCode);
+        return ResponseEntity.ok(result.join());
+    }
+
+    @GetMapping("/resend-verify-email")
+    public void resendVerifyEmail(@RequestBody SignupRequest signupRequest) {
+        signupService.resendVerificationEmail(signupRequest);
     }
 
     private Map<String, Object> createSuccessResponse(CompletableFuture<SignupResponse> response) throws ExecutionException, InterruptedException {

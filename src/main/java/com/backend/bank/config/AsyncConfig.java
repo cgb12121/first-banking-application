@@ -21,6 +21,16 @@ public class AsyncConfig {
         return executor;
     }
 
+    @Bean(name = "verify")
+    public Executor verifyTaskExecutor() {
+        ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
+        executor.setCorePoolSize(5);
+        executor.setMaxPoolSize(10);
+        executor.setQueueCapacity(500);
+        executor.initialize();
+        return executor;
+    }
+
     @Bean(name = "transactionTaskExecutor")
     public Executor transactionTaskExecutor() {
         ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();

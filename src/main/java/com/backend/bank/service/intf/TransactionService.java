@@ -18,7 +18,7 @@ import java.util.concurrent.CompletableFuture;
 /**
  * <pre>
  * Interface of the {@link TransactionServiceImpl}.
- * Provides methods for handling transactions:
+ * Provides methods for handling transactions and transaction history:
  * </pre>
  *
  * <dl>
@@ -35,9 +35,30 @@ import java.util.concurrent.CompletableFuture;
  *   <dd>&nbsp;</dd>
  *
  *   <dt>{@code getTransactionHistory(Long accountId, int page, int size)}</dt>
- *   <dd>Fetch the transaction history of a user's account.</dd>
+ *   <dd>Fetch the full transaction history of a user's account.</dd>
+ *   <dd>&nbsp;</dd>
+ *
+ *   <dt>{@code getDepositTransactionHistory(Long accountId, int page, int size)}</dt>
+ *   <dd>Fetch the deposit transaction history of a user's account.</dd>
+ *   <dd>&nbsp;</dd>
+ *
+ *   <dt>{@code getWithdrawTransactionHistory(Long accountId, int page, int size)}</dt>
+ *   <dd>Fetch the withdrawal transaction history of a user's account.</dd>
+ *   <dd>&nbsp;</dd>
+ *
+ *   <dt>{@code getSentTransactionHistory(Long accountId, int page, int size)}</dt>
+ *   <dd>Fetch the history of transactions sent from a user's account.</dd>
+ *   <dd>&nbsp;</dd>
+ *
+ *   <dt>{@code getReceivedTransactionHistory(Long accountId, int page, int size)}</dt>
+ *   <dd>Fetch the history of transactions received by a user's account.</dd>
+ *   <dd>&nbsp;</dd>
+ *
+ *   <dt>{@code calculateInterest()}</dt>
+ *   <dd>Calculate and add interest to users' accounts on the first day of the month.</dd>
  * </dl>
  */
+
 @Service
 public interface TransactionService {
     /**
