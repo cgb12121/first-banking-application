@@ -5,6 +5,11 @@ import com.backend.bank.entity.constant.LoanStatus;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
-public record LoanRepaymentResponse(Long loanId, BigDecimal repaymentAmount, BigDecimal remainingAmount,
-                                    LocalDateTime repaymentDate, LoanStatus loanStatus, String message) {
+public record LoanRepaymentResponse(
+        Long loanId,
+        BigDecimal repaymentAmount,
+        BigDecimal remainingAmount,
+        LocalDateTime repaymentDate,
+        LoanStatus loanStatus,
+        String message) {
 }
