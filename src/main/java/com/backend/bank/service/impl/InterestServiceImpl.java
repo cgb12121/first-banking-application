@@ -10,6 +10,7 @@ import lombok.extern.log4j.Log4j2;
 import org.springframework.mail.MailException;
 import org.springframework.stereotype.Service;
 
+import javax.security.auth.login.AccountNotFoundException;
 import java.math.BigDecimal;
 
 @Log4j2
@@ -30,9 +31,10 @@ public class InterestServiceImpl implements InterestService {
             rollbackOn = Exception.class,
             dontRollbackOn = MailException.class
     )
-    public void addInterest(String accountNumber, BigDecimal interest)  {
-        Account account = accountRepository.findByAccountNumber(accountNumber).orElse(null);
-        assert account != null;
+    public void addInterest(String accountNumber, BigDecimal interest) throws AccountNotFoundException {
+        Account account = accountRepository.findByAccountNumber(accountNumber)
+                .orElseThrow(() -> new AccountNotFoundException("Can't find account " + accountNumber));
+
         BigDecimal balance = account.getBalance();
         BigDecimal balanceAfterInterest = balance.add(interest);
 

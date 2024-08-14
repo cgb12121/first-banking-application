@@ -97,15 +97,17 @@ public class SignupServiceImpl implements SignupService {
     }
 
     private void checkForExistingAccounts(SignupRequest signupRequest) throws AccountAlreadyExistsException {
-        if (customerRepository.existsByEmail(signupRequest.email())) {
+        boolean isEmailUsed = customerRepository.existsByEmail(signupRequest.email());
+        boolean isPhoneNumberUsed = customerRepository.existsByPhoneNumber(signupRequest.phoneNumber());
+        boolean isAccountNumberUsed = accountRepository.existsByAccountNumber(signupRequest.account().accountNumber());
+
+        if (isEmailUsed) {
             throw new AccountAlreadyExistsException("Email already exists: " + signupRequest.email());
         }
-
-        if (customerRepository.existsByPhoneNumber(signupRequest.phoneNumber())) {
+        if (isPhoneNumberUsed) {
             throw new AccountAlreadyExistsException("Phone number already exists: " + signupRequest.phoneNumber());
         }
-
-        if (accountRepository.existsByAccountNumber(signupRequest.account().accountNumber())) {
+        if (isAccountNumberUsed) {
             throw new AccountAlreadyExistsException("Account number already exists: " + signupRequest.account().accountNumber());
         }
 

@@ -42,18 +42,22 @@ public class LoginServiceImpl implements LoginService {
         String password = loginRequest.password();
 
         Optional<Customer> optionalCustomer = findCustomerByIdentifier(identifier);
-        if (optionalCustomer.isEmpty()) {
-            throw new AccountNotExistException("Customer not found: " + identifier);
-        }
+        boolean isUserNotExist = optionalCustomer.isEmpty();
+        if (isUserNotExist) { throw new AccountNotExistException("Customer not found: " + identifier); }
 
         Customer customer = optionalCustomer.get();
-        if (!passwordEncoder.matches(password, customer.getPassword())) {
+
+        boolean isCorrectPassword = passwordEncoder.matches(password, customer.getPassword());
+        boolean isAccountInactive = customer.getAccount().getAccountStatus().equals(AccountStatus.INACTIVE);
+        boolean isAccountBanned = customer.getAccount().getAccountStatus().equals(AccountStatus.BANNED);
+
+        if (!isCorrectPassword) {
             throw new BadCredentialsException("Invalid password");
         }
-        if (customer.getAccount().getAccountStatus().equals(AccountStatus.INACTIVE)) {
+        if (isAccountInactive) {
             throw new AccountInactiveException("Your account is not active right now. Please contact us to active your account again.");
         }
-        if (customer.getAccount().getAccountStatus() == AccountStatus.BANNED) {
+        if (isAccountBanned) {
             throw new AccountBannedException("You are banned from using our services!");
         }
 
@@ -64,10 +68,12 @@ public class LoginServiceImpl implements LoginService {
 
     private Optional<Customer> findCustomerByIdentifier(String identifier) {
         Optional<Customer> optionalCustomer = customerRepository.findByEmail(identifier);
-        if (optionalCustomer.isEmpty()) {
+        boolean isUserNotExist = optionalCustomer.isEmpty();
+
+        if (isUserNotExist) {
             optionalCustomer = customerRepository.findByPhoneNumber(identifier);
         }
-        if (optionalCustomer.isEmpty()) {
+        if (isUserNotExist) {
             optionalCustomer = customerRepository.findByAccount_AccountNumber(identifier);
         }
         return optionalCustomer;

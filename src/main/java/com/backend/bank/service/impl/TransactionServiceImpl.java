@@ -169,7 +169,8 @@ public class TransactionServiceImpl implements TransactionService {
         validateAmount(transactionRequest.amount());
         Account account = validateAccount(accountId);
 
-        if (account.getBalance().compareTo(transactionRequest.amount()) < 0) {
+        boolean isInvalidBalance = account.getBalance().compareTo(transactionRequest.amount()) < 0;
+        if (isInvalidBalance) {
             throw new InsufficientFundsException("Insufficient funds for withdrawal");
         }
 
@@ -217,14 +218,16 @@ public class TransactionServiceImpl implements TransactionService {
         validateAmount(transactionRequest.amount());
         Account account = validateAccount(accountId);
 
-        if (account.getBalance().compareTo(transactionRequest.amount()) < 0) {
+        boolean isInvalidBalance = account.getBalance().compareTo(transactionRequest.amount()) < 0;
+        if (isInvalidBalance) {
             throw new InsufficientFundsException("Insufficient funds for transfer");
         }
 
         Account transferToAccount = accountRepository.findByAccountNumber(transactionRequest.transferToAccount())
                 .orElseThrow(() -> new AccountNotExistException("Transfer to account not found"));
 
-        if (account.equals(transferToAccount)) {
+        boolean isTransferToSelf = account.equals(transferToAccount);
+        if (isTransferToSelf) {
             throw new CantTransferToSelfException("You can't transfer to yourself!");
         }
 

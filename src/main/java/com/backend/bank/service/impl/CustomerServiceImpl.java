@@ -69,7 +69,9 @@ public class CustomerServiceImpl implements CustomerService, UserDetailsService 
     public ChangePasswordResponse changePassword(ChangePasswordRequest request) {
         Account accountRequest = accountRepository.findByAccountHolder_Email(request.email())
                 .orElseThrow(() -> new UsernameNotFoundException("Account not found"));
-        if (!passwordEncoder.matches(request.oldPassword(), accountRequest.getAccountHolder().getPassword())) {
+
+        boolean isCorrectPassword = passwordEncoder.matches(request.oldPassword(), accountRequest.getAccountHolder().getPassword());
+        if (!isCorrectPassword) {
             throw new BadCredentialsException("Wrong password");
         }
 
@@ -87,7 +89,8 @@ public class CustomerServiceImpl implements CustomerService, UserDetailsService 
         Account account = accountRepository.findByAccountHolder_Email(request.oldEmail())
                 .orElseThrow(() -> new UsernameNotFoundException("Account not found"));
 
-        if (!passwordEncoder.matches(request.confirmPassword(), account.getAccountHolder().getPassword())) {
+        boolean isCorrectPassword = passwordEncoder.matches(request.confirmPassword(), account.getAccountHolder().getPassword());
+        if (!isCorrectPassword) {
             throw new BadCredentialsException("Wrong password");
         }
 
@@ -117,7 +120,8 @@ public class CustomerServiceImpl implements CustomerService, UserDetailsService 
         EmailChangeToken emailChangeToken = (EmailChangeToken) emailChangeTokenRepository.findByToken(token)
                 .orElseThrow(() -> new IllegalArgumentException("Invalid token"));
 
-        if (emailChangeToken.getExpiryDate().before(new Date())) {
+        boolean isTokenExpired = emailChangeToken.getExpiryDate().before(new Date());
+        if (isTokenExpired) {
             throw new IllegalArgumentException("Token expired");
         }
 
@@ -138,7 +142,8 @@ public class CustomerServiceImpl implements CustomerService, UserDetailsService 
         Account account = accountRepository.findByAccountHolder_PhoneNumber(request.oldPhoneNumber())
                 .orElseThrow(() -> new UsernameNotFoundException("Account not found"));
 
-        if (!passwordEncoder.matches(request.confirmPassword(), account.getAccountHolder().getPassword())) {
+        boolean isCorrectPassword = passwordEncoder.matches(request.confirmPassword(), account.getAccountHolder().getPassword());
+        if (!isCorrectPassword) {
             throw new BadCredentialsException("Wrong password");
         }
 
@@ -171,7 +176,8 @@ public class CustomerServiceImpl implements CustomerService, UserDetailsService 
         PhoneChangeToken phoneChangeToken = phoneChangeTokenRepository.findByToken(token)
                 .orElseThrow(() -> new IllegalArgumentException("Invalid token"));
 
-        if (phoneChangeToken.getExpiryDate().before(new Date())) {
+        boolean isTokenExpired = phoneChangeToken.getExpiryDate().before(new Date());
+        if (isTokenExpired) {
             throw new IllegalArgumentException("Token expired");
         }
 
