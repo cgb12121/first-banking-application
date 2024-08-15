@@ -12,7 +12,7 @@ import com.backend.bank.entity.Verify;
 import com.backend.bank.entity.constant.AccountStatus;
 import com.backend.bank.exception.AccountAlreadyExistsException;
 import com.backend.bank.exception.InputViolationException;
-import com.backend.bank.exception.InvalidVerifyLink;
+import com.backend.bank.exception.InvalidVerifyLinkException;
 import com.backend.bank.repository.AccountRepository;
 import com.backend.bank.repository.CardRepository;
 import com.backend.bank.repository.CustomerRepository;
@@ -91,13 +91,13 @@ public class SignupServiceImpl implements SignupService {
 
     @Override
     @Async(value = "verify")
-    public CompletableFuture<String> verifyUser(String httpRequest) throws InvalidVerifyLink {
+    public CompletableFuture<String> verifyUser(String httpRequest) throws InvalidVerifyLinkException {
         Verify userVerify = verifyRepository.findByVerifyLink(httpRequest)
-                .orElseThrow(() -> new InvalidVerifyLink("Invalid verify request: " + httpRequest));
+                .orElseThrow(() -> new InvalidVerifyLinkException("Invalid verify request: " + httpRequest));
 
         boolean isExpired = userVerify.getCreateDate().after(userVerify.getExpiryDate());
         if (isExpired) {
-            throw new InvalidVerifyLink("Verify link expired: " + httpRequest);
+            throw new InvalidVerifyLinkException("Verify link expired: " + httpRequest);
         }
 
         Customer customer = userVerify.getCustomer();

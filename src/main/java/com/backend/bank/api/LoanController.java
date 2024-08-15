@@ -6,7 +6,6 @@ import com.backend.bank.dto.request.LoanRepaymentRequest;
 import com.backend.bank.dto.response.LoanApplicationResponse;
 import com.backend.bank.dto.response.LoanDetailsResponse;
 import com.backend.bank.dto.response.LoanRepaymentResponse;
-import com.backend.bank.exception.*;
 import com.backend.bank.service.intf.LoanService;
 
 import lombok.RequiredArgsConstructor;

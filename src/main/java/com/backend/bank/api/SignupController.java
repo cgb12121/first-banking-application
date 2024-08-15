@@ -3,7 +3,6 @@ package com.backend.bank.api;
 import com.backend.bank.dto.request.SignupRequest;
 import com.backend.bank.dto.response.SignupResponse;
 import com.backend.bank.exception.AccountAlreadyExistsException;
-import com.backend.bank.exception.InvalidVerifyLink;
 import com.backend.bank.service.intf.SignupService;
 
 import jakarta.validation.Valid;

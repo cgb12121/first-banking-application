@@ -5,7 +5,7 @@ import com.backend.bank.dto.response.SignupResponse;
 import com.backend.bank.exception.AccountAlreadyExistsException;
 
 import com.backend.bank.exception.InputViolationException;
-import com.backend.bank.exception.InvalidVerifyLink;
+import com.backend.bank.exception.InvalidVerifyLinkException;
 import org.springframework.mail.MailException;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
@@ -22,5 +22,5 @@ public interface SignupService {
     void resendVerificationEmail(SignupRequest signupRequest);
 
     @Async(value = "verify")
-    CompletableFuture<String> verifyUser(String httpRequest) throws InvalidVerifyLink;
+    CompletableFuture<String> verifyUser(String httpRequest) throws InvalidVerifyLinkException;
 }
