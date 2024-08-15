@@ -11,6 +11,7 @@ import com.backend.bank.entity.Customer;
 import com.backend.bank.entity.Verify;
 import com.backend.bank.entity.constant.AccountStatus;
 import com.backend.bank.exception.AccountAlreadyExistsException;
+import com.backend.bank.exception.InputViolationException;
 import com.backend.bank.exception.InvalidVerifyLink;
 import com.backend.bank.repository.AccountRepository;
 import com.backend.bank.repository.CardRepository;
@@ -20,7 +21,7 @@ import com.backend.bank.service.intf.NotificationService;
 import com.backend.bank.service.intf.SignupService;
 import com.backend.bank.utils.EmailUtils;
 
-import jakarta.transaction.Transactional;
+import com.backend.bank.utils.ObjectValidator;
 import lombok.RequiredArgsConstructor;
 
 import org.apache.commons.lang3.RandomStringUtils;
@@ -28,10 +29,12 @@ import org.springframework.mail.MailException;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
@@ -51,10 +54,18 @@ public class SignupServiceImpl implements SignupService {
 
     private final VerifyRepository verifyRepository;
 
+    private final ObjectValidator<SignupRequest> signupRequestObjectValidator;
+
     @Async
     @Override
-    @Transactional(rollbackOn = Exception.class, dontRollbackOn = MailException.class)
-    public CompletableFuture<SignupResponse> signup(SignupRequest signupRequest) throws AccountAlreadyExistsException {
+    @Transactional(rollbackFor = Exception.class, noRollbackFor = MailException.class)
+    public CompletableFuture<SignupResponse> signup(SignupRequest signupRequest)
+            throws AccountAlreadyExistsException, InputViolationException {
+        Set<String> violations = signupRequestObjectValidator.validate(signupRequest);
+        if (!violations.isEmpty()) {
+            throw new InputViolationException(String.join("\n", violations));
+        }
+
         checkForExistingAccounts(signupRequest);
 
         Customer customer = createCustomer(signupRequest);

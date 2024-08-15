@@ -6,16 +6,17 @@ import com.backend.bank.exception.AccountAlreadyExistsException;
 import com.backend.bank.exception.InvalidVerifyLink;
 import com.backend.bank.service.intf.SignupService;
 
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.BindingResult;
+import org.springframework.validation.ObjectError;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.Date;
-import java.util.LinkedHashMap;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutionException;
+import java.util.stream.Collectors;
 
 @RestController
 @RequiredArgsConstructor
@@ -25,21 +26,33 @@ public class SignupController {
     private final SignupService signupService;
 
     @PostMapping("/signup")
-    public ResponseEntity<Map<String, Object>> signup(@RequestBody SignupRequest signupRequest) {
-        try {
-            CompletableFuture<SignupResponse> response = this.signupService.signup(signupRequest);
-            return ResponseEntity.ok(this.createSuccessResponse(response));
-        } catch (AccountAlreadyExistsException e) {
-            return ResponseEntity.status(HttpStatus.CONFLICT).body(createErrorResponse(e.getMessage()));
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(createErrorResponse("An error occurred"));
+    public CompletableFuture<ResponseEntity<Map<String, Object>>> signup(@RequestBody @Valid SignupRequest signupRequest, BindingResult bindingResult) throws AccountAlreadyExistsException {
+        if (bindingResult.hasErrors()) {
+            List<String> errors = bindingResult.getAllErrors().stream()
+                    .map(ObjectError::getDefaultMessage)
+                    .collect(Collectors.toList());
+
+            Map<String, Object> response = new HashMap<>();
+            response.put("status: ", HttpStatus.BAD_REQUEST.value());
+            response.put("errors: ", errors);
+
+            return CompletableFuture.completedFuture(ResponseEntity.badRequest().body(response));
         }
+
+        return this.signupService.signup(signupRequest)
+                .thenApply(signupResponse -> ResponseEntity.ok(createSuccessResponse(signupResponse)))
+                .exceptionally(ex -> {
+                    if (ex.getCause() instanceof AccountAlreadyExistsException) {
+                        return ResponseEntity.status(HttpStatus.CONFLICT).body(createErrorResponse(ex.getCause().getMessage()));
+                    }
+                    return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(createErrorResponse("An error occurred"));
+                });
     }
 
     @GetMapping("/verify")
-    public ResponseEntity<String> verifyAccount(@RequestParam("code") String verificationCode) throws InvalidVerifyLink {
-        CompletableFuture<String> result = this.signupService.verifyUser(verificationCode);
-        return ResponseEntity.ok(result.join());
+    public CompletableFuture<ResponseEntity<String>> verifyAccount(@RequestParam("code") String verificationCode) throws InvalidVerifyLink {
+        return this.signupService.verifyUser(verificationCode)
+                .thenApply(ResponseEntity::ok);
     }
 
     @GetMapping("/resend-verify-email")
@@ -47,20 +60,19 @@ public class SignupController {
         this.signupService.resendVerificationEmail(signupRequest);
     }
 
-    private Map<String, Object> createSuccessResponse(CompletableFuture<SignupResponse> response) throws ExecutionException, InterruptedException {
+    private Map<String, Object> createSuccessResponse(SignupResponse response) {
         Map<String, Object> responseBody = new LinkedHashMap<>();
-        responseBody.put("[timestamp]", new Date());
+        responseBody.put("timestamp", new Date());
         responseBody.put("status", HttpStatus.OK.value());
-        responseBody.put("message", response.get().message());
+        responseBody.put("message", response.message());
         return responseBody;
     }
 
     private Map<String, Object> createErrorResponse(String message) {
         Map<String, Object> responseBody = new LinkedHashMap<>();
-        responseBody.put("[timestamp]", new Date());
+        responseBody.put("timestamp", new Date());
         responseBody.put("status", HttpStatus.CONFLICT.value());
         responseBody.put("message", message);
         return responseBody;
     }
-
 }

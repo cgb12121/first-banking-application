@@ -17,7 +17,6 @@ import com.backend.bank.service.intf.InterestService;
 import com.backend.bank.service.intf.TransactionService;
 import com.backend.bank.utils.EmailUtils;
 
-import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 
@@ -28,6 +27,7 @@ import org.springframework.mail.MailException;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -112,8 +112,8 @@ public class TransactionServiceImpl implements TransactionService {
      */
     @Override
     @Transactional(
-            rollbackOn = Exception.class,
-            dontRollbackOn = {MailException.class}
+            rollbackFor = Exception.class,
+            noRollbackFor = {MailException.class}
     )
     @Async(value = "transactionTaskExecutor")
     public CompletableFuture<TransactionResponse> deposit(
@@ -156,8 +156,8 @@ public class TransactionServiceImpl implements TransactionService {
      */
     @Override
     @Transactional(
-            rollbackOn = Exception.class,
-            dontRollbackOn = {MailException.class}
+            rollbackFor = Exception.class,
+            noRollbackFor = {MailException.class}
     )
     @Async(value = "transactionTaskExecutor")
     public CompletableFuture<TransactionResponse> withdraw(
@@ -206,8 +206,8 @@ public class TransactionServiceImpl implements TransactionService {
      */
     @Override
     @Transactional(
-            rollbackOn = Exception.class,
-            dontRollbackOn = {MailException.class}
+            rollbackFor = Exception.class,
+            noRollbackFor = {MailException.class}
     )
     @Async(value = "transactionTaskExecutor")
     public CompletableFuture<TransactionResponse> transfer(Long accountId, TransactionRequest transactionRequest)
@@ -390,8 +390,8 @@ public class TransactionServiceImpl implements TransactionService {
      */
     @Override
     @Transactional(
-            rollbackOn = Exception.class,
-            dontRollbackOn = MailException.class
+            rollbackFor = Exception.class,
+            noRollbackFor = MailException.class
     )
     @Scheduled(cron = "0 0 0 1 * ?")
     @Async(value = "transactionTaskExecutor")
@@ -596,8 +596,8 @@ public class TransactionServiceImpl implements TransactionService {
             forRemoval = true
     )
     @Transactional(
-            rollbackOn = Exception.class,
-            dontRollbackOn = {MailException.class}
+            rollbackFor = Exception.class,
+            noRollbackFor = {MailException.class}
     )
     public void transferV2(Long fromAccount, String toAccount, TransactionRequest amount)
             throws AccountNotExistException, InsufficientFundsException,
@@ -618,8 +618,8 @@ public class TransactionServiceImpl implements TransactionService {
             forRemoval = true
     )
     @Transactional(
-            rollbackOn = Exception.class,
-            dontRollbackOn = {MailException.class}
+            rollbackFor = Exception.class,
+            noRollbackFor = {MailException.class}
     )
     public TransactionResponse createTransaction(Long accountId, TransactionRequest transactionRequest) throws AccountNotExistException, InsufficientFundsException, InvalidTransactionAmountException, AccountInactiveException, AccountFrozenException, AccountBannedException {
         if (transactionRequest.amount().compareTo(BigDecimal.ZERO) <= 0) {

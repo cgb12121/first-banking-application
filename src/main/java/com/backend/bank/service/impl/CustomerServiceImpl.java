@@ -22,7 +22,7 @@ import com.backend.bank.service.intf.CustomerService;
 import com.backend.bank.service.intf.NotificationService;
 import com.backend.bank.service.intf.OtpService;
 import com.backend.bank.utils.EmailUtils;
-import jakarta.transaction.Transactional;
+
 import lombok.RequiredArgsConstructor;
 
 import org.springframework.mail.MailException;
@@ -32,6 +32,7 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Date;
 import java.util.Optional;
@@ -65,7 +66,7 @@ public class CustomerServiceImpl implements CustomerService, UserDetailsService 
     }
 
     @Override
-    @Transactional(rollbackOn = Exception.class, dontRollbackOn = MailException.class)
+    @Transactional(rollbackFor = Exception.class, noRollbackFor = MailException.class)
     public ChangePasswordResponse changePassword(ChangePasswordRequest request) {
         Account accountRequest = accountRepository.findByAccountHolder_Email(request.email())
                 .orElseThrow(() -> new UsernameNotFoundException("Account not found"));
@@ -73,6 +74,11 @@ public class CustomerServiceImpl implements CustomerService, UserDetailsService 
         boolean isCorrectPassword = passwordEncoder.matches(request.oldPassword(), accountRequest.getAccountHolder().getPassword());
         if (!isCorrectPassword) {
             throw new BadCredentialsException("Wrong password");
+        }
+
+        boolean isPasswordConfirmed = request.newPassword().equals(request.confirmNewPassword());
+        if (!isPasswordConfirmed) {
+            throw new BadCredentialsException("Password does not match");
         }
 
         accountRequest.getAccountHolder().setPassword(passwordEncoder.encode(request.newPassword()));
@@ -84,7 +90,7 @@ public class CustomerServiceImpl implements CustomerService, UserDetailsService 
     }
 
     @Override
-    @Transactional(rollbackOn = Exception.class, dontRollbackOn = MailException.class)
+    @Transactional(rollbackFor = Exception.class, noRollbackFor = MailException.class)
     public ChangeEmailResponse changeEmail(ChangeEmailRequest request) {
         Account account = accountRepository.findByAccountHolder_Email(request.oldEmail())
                 .orElseThrow(() -> new UsernameNotFoundException("Account not found"));
@@ -115,7 +121,7 @@ public class CustomerServiceImpl implements CustomerService, UserDetailsService 
     }
 
     @Override
-    @Transactional(rollbackOn = Exception.class, dontRollbackOn = MailException.class)
+    @Transactional(rollbackFor = Exception.class, noRollbackFor = MailException.class)
     public String confirmEmailChange(String token) {
         EmailChangeToken emailChangeToken = (EmailChangeToken) emailChangeTokenRepository.findByToken(token)
                 .orElseThrow(() -> new IllegalArgumentException("Invalid token"));
@@ -137,7 +143,7 @@ public class CustomerServiceImpl implements CustomerService, UserDetailsService 
     }
 
     @Override
-    @Transactional(rollbackOn = Exception.class, dontRollbackOn = MailException.class)
+    @Transactional(rollbackFor = Exception.class, noRollbackFor = MailException.class)
     public ChangePhoneNumberResponse changePhoneNumber(ChangePhoneNumberRequest request) {
         Account account = accountRepository.findByAccountHolder_PhoneNumber(request.oldPhoneNumber())
                 .orElseThrow(() -> new UsernameNotFoundException("Account not found"));
@@ -171,7 +177,7 @@ public class CustomerServiceImpl implements CustomerService, UserDetailsService 
     }
 
     @Override
-    @Transactional(rollbackOn = Exception.class, dontRollbackOn = MailException.class)
+    @Transactional(rollbackFor = Exception.class, noRollbackFor = MailException.class)
     public String confirmPhoneNumberChangeByLinkOnEmail(String token) {
         PhoneChangeToken phoneChangeToken = phoneChangeTokenRepository.findByToken(token)
                 .orElseThrow(() -> new IllegalArgumentException("Invalid token"));
@@ -193,7 +199,7 @@ public class CustomerServiceImpl implements CustomerService, UserDetailsService 
     }
 
     @Override
-    @Transactional(rollbackOn = Exception.class, dontRollbackOn = MailException.class)
+    @Transactional(rollbackFor = Exception.class, noRollbackFor = MailException.class)
     public String confirmPhoneNumberChangeByOTP(String otp, String newPhoneNumber) {
         boolean isValid = otpService.validateOTP(newPhoneNumber, otp);
 
@@ -213,7 +219,7 @@ public class CustomerServiceImpl implements CustomerService, UserDetailsService 
     }
 
     @Override
-    @Transactional(rollbackOn = Exception.class, dontRollbackOn = MailException.class)
+    @Transactional(rollbackFor = Exception.class, noRollbackFor = MailException.class)
     public RegisterNewCardResponse registerNewCard(RegisterNewCardRequest registerNewCardRequest) {
         return null;
     }

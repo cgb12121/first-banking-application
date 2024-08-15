@@ -3,6 +3,7 @@ package com.backend.bank.service.impl;
 import com.backend.bank.entity.constant.AccountStatus;
 import com.backend.bank.exception.AccountBannedException;
 import com.backend.bank.exception.AccountInactiveException;
+import com.backend.bank.exception.InputViolationException;
 import com.backend.bank.security.auth.JwtProviderImpl;
 import com.backend.bank.dto.request.LoginRequest;
 import com.backend.bank.dto.response.LoginResponse;
@@ -11,16 +12,16 @@ import com.backend.bank.exception.AccountNotExistException;
 import com.backend.bank.repository.CustomerRepository;
 import com.backend.bank.service.intf.LoginService;
 
-import jakarta.transaction.Transactional;
+import com.backend.bank.utils.ObjectValidator;
 import lombok.RequiredArgsConstructor;
 
-import org.springframework.mail.MailException;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.Optional;
+import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 
 @Service
@@ -31,21 +32,24 @@ public class LoginServiceImpl implements LoginService {
 
     private final PasswordEncoder passwordEncoder;
 
+    private final ObjectValidator<LoginRequest> loginRequestObjectValidator;
+
     private final JwtProviderImpl jwtService;
 
     @Async
     @Override
-    @Transactional(rollbackOn = Exception.class, dontRollbackOn = MailException.class)
     public CompletableFuture<LoginResponse> login(LoginRequest loginRequest)
-            throws AccountNotExistException, AccountBannedException, AccountInactiveException {
+            throws AccountNotExistException, AccountBannedException, AccountInactiveException, InputViolationException {
+        Set<String> violations = loginRequestObjectValidator.validate(loginRequest);
+        if (!violations.isEmpty()) {
+            throw new InputViolationException(String.join("\n", violations));
+        }
+
         String identifier = loginRequest.identifier();
         String password = loginRequest.password();
 
-        Optional<Customer> optionalCustomer = findCustomerByIdentifier(identifier);
-        boolean isUserNotExist = optionalCustomer.isEmpty();
-        if (isUserNotExist) { throw new AccountNotExistException("Customer not found: " + identifier); }
-
-        Customer customer = optionalCustomer.get();
+        Customer customer = findCustomerByIdentifier(identifier)
+                .orElseThrow(() -> new AccountNotExistException("Customer not found: " + identifier));
 
         boolean isCorrectPassword = passwordEncoder.matches(password, customer.getPassword());
         boolean isAccountInactive = customer.getAccount().getAccountStatus().equals(AccountStatus.INACTIVE);

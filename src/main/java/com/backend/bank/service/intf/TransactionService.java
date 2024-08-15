@@ -5,12 +5,11 @@ import com.backend.bank.dto.response.TransactionResponse;
 import com.backend.bank.exception.*;
 import com.backend.bank.service.impl.TransactionServiceImpl;
 
-import jakarta.transaction.Transactional;
-
 import org.springframework.mail.MailException;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
@@ -77,7 +76,7 @@ public interface TransactionService {
      * @throws UnknownTransactionTypeException   If the transaction type is unknown.
      */
     @Async(value = "transactionTaskExecutor")
-    @Transactional(rollbackOn = Exception.class, dontRollbackOn = {MailException.class})
+    @Transactional(rollbackFor = Exception.class, noRollbackFor = MailException.class)
     CompletableFuture<TransactionResponse> deposit(Long accountId, TransactionRequest transactionRequest) throws InvalidTransactionAmountException, AccountNotExistException, AccountInactiveException, AccountFrozenException, AccountBannedException, UnknownTransactionTypeException;
 
     /**
@@ -97,7 +96,7 @@ public interface TransactionService {
      * @throws UnknownTransactionTypeException   If the transaction type is unknown.
      */
     @Async(value = "transactionTaskExecutor")
-    @Transactional(rollbackOn = Exception.class, dontRollbackOn = {MailException.class})
+    @Transactional(rollbackFor = Exception.class, noRollbackFor = MailException.class)
     CompletableFuture<TransactionResponse> withdraw(Long accountId, TransactionRequest transactionRequest) throws AccountInactiveException, AccountNotExistException, AccountFrozenException, AccountBannedException, InvalidTransactionAmountException, InsufficientFundsException, UnknownTransactionTypeException;
 
     /**
@@ -118,7 +117,7 @@ public interface TransactionService {
      * @throws CantTransferToSelfException       If the receiver is the same as the sender.
      */
     @Async(value = "transactionTaskExecutor")
-    @Transactional(rollbackOn = Exception.class, dontRollbackOn = {MailException.class})
+    @Transactional(rollbackFor = Exception.class, noRollbackFor = MailException.class)
     CompletableFuture<TransactionResponse> transfer(Long accountId, TransactionRequest transactionRequest)
             throws InvalidTransactionAmountException, AccountNotExistException, AccountInactiveException,
             AccountFrozenException, AccountBannedException, InsufficientFundsException,
@@ -200,6 +199,6 @@ public interface TransactionService {
      * @throws AccountNotExistException if the account does not exist.
      */
     @Scheduled(cron = "0 0 0 1 * ?")
-    @Transactional(rollbackOn = Exception.class, dontRollbackOn = MailException.class)
+    @Transactional(rollbackFor = Exception.class, noRollbackFor = MailException.class)
     void calculateInterest() throws AccountNotExistException;
 }

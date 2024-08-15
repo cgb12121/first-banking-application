@@ -4,11 +4,11 @@ import com.backend.bank.entity.Account;
 import com.backend.bank.repository.AccountRepository;
 import com.backend.bank.service.intf.InterestService;
 
-import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.mail.MailException;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import javax.security.auth.login.AccountNotFoundException;
 import java.math.BigDecimal;
@@ -28,8 +28,8 @@ public class InterestServiceImpl implements InterestService {
      */
     @Override
     @Transactional(
-            rollbackOn = Exception.class,
-            dontRollbackOn = MailException.class
+            rollbackFor = Exception.class,
+            noRollbackFor = MailException.class
     )
     public void addInterest(String accountNumber, BigDecimal interest) throws AccountNotFoundException {
         Account account = accountRepository.findByAccountNumber(accountNumber)
