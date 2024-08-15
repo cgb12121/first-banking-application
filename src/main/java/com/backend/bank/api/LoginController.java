@@ -30,8 +30,10 @@ public class LoginController {
     private final LoginService loginService;
 
     @PostMapping("/login")
-    public CompletableFuture<ResponseEntity<Map<String, Object>>> login(@RequestBody @Valid LoginRequest loginRequest, BindingResult bindingResult)
-            throws AccountNotExistException, AccountBannedException, AccountInactiveException {
+    public CompletableFuture<ResponseEntity<Map<String, Object>>> login(
+            @RequestBody @Valid LoginRequest loginRequest,
+            BindingResult bindingResult) {
+
         if (bindingResult.hasErrors()) {
             List<String> errors = bindingResult.getAllErrors().stream()
                     .map(ObjectError::getDefaultMessage)

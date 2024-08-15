@@ -1,14 +1,12 @@
 package com.backend.bank.api.advice;
 
-import com.backend.bank.exception.AccountAlreadyExistsException;
-import com.backend.bank.exception.AccountBannedException;
-import com.backend.bank.exception.AccountInactiveException;
-import com.backend.bank.exception.AccountNotExistException;
+import com.backend.bank.exception.*;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.context.request.WebRequest;
 
 import java.util.Date;
@@ -16,6 +14,7 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 
 @ControllerAdvice
+@RestControllerAdvice
 public class GlobalExceptionHandler {
 
     @ExceptionHandler(AccountAlreadyExistsException.class)
@@ -46,6 +45,11 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(Exception.class)
     public ResponseEntity<Map<String, Object>> handleAllExceptions(Exception e, WebRequest request) {
         return buildErrorResponse(request.getRemoteUser(),"An error occurred: " + e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+
+    @ExceptionHandler(InputViolationException.class)
+    public ResponseEntity<Map<String, Object>> handleInputViolationException(InputViolationException ex, WebRequest request) {
+        return buildErrorResponse(request.getRemoteUser(), ex.getMessage(), HttpStatus.BAD_REQUEST);
     }
 
     private ResponseEntity<Map<String, Object>> buildErrorResponse(String request, String message, HttpStatus status) {

@@ -20,7 +20,7 @@ public class StaffServiceImpl implements StaffService, UserDetailsService {
     private final StaffAccountRepository staffAccountRepository;
 
     @Override
-    public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
+    public UserDetails loadUserByUsername(String username) {
         Optional<StaffAccount> staffAccount = staffAccountRepository.findByStaffAccount(username);
         return staffAccount.orElseThrow(() -> new UsernameNotFoundException("Staff account does not exist: " + username));
     }

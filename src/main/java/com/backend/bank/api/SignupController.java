@@ -26,7 +26,10 @@ public class SignupController {
     private final SignupService signupService;
 
     @PostMapping("/signup")
-    public CompletableFuture<ResponseEntity<Map<String, Object>>> signup(@RequestBody @Valid SignupRequest signupRequest, BindingResult bindingResult) throws AccountAlreadyExistsException {
+    public CompletableFuture<ResponseEntity<Map<String, Object>>> signup(
+            @RequestBody @Valid SignupRequest signupRequest,
+            BindingResult bindingResult) {
+
         if (bindingResult.hasErrors()) {
             List<String> errors = bindingResult.getAllErrors().stream()
                     .map(ObjectError::getDefaultMessage)
@@ -50,7 +53,7 @@ public class SignupController {
     }
 
     @GetMapping("/verify")
-    public CompletableFuture<ResponseEntity<String>> verifyAccount(@RequestParam("code") String verificationCode) throws InvalidVerifyLink {
+    public CompletableFuture<ResponseEntity<String>> verifyAccount(@RequestParam("code") String verificationCode) {
         return this.signupService.verifyUser(verificationCode)
                 .thenApply(ResponseEntity::ok);
     }

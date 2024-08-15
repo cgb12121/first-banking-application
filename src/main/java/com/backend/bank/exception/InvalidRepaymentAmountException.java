@@ -1,6 +1,6 @@
 package com.backend.bank.exception;
 
-public class InvalidRepaymentAmountException extends Exception {
+public class InvalidRepaymentAmountException extends RuntimeException {
     public InvalidRepaymentAmountException(String message) {
         super(message);
     }

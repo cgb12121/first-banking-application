@@ -26,35 +26,35 @@ public class LoanController {
 
     @PostMapping("/apply")
     @PreAuthorize("hasRole('ROLE_USER')")
-    public ResponseEntity<LoanApplicationResponse> applyForLoan(@RequestBody LoanApplicationRequest request) throws CustomerNotFoundException {
+    public ResponseEntity<LoanApplicationResponse> applyForLoan(@RequestBody LoanApplicationRequest request)  {
         LoanApplicationResponse response = this.loanService.applyForLoan(request);
         return ResponseEntity.ok(response);
     }
 
     @PostMapping("/approve")
     @PreAuthorize("hasAnyRole('ROLE_ADMIN', 'ROLE_MANAGER', 'ROLE_STAFF')")
-    public ResponseEntity<LoanApplicationResponse> approveLoan(@RequestBody LoanApprovalRequest request) throws LoanNotFoundException, InvalidLoanStatusException, AccountNotExistException {
+    public ResponseEntity<LoanApplicationResponse> approveLoan(@RequestBody LoanApprovalRequest request) {
         LoanApplicationResponse response = this.loanService.approveLoan(request);
         return ResponseEntity.ok(response);
     }
 
     @PostMapping("/repay")
     @PreAuthorize("hasRole('ROLE_USER')")
-    public ResponseEntity<LoanRepaymentResponse> makeRepayment(@RequestBody LoanRepaymentRequest request) throws LoanNotFoundException, InvalidRepaymentAmountException, InsufficientFundsException, AccountNotExistException {
+    public ResponseEntity<LoanRepaymentResponse> makeRepayment(@RequestBody LoanRepaymentRequest request) {
         LoanRepaymentResponse response = this.loanService.makeRepayment(request);
         return ResponseEntity.ok(response);
     }
 
     @GetMapping("/{loanId}")
     @PreAuthorize("hasRole('ROLE_USER') or hasAnyRole('ROLE_ADMIN', 'ROLE_MANAGER', 'ROLE_STAFF')")
-    public ResponseEntity<LoanDetailsResponse> getLoanDetails(@PathVariable Long loanId) throws LoanNotFoundException {
+    public ResponseEntity<LoanDetailsResponse> getLoanDetails(@PathVariable Long loanId) {
         LoanDetailsResponse response = this.loanService.getLoanDetails(loanId);
         return ResponseEntity.ok(response);
     }
 
     @GetMapping("/customer/{customerId}")
     @PreAuthorize("hasRole('ROLE_USER') or hasAnyRole('ROLE_ADMIN', 'ROLE_MANAGER', 'ROLE_STAFF')")
-    public ResponseEntity<List<LoanDetailsResponse>> getCustomerLoans(@PathVariable Long customerId) throws CustomerNotFoundException {
+    public ResponseEntity<List<LoanDetailsResponse>> getCustomerLoans(@PathVariable Long customerId) {
         List<LoanDetailsResponse> response = this.loanService.getCustomerLoans(customerId);
         return ResponseEntity.ok(response);
     }

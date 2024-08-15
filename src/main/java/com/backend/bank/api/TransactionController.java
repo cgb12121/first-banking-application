@@ -25,8 +25,7 @@ public class TransactionController {
     public ResponseEntity<CompletableFuture<TransactionResponse>> deposit(
             @PathVariable Long accountId,
             @RequestBody TransactionRequest transactionRequest
-    ) throws AccountNotExistException, InvalidTransactionAmountException, AccountFrozenException,
-            AccountBannedException, AccountInactiveException, UnknownTransactionTypeException {
+    ) {
         CompletableFuture<TransactionResponse> response =
                 this.transactionService.deposit(accountId, transactionRequest);
         return ResponseEntity.ok(response);
@@ -37,8 +36,7 @@ public class TransactionController {
     public ResponseEntity<CompletableFuture<TransactionResponse>> withdraw(
             @PathVariable Long accountId,
             @RequestBody TransactionRequest transactionRequest
-    ) throws AccountNotExistException, InsufficientFundsException, InvalidTransactionAmountException,
-            AccountFrozenException, AccountBannedException, AccountInactiveException, UnknownTransactionTypeException {
+    ) {
         CompletableFuture<TransactionResponse> response =
                 this.transactionService.withdraw(accountId, transactionRequest);
         return ResponseEntity.ok(response);
@@ -49,8 +47,7 @@ public class TransactionController {
     public ResponseEntity<CompletableFuture<TransactionResponse>> transfer(
             @PathVariable Long accountId,
             @RequestBody TransactionRequest transactionRequest
-    ) throws AccountNotExistException, InsufficientFundsException, InvalidTransactionAmountException, AccountFrozenException,
-            AccountBannedException, AccountInactiveException, UnknownTransactionTypeException, CantTransferToSelfException {
+    ) {
         CompletableFuture<TransactionResponse> response =
                 this.transactionService.transfer(accountId, transactionRequest);
         return ResponseEntity.ok(response);
@@ -65,7 +62,7 @@ public class TransactionController {
             @PathVariable Long accountId,
             @RequestParam(value = "0") int page,
             @RequestParam(value = "10") int size
-    ) throws AccountNotExistException {
+    ) {
         CompletableFuture<List<TransactionResponse>> response =
                 this.transactionService.getTransactionHistory(accountId, page, size);
         return ResponseEntity.ok(response);
@@ -80,7 +77,7 @@ public class TransactionController {
             @PathVariable Long accountId,
             @RequestParam(value = "0") int page,
             @RequestParam(value = "10") int size
-    ) throws AccountNotExistException {
+    ) {
         CompletableFuture<List<TransactionResponse>> response =
                 this.transactionService.getDepositTransactionHistory(accountId, page, size);
         return ResponseEntity.ok(response);
@@ -95,7 +92,7 @@ public class TransactionController {
             @PathVariable Long accountId,
             @RequestParam(value = "0") int page,
             @RequestParam(value = "10") int size
-    ) throws AccountNotExistException {
+    ) {
         CompletableFuture<List<TransactionResponse>> response =
                 this.transactionService.getWithdrawTransactionHistory(accountId, page, size);
         return ResponseEntity.ok(response);
@@ -110,7 +107,7 @@ public class TransactionController {
             @PathVariable Long accountId,
             @RequestParam(value = "0") int page,
             @RequestParam(value = "10") int size
-    ) throws AccountNotExistException {
+    ) {
         CompletableFuture<List<TransactionResponse>> response =
                 this.transactionService.getSentTransactionHistory(accountId, page, size);
         return ResponseEntity.ok(response);
@@ -125,7 +122,7 @@ public class TransactionController {
             @PathVariable Long accountId,
             @RequestParam(value = "0") int page,
             @RequestParam(value = "10") int size
-    ) throws AccountNotExistException {
+    ) {
         CompletableFuture<List<TransactionResponse>> response =
                 this.transactionService.getReceivedTransactionHistory(accountId, page, size);
         return ResponseEntity.ok(response);
