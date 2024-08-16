@@ -8,6 +8,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.mail.MailException;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.security.auth.login.AccountNotFoundException;
@@ -29,7 +30,8 @@ public class InterestServiceImpl implements InterestService {
     @Override
     @Transactional(
             rollbackFor = Exception.class,
-            noRollbackFor = MailException.class
+            noRollbackFor = MailException.class,
+            propagation = Propagation.REQUIRES_NEW
     )
     public void addInterest(String accountNumber, BigDecimal interest) throws AccountNotFoundException {
         Account account = accountRepository.findByAccountNumber(accountNumber)

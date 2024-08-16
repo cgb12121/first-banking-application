@@ -206,8 +206,7 @@ public class GlobalExceptionHandler {
             Exception e, HttpServletRequest request, WebRequest webRequest) {
 
         Map<String, Object> errorDetails = buildErrorDetails(request, e);
-        log.error("AccountBannedException {}, {}, {} ",
-                webRequest.getHeaderNames(), webRequest.getParameterMap(), errorDetails, e);
+        loggingError(e, webRequest, errorDetails);
         return buildErrorResponse(errorDetails, HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
@@ -221,6 +220,18 @@ public class GlobalExceptionHandler {
         errorDetails.put("method", request.getMethod());
         errorDetails.put("user", request.getRemoteUser());
         return errorDetails;
+    }
+
+    private void loggingError(Exception e, WebRequest webRequest, Map<String, Object> errorDetails) {
+        log.error("[TimeStamp: {}] {} occurred during request: {} [{} {}] by user [{}]: {}, {}",
+                Instant.now(),
+                e.getClass().getSimpleName(),
+                webRequest.getClass().getSimpleName(),
+                errorDetails.get("method"),
+                errorDetails.get("path"),
+                errorDetails.get("user"),
+                errorDetails.get("message"),
+                errorDetails);
     }
 
     private ResponseEntity<Map<String, Object>> buildErrorResponse(Map<String, Object> errorDetails, HttpStatus status) {

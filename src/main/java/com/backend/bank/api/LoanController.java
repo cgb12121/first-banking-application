@@ -8,6 +8,7 @@ import com.backend.bank.dto.response.LoanDetailsResponse;
 import com.backend.bank.dto.response.LoanRepaymentResponse;
 import com.backend.bank.service.intf.LoanService;
 
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 
 import org.springframework.http.ResponseEntity;
@@ -25,14 +26,14 @@ public class LoanController {
 
     @PostMapping("/apply")
     @PreAuthorize("hasRole('ROLE_USER')")
-    public ResponseEntity<LoanApplicationResponse> applyForLoan(@RequestBody LoanApplicationRequest request)  {
+    public ResponseEntity<LoanApplicationResponse> applyForLoan(@RequestBody @Valid LoanApplicationRequest request)  {
         LoanApplicationResponse response = this.loanService.applyForLoan(request);
         return ResponseEntity.ok(response);
     }
 
     @PostMapping("/approve")
     @PreAuthorize("hasAnyRole('ROLE_ADMIN', 'ROLE_MANAGER', 'ROLE_STAFF')")
-    public ResponseEntity<LoanApplicationResponse> approveLoan(@RequestBody LoanApprovalRequest request) {
+    public ResponseEntity<LoanApplicationResponse> approveLoan(@RequestBody @Valid LoanApprovalRequest request) {
         LoanApplicationResponse response = this.loanService.approveLoan(request);
         return ResponseEntity.ok(response);
     }

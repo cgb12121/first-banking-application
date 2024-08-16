@@ -21,7 +21,7 @@ import com.backend.bank.service.intf.NotificationService;
 import com.backend.bank.service.intf.SignupService;
 import com.backend.bank.utils.EmailUtils;
 
-import com.backend.bank.utils.ObjectValidator;
+import com.backend.bank.utils.RequestValidator;
 import lombok.RequiredArgsConstructor;
 
 import org.apache.commons.lang3.RandomStringUtils;
@@ -54,14 +54,17 @@ public class SignupServiceImpl implements SignupService {
 
     private final VerifyRepository verifyRepository;
 
-    private final ObjectValidator<SignupRequest> signupRequestObjectValidator;
+    private final RequestValidator<SignupRequest> signupRequestValidator;
 
-    @Async
     @Override
-    @Transactional(rollbackFor = Exception.class, noRollbackFor = MailException.class)
+    @Transactional(
+            rollbackFor = Exception.class,
+            noRollbackFor = MailException.class
+    )
     public CompletableFuture<SignupResponse> signup(SignupRequest signupRequest)
             throws AccountAlreadyExistsException, InputViolationException {
-        Set<String> violations = signupRequestObjectValidator.validate(signupRequest);
+
+        Set<String> violations = signupRequestValidator.validate(signupRequest);
         if (!violations.isEmpty()) {
             throw new InputViolationException(String.join("\n", violations));
         }
@@ -83,14 +86,12 @@ public class SignupServiceImpl implements SignupService {
         return CompletableFuture.completedFuture(createSignupResponse(customer));
     }
 
-    @Async
     @Override
     public void resendVerificationEmail(SignupRequest signupRequest) {
         sendVerificationEmail(signupRequest);
     }
 
     @Override
-    @Async(value = "verify")
     public CompletableFuture<String> verifyUser(String httpRequest) throws InvalidVerifyLinkException {
         Verify userVerify = verifyRepository.findByVerifyLink(httpRequest)
                 .orElseThrow(() -> new InvalidVerifyLinkException("Invalid verify request: " + httpRequest));

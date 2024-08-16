@@ -75,7 +75,6 @@ public class LoginController {
     private Map<String, Object> createErrorResponse(String message) {
         Map<String, Object> responseBody = new LinkedHashMap<>();
         responseBody.put("timestamp", new Date());
-        responseBody.put("status", HttpStatus.UNAUTHORIZED.value());
         responseBody.put("message", message);
         return responseBody;
     }

@@ -6,21 +6,18 @@ import com.backend.bank.exception.AccountAlreadyExistsException;
 
 import com.backend.bank.exception.InputViolationException;
 import com.backend.bank.exception.InvalidVerifyLinkException;
-import org.springframework.mail.MailException;
-import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.util.concurrent.CompletableFuture;
 
 @Service
 public interface SignupService {
-    @Transactional(rollbackFor = Exception.class, noRollbackFor = MailException.class)
-    CompletableFuture<SignupResponse> signup(SignupRequest signupRequest) throws AccountAlreadyExistsException, InputViolationException;
 
-    @Async
+    CompletableFuture<SignupResponse> signup(SignupRequest signupRequest)
+            throws AccountAlreadyExistsException, InputViolationException;
+
     void resendVerificationEmail(SignupRequest signupRequest);
 
-    @Async(value = "verify")
-    CompletableFuture<String> verifyUser(String httpRequest) throws InvalidVerifyLinkException;
+    CompletableFuture<String> verifyUser(String httpRequest)
+            throws InvalidVerifyLinkException;
 }

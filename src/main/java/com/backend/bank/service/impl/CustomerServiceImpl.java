@@ -13,6 +13,7 @@ import com.backend.bank.entity.Account;
 import com.backend.bank.entity.Customer;
 import com.backend.bank.entity.EmailChangeToken;
 import com.backend.bank.entity.PhoneChangeToken;
+import com.backend.bank.exception.InputViolationException;
 import com.backend.bank.repository.AccountRepository;
 import com.backend.bank.repository.CustomerRepository;
 import com.backend.bank.repository.EmailChangeTokenRepository;
@@ -23,6 +24,7 @@ import com.backend.bank.service.intf.NotificationService;
 import com.backend.bank.service.intf.OtpService;
 import com.backend.bank.utils.EmailUtils;
 
+import com.backend.bank.utils.RequestValidator;
 import lombok.RequiredArgsConstructor;
 
 import org.springframework.mail.MailException;
@@ -36,6 +38,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Date;
 import java.util.Optional;
+import java.util.Set;
 import java.util.UUID;
 
 @Service
@@ -56,6 +59,14 @@ public class CustomerServiceImpl implements CustomerService, UserDetailsService 
 
     private final OtpService otpService;
 
+    private final RequestValidator<ChangePasswordRequest> changePasswordRequestValidator;
+
+    private final RequestValidator<ChangeEmailRequest> changeEmailRequestValidator;
+
+    private final RequestValidator<ChangePhoneNumberRequest> changePhoneNumberRequestValidator;
+
+    private final RequestValidator<RegisterNewCardRequest> registerNewCardRequestValidator;
+
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
         Optional<Customer> customer = customerRepository.findByEmail(username)
@@ -66,8 +77,17 @@ public class CustomerServiceImpl implements CustomerService, UserDetailsService 
     }
 
     @Override
-    @Transactional(rollbackFor = Exception.class, noRollbackFor = MailException.class)
+    @Transactional(
+            rollbackFor = Exception.class,
+            noRollbackFor = MailException.class
+    )
     public ChangePasswordResponse changePassword(ChangePasswordRequest request) {
+
+        Set<String> violations = changePasswordRequestValidator.validate(request);
+        if (!violations.isEmpty()) {
+            throw new InputViolationException(String.join("\n", violations));
+        }
+
         Account accountRequest = accountRepository.findByAccountHolder_Email(request.email())
                 .orElseThrow(() -> new UsernameNotFoundException("Account not found"));
 
@@ -90,8 +110,17 @@ public class CustomerServiceImpl implements CustomerService, UserDetailsService 
     }
 
     @Override
-    @Transactional(rollbackFor = Exception.class, noRollbackFor = MailException.class)
+    @Transactional(
+            rollbackFor = Exception.class,
+            noRollbackFor = MailException.class
+    )
     public ChangeEmailResponse changeEmail(ChangeEmailRequest request) {
+
+        Set<String> violations = changeEmailRequestValidator.validate(request);
+        if (!violations.isEmpty()) {
+            throw new InputViolationException(String.join("\n", violations));
+        }
+
         Account account = accountRepository.findByAccountHolder_Email(request.oldEmail())
                 .orElseThrow(() -> new UsernameNotFoundException("Account not found"));
 
@@ -121,7 +150,10 @@ public class CustomerServiceImpl implements CustomerService, UserDetailsService 
     }
 
     @Override
-    @Transactional(rollbackFor = Exception.class, noRollbackFor = MailException.class)
+    @Transactional(
+            rollbackFor = Exception.class,
+            noRollbackFor = MailException.class
+    )
     public String confirmEmailChange(String token) {
         EmailChangeToken emailChangeToken = (EmailChangeToken) emailChangeTokenRepository.findByToken(token)
                 .orElseThrow(() -> new IllegalArgumentException("Invalid token"));
@@ -143,8 +175,17 @@ public class CustomerServiceImpl implements CustomerService, UserDetailsService 
     }
 
     @Override
-    @Transactional(rollbackFor = Exception.class, noRollbackFor = MailException.class)
+    @Transactional(
+            rollbackFor = Exception.class,
+            noRollbackFor = MailException.class
+    )
     public ChangePhoneNumberResponse changePhoneNumber(ChangePhoneNumberRequest request) {
+
+        Set<String> violations = changePhoneNumberRequestValidator.validate(request);
+        if (!violations.isEmpty()) {
+            throw new InputViolationException(String.join("\n", violations));
+        }
+
         Account account = accountRepository.findByAccountHolder_PhoneNumber(request.oldPhoneNumber())
                 .orElseThrow(() -> new UsernameNotFoundException("Account not found"));
 
@@ -177,7 +218,10 @@ public class CustomerServiceImpl implements CustomerService, UserDetailsService 
     }
 
     @Override
-    @Transactional(rollbackFor = Exception.class, noRollbackFor = MailException.class)
+    @Transactional(
+            rollbackFor = Exception.class,
+            noRollbackFor = MailException.class
+    )
     public String confirmPhoneNumberChangeByLinkOnEmail(String token) {
         PhoneChangeToken phoneChangeToken = phoneChangeTokenRepository.findByToken(token)
                 .orElseThrow(() -> new IllegalArgumentException("Invalid token"));
@@ -199,7 +243,10 @@ public class CustomerServiceImpl implements CustomerService, UserDetailsService 
     }
 
     @Override
-    @Transactional(rollbackFor = Exception.class, noRollbackFor = MailException.class)
+    @Transactional(
+            rollbackFor = Exception.class,
+            noRollbackFor = MailException.class
+    )
     public String confirmPhoneNumberChangeByOTP(String otp, String newPhoneNumber) {
         boolean isValid = otpService.validateOTP(newPhoneNumber, otp);
 
@@ -219,8 +266,17 @@ public class CustomerServiceImpl implements CustomerService, UserDetailsService 
     }
 
     @Override
-    @Transactional(rollbackFor = Exception.class, noRollbackFor = MailException.class)
+    @Transactional(
+            rollbackFor = Exception.class,
+            noRollbackFor = MailException.class
+    )
     public RegisterNewCardResponse registerNewCard(RegisterNewCardRequest registerNewCardRequest) {
+
+        Set<String> violations = registerNewCardRequestValidator.validate(registerNewCardRequest);
+        if (!violations.isEmpty()) {
+            throw new InputViolationException(String.join("\n", violations));
+        }
+
         return null;
     }
 

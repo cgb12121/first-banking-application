@@ -4,6 +4,7 @@ import com.backend.bank.dto.request.ChangePhoneNumberRequest;
 import com.backend.bank.dto.response.ChangePhoneNumberResponse;
 import com.backend.bank.service.intf.CustomerService;
 
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 
 import org.springframework.web.bind.annotation.*;
@@ -16,7 +17,7 @@ public class PhoneController {
     private final CustomerService customerService;
 
     @PostMapping("/change")
-    public ChangePhoneNumberResponse changePhoneNumber(@RequestBody ChangePhoneNumberRequest request) {
+    public ChangePhoneNumberResponse changePhoneNumber(@RequestBody @Valid ChangePhoneNumberRequest request) {
         return this.customerService.changePhoneNumber(request);
     }
 

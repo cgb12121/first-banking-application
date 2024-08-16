@@ -17,6 +17,7 @@ import com.backend.bank.repository.CustomerRepository;
 import com.backend.bank.repository.LoanRepository;
 import com.backend.bank.service.intf.LoanService;
 
+import com.backend.bank.utils.RequestValidator;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -37,6 +38,12 @@ public class LoanServiceImpl implements LoanService {
     private final CustomerRepository customerRepository;
 
     private final AccountRepository accountRepository;
+
+    private final RequestValidator<LoanApplicationRequest> loanApplicationRequestValidator;
+
+    private final RequestValidator<LoanRepaymentRequest> loanRepaymentRequestValidator;
+
+    private final RequestValidator<LoanApprovalRequest> loanApprovalRequestValidator;
 
     @Override
     public LoanApplicationResponse applyForLoan(LoanApplicationRequest request) throws CustomerNotFoundException {

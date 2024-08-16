@@ -10,6 +10,5 @@ import java.math.BigDecimal;
 
 @Service
 public interface InterestService {
-    @Transactional(rollbackFor = Exception.class, noRollbackFor = MailException.class)
     void addInterest(String accountNumber, BigDecimal interest) throws AccountNotExistException, AccountNotFoundException;
 }

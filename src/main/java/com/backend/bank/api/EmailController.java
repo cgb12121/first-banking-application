@@ -4,6 +4,7 @@ import com.backend.bank.dto.request.ChangeEmailRequest;
 import com.backend.bank.dto.response.ChangeEmailResponse;
 import com.backend.bank.service.intf.CustomerService;
 
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 
 import org.springframework.web.bind.annotation.*;
@@ -16,7 +17,7 @@ public class EmailController {
     private final CustomerService customerService;
 
     @PostMapping("/change")
-    public ChangeEmailResponse changeEmail(@RequestBody ChangeEmailRequest request) {
+    public ChangeEmailResponse changeEmail(@RequestBody @Valid ChangeEmailRequest request) {
         return this.customerService.changeEmail(request);
     }
 

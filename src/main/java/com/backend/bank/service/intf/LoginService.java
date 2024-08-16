@@ -13,5 +13,7 @@ import java.util.concurrent.CompletableFuture;
 
 @Service
 public interface LoginService {
-    CompletableFuture<LoginResponse> login(LoginRequest loginRequest) throws AccountNotExistException, AccountBannedException, AccountInactiveException, InputViolationException;
+    CompletableFuture<LoginResponse> login(LoginRequest loginRequest)
+            throws AccountNotExistException, AccountBannedException, AccountInactiveException,
+            InputViolationException;
 }

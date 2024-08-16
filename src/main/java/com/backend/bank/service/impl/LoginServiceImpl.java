@@ -12,7 +12,7 @@ import com.backend.bank.exception.AccountNotExistException;
 import com.backend.bank.repository.CustomerRepository;
 import com.backend.bank.service.intf.LoginService;
 
-import com.backend.bank.utils.ObjectValidator;
+import com.backend.bank.utils.RequestValidator;
 import lombok.RequiredArgsConstructor;
 
 import org.springframework.scheduling.annotation.Async;
@@ -32,7 +32,7 @@ public class LoginServiceImpl implements LoginService {
 
     private final PasswordEncoder passwordEncoder;
 
-    private final ObjectValidator<LoginRequest> loginRequestObjectValidator;
+    private final RequestValidator<LoginRequest> loginRequestRequestValidator;
 
     private final JwtProviderImpl jwtService;
 
@@ -40,7 +40,7 @@ public class LoginServiceImpl implements LoginService {
     @Override
     public CompletableFuture<LoginResponse> login(LoginRequest loginRequest)
             throws AccountNotExistException, AccountBannedException, AccountInactiveException, InputViolationException {
-        Set<String> violations = loginRequestObjectValidator.validate(loginRequest);
+        Set<String> violations = loginRequestRequestValidator.validate(loginRequest);
         if (!violations.isEmpty()) {
             throw new InputViolationException(String.join("\n", violations));
         }

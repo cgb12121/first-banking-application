@@ -17,6 +17,7 @@ import com.backend.bank.service.intf.InterestService;
 import com.backend.bank.service.intf.TransactionService;
 import com.backend.bank.utils.EmailUtils;
 
+import com.backend.bank.utils.RequestValidator;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 
@@ -27,6 +28,7 @@ import org.springframework.mail.MailException;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
@@ -35,6 +37,7 @@ import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.Date;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -80,6 +83,16 @@ import java.util.stream.Stream;
  *
  *   <dt>{@code calculateInterest()}</dt>
  *   <dd>Calculate and add interest to users' accounts on the first day of the month.</dd>
+ *   <dd>&nbsp;</dd>
+ *   <dd>&nbsp;</dd>
+ *
+ *   <dt>{@code deposit, withdraw, transfer:}</dt>
+ *   <dd>These methods likely modify account balances and require strict data consistency. </dd>
+ *   <dd>The configuration ensures a rollback if any unexpected errors occur during the transaction.</dd>
+ *   <dd>&nbsp;</dd>
+
+ *   <dt>calculateInterest: This method modifies account balances. </dt>
+ *   <dd>The configuration ensures a rollback if any unexpected errors occur during the interest calculation or update.</dd>
  * </dl>
  */
 
@@ -95,6 +108,9 @@ public class TransactionServiceImpl implements TransactionService {
     private final NotificationService notificationService;
 
     private final InterestService interestService;
+
+    private final RequestValidator<TransactionRequest> requestRequestValidator;
+
     /**
      * {@code Deposits} a specified amount into an account.
      *
@@ -113,14 +129,21 @@ public class TransactionServiceImpl implements TransactionService {
     @Override
     @Transactional(
             rollbackFor = Exception.class,
-            noRollbackFor = {MailException.class}
+            noRollbackFor = MailException.class,
+            propagation = Propagation.REQUIRES_NEW
     )
     @Async(value = "transactionTaskExecutor")
     public CompletableFuture<TransactionResponse> deposit(
-            Long accountId, TransactionRequest transactionRequest
+            Long accountId,
+            TransactionRequest transactionRequest
     ) throws InvalidTransactionAmountException, AccountNotExistException,
             AccountInactiveException, AccountFrozenException,
             AccountBannedException, UnknownTransactionTypeException {
+
+        Set<String> violations = requestRequestValidator.validate(transactionRequest);
+        if (!violations.isEmpty()) {
+            throw new InputViolationException(String.join("\n", violations));
+        }
 
         validateAmount(transactionRequest.amount());
         Account account = validateAccount(accountId);
@@ -133,7 +156,11 @@ public class TransactionServiceImpl implements TransactionService {
         transaction.setStatus(TransactionStatus.COMPLETED);
         transaction = transactionRepository.save(transaction);
 
-        sendTransactionSuccessEmail(account.getAccountHolder(), transactionRequest);
+        try {
+            sendTransactionSuccessEmail(account.getAccountHolder(), transactionRequest);
+        } catch (MailException e) {
+            log.error("Failed to send email for transaction: {}", transaction.getId(), e);
+        }
 
         return CompletableFuture.completedFuture(mapToResponse(transaction));
     }
@@ -157,14 +184,21 @@ public class TransactionServiceImpl implements TransactionService {
     @Override
     @Transactional(
             rollbackFor = Exception.class,
-            noRollbackFor = {MailException.class}
+            noRollbackFor = MailException.class,
+            propagation = Propagation.REQUIRES_NEW
     )
     @Async(value = "transactionTaskExecutor")
     public CompletableFuture<TransactionResponse> withdraw(
-            Long accountId, TransactionRequest transactionRequest
+            Long accountId,
+            TransactionRequest transactionRequest
     ) throws InvalidTransactionAmountException, AccountNotExistException,
             AccountInactiveException, AccountFrozenException, AccountBannedException,
             InsufficientFundsException, UnknownTransactionTypeException {
+
+        Set<String> violations = requestRequestValidator.validate(transactionRequest);
+        if (!violations.isEmpty()) {
+            throw new InputViolationException(String.join("\n", violations));
+        }
 
         validateAmount(transactionRequest.amount());
         Account account = validateAccount(accountId);
@@ -182,7 +216,11 @@ public class TransactionServiceImpl implements TransactionService {
         transaction.setStatus(TransactionStatus.COMPLETED);
         transaction = transactionRepository.save(transaction);
 
-        sendTransactionSuccessEmail(account.getAccountHolder(), transactionRequest);
+        try {
+            sendTransactionSuccessEmail(account.getAccountHolder(), transactionRequest);
+        } catch (MailException e) {
+            log.error("Failed to send email for transaction: {}", transaction.getId(), e);
+        }
 
         return CompletableFuture.completedFuture(mapToResponse(transaction));
     }
@@ -207,13 +245,21 @@ public class TransactionServiceImpl implements TransactionService {
     @Override
     @Transactional(
             rollbackFor = Exception.class,
-            noRollbackFor = {MailException.class}
+            noRollbackFor = MailException.class,
+            propagation = Propagation.REQUIRES_NEW
     )
     @Async(value = "transactionTaskExecutor")
-    public CompletableFuture<TransactionResponse> transfer(Long accountId, TransactionRequest transactionRequest)
-            throws InvalidTransactionAmountException, AccountNotExistException,
+    public CompletableFuture<TransactionResponse> transfer(
+            Long accountId,
+            TransactionRequest transactionRequest
+    ) throws InvalidTransactionAmountException, AccountNotExistException,
             AccountInactiveException, AccountFrozenException, AccountBannedException,
             InsufficientFundsException, UnknownTransactionTypeException, CantTransferToSelfException {
+
+        Set<String> violations = requestRequestValidator.validate(transactionRequest);
+        if (!violations.isEmpty()) {
+            throw new InputViolationException(String.join("\n", violations));
+        }
 
         validateAmount(transactionRequest.amount());
         Account account = validateAccount(accountId);
@@ -244,7 +290,11 @@ public class TransactionServiceImpl implements TransactionService {
         transaction.setStatus(TransactionStatus.COMPLETED);
         transaction = transactionRepository.save(transaction);
 
-        sendTransactionSuccessEmail(account.getAccountHolder(), transactionRequest);
+        try {
+            sendTransactionSuccessEmail(account.getAccountHolder(), transactionRequest);
+        } catch (MailException e) {
+            log.error("Failed to send email for transaction: {}", transaction.getId(), e);
+        }
 
         return CompletableFuture.completedFuture(mapToResponse(transaction));
     }
@@ -262,7 +312,13 @@ public class TransactionServiceImpl implements TransactionService {
      */
     @Override
     @Async(value = "transactionTaskExecutor")
-    public CompletableFuture<List<TransactionResponse>> getTransactionHistory(Long accountId, int page, int size) throws AccountNotExistException {
+    @Transactional(readOnly = true)
+    public CompletableFuture<List<TransactionResponse>> getTransactionHistory(
+            Long accountId,
+            int page,
+            int size
+    ) throws AccountNotExistException {
+
         Account account = accountRepository.findById(accountId)
                 .orElseThrow(() -> new AccountNotExistException("Account not found"));
         String accountNumber = account.getAccountNumber();
@@ -290,7 +346,12 @@ public class TransactionServiceImpl implements TransactionService {
      */
     @Override
     @Async(value = "transactionTaskExecutor")
-    public CompletableFuture<List<TransactionResponse>> getDepositTransactionHistory(Long accountId, int page, int size) throws AccountNotExistException {
+    public CompletableFuture<List<TransactionResponse>> getDepositTransactionHistory(
+            Long accountId,
+            int page,
+            int size
+    ) throws AccountNotExistException {
+
         Account account = accountRepository.findById(accountId)
                 .orElseThrow(() -> new AccountNotExistException("Account not found"));
         String accountNumber = account.getAccountNumber();
@@ -317,7 +378,12 @@ public class TransactionServiceImpl implements TransactionService {
      */
     @Override
     @Async(value = "transactionTaskExecutor")
-    public CompletableFuture<List<TransactionResponse>> getWithdrawTransactionHistory(Long accountId, int page, int size) throws AccountNotExistException {
+    public CompletableFuture<List<TransactionResponse>> getWithdrawTransactionHistory(
+            Long accountId,
+            int page,
+            int size
+    ) throws AccountNotExistException {
+
         Account account = accountRepository.findById(accountId)
                 .orElseThrow(() -> new AccountNotExistException("Account not found"));
         String accountNumber = account.getAccountNumber();
@@ -344,7 +410,12 @@ public class TransactionServiceImpl implements TransactionService {
      */
     @Override
     @Async(value = "transactionTaskExecutor")
-    public CompletableFuture<List<TransactionResponse>> getSentTransactionHistory(Long accountId, int page, int size) throws AccountNotExistException {
+    public CompletableFuture<List<TransactionResponse>> getSentTransactionHistory(
+            Long accountId,
+            int page,
+            int size
+    ) throws AccountNotExistException {
+
         Account account = accountRepository.findById(accountId)
                 .orElseThrow(() -> new AccountNotExistException("Account not found"));
         String accountNumber = account.getAccountNumber();
@@ -371,7 +442,12 @@ public class TransactionServiceImpl implements TransactionService {
      */
     @Override
     @Async(value = "transactionTaskExecutor")
-    public CompletableFuture<List<TransactionResponse>> getReceivedTransactionHistory(Long accountId, int page, int size) throws AccountNotExistException {
+    public CompletableFuture<List<TransactionResponse>> getReceivedTransactionHistory(
+            Long accountId,
+            int page,
+            int size
+    ) throws AccountNotExistException {
+
         Account account = accountRepository.findById(accountId)
                 .orElseThrow(() -> new AccountNotExistException("Account not found"));
         String accountNumber = account.getAccountNumber();
@@ -394,7 +470,6 @@ public class TransactionServiceImpl implements TransactionService {
             noRollbackFor = MailException.class
     )
     @Scheduled(cron = "0 0 0 1 * ?")
-    @Async(value = "transactionTaskExecutor")
     public void calculateInterest() {
         Iterable<Account> accounts = accountRepository.findAll();
         for (Account account : accounts) {
@@ -402,10 +477,7 @@ public class TransactionServiceImpl implements TransactionService {
             BigDecimal interest = account.getBalance().multiply(interestRate);
             try {
                 interestService.addInterest(account.getAccountNumber(), interest);
-                EmailDetails emailDetails = new EmailDetails();
-                emailDetails.setSubject("RECEIVING MONTHLY INTEREST");
-                emailDetails.setBody(EmailUtils.sendEmailOnReceivingInterest(account, interest, LocalDate.now()));
-                notificationService.sendEmailToCustomer(emailDetails);
+                sendInterestNotification(account, interest);
             } catch (AccountNotExistException e) {
                 log.error("[Timestamp: {}] Error when trying to add interest to account: + {}. [Error] + {} : + {}",
                         LocalTime.now(),
@@ -424,6 +496,22 @@ public class TransactionServiceImpl implements TransactionService {
                 log.error("[Timestamp: {}] Something when wrong! {}: {}.",  LocalTime.now(), e.getCause(), e.getMessage());
             }
         }
+    }
+
+
+    /**
+     * {@code Send Email Notification}.
+     *
+     * @param account   The account of receiver
+     * @param interest  the amount money of interest earned
+     *
+     * @throws MailException If the mail is failed.
+     */
+    private void sendInterestNotification(Account account, BigDecimal interest) throws MailException {
+        EmailDetails emailDetails = new EmailDetails();
+        emailDetails.setSubject("RECEIVING MONTHLY INTEREST");
+        emailDetails.setBody(EmailUtils.sendEmailOnReceivingInterest(account, interest, LocalDate.now()));
+        notificationService.sendEmailToCustomer(emailDetails);
     }
 
     /**

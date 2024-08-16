@@ -11,7 +11,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 @Component
-public class ObjectValidator<T> {
+public class RequestValidator<T> {
 
     private final ValidatorFactory validatorFactory = Validation.buildDefaultValidatorFactory();
 
