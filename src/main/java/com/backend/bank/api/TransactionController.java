@@ -2,11 +2,14 @@ package com.backend.bank.api;
 
 import com.backend.bank.dto.request.TransactionRequest;
 import com.backend.bank.dto.response.TransactionResponse;
+import com.backend.bank.security.ApiRateLimiter;
+import com.backend.bank.security.SecurityWall;
 import com.backend.bank.service.intf.TransactionService;
 
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -21,10 +24,15 @@ public class TransactionController {
 
     private final TransactionService transactionService;
 
-    @PostMapping("/deposit")
+    @SuppressWarnings("unused")
+    private final SecurityWall securityWall;
+
+    private final ApiRateLimiter apiRateLimiter;
+
+    @PostMapping("{accountId}/deposit")
     @PreAuthorize("hasAnyRole('ROLE_ADMIN', 'ROLE_MANAGER', 'ROLE_STAFF')")
     public ResponseEntity<CompletableFuture<TransactionResponse>> deposit(
-            @PathVariable @NotNull Long accountId,
+            @PathVariable(name = "accountId") Long accountId,
             @RequestBody @Valid TransactionRequest transactionRequest
     ) {
         CompletableFuture<TransactionResponse> response =
@@ -32,10 +40,10 @@ public class TransactionController {
         return ResponseEntity.ok(response);
     }
 
-    @PostMapping("/withdraw")
-    @PreAuthorize("hasRole('ROLE_USER') and @securityService.canAccessAccount(#accountId)")
+    @PostMapping("{accountId}/withdraw")
+    @PreAuthorize("hasRole('ROLE_USER') and @securityWall.canAccessAccount(#accountId)")
     public ResponseEntity<CompletableFuture<TransactionResponse>> withdraw(
-            @PathVariable @NotNull Long accountId,
+            @PathVariable(name = "accountId") Long accountId,
             @RequestBody @Valid TransactionRequest transactionRequest
     ) {
         CompletableFuture<TransactionResponse> response =
@@ -43,10 +51,10 @@ public class TransactionController {
         return ResponseEntity.ok(response);
     }
 
-    @PostMapping("/transfer")
-    @PreAuthorize("hasRole('ROLE_USER') and @securityService.canAccessAccount(#accountId)")
+    @PostMapping("{accountId}/transfer")
+    @PreAuthorize("hasRole('ROLE_USER') and @securityWall.canAccessAccount(#accountId)")
     public ResponseEntity<CompletableFuture<TransactionResponse>> transfer(
-            @PathVariable @NotNull Long accountId,
+            @PathVariable(name = "accountId") @NotNull Long accountId,
             @RequestBody @Valid TransactionRequest transactionRequest
     ) {
         CompletableFuture<TransactionResponse> response =
@@ -54,28 +62,33 @@ public class TransactionController {
         return ResponseEntity.ok(response);
     }
 
-    @GetMapping("/history/all")
+    @GetMapping("{accountId}/history/all")
     @PreAuthorize(
             "hasAnyRole('ROLE_ADMIN', 'ROLE_MANAGER')" +
-            " or (hasRole('ROLE_USER') and @securityService.canAccessAccount(#accountId))"
+            " or (hasRole('ROLE_USER') and @securityWall.canAccessAccount(#accountId))"
     )
     public ResponseEntity<CompletableFuture<List<TransactionResponse>>> getTransactionHistory(
-            @PathVariable @NotNull Long accountId,
+            @PathVariable(name = "accountId") @NotNull Long accountId,
             @RequestParam(value = "0") int page,
             @RequestParam(value = "10") int size
     ) {
+        String key = String.valueOf(accountId);
+        if (apiRateLimiter.isRateLimited(key)) {
+            return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS).build();
+        }
+
         CompletableFuture<List<TransactionResponse>> response =
                 this.transactionService.getTransactionHistory(accountId, page, size);
         return ResponseEntity.ok(response);
     }
 
-    @GetMapping("/history/deposit")
+    @GetMapping("{accountId}/history/deposit")
     @PreAuthorize(
             "hasAnyRole('ROLE_ADMIN', 'ROLE_MANAGER')" +
-            " or (hasRole('ROLE_USER') and @securityService.canAccessAccount(#accountId))"
+            " or (hasRole('ROLE_USER') and @securityWall.canAccessAccount(#accountId))"
     )
     public ResponseEntity<CompletableFuture<List<TransactionResponse>>> getDepositTransactionHistory(
-            @PathVariable @NotNull Long accountId,
+            @PathVariable(name = "accountId") @NotNull Long accountId,
             @RequestParam(value = "0") int page,
             @RequestParam(value = "10") int size
     ) {
@@ -84,13 +97,13 @@ public class TransactionController {
         return ResponseEntity.ok(response);
     }
 
-    @GetMapping("/history/deposit")
+    @GetMapping("{accountId}/history/deposit")
     @PreAuthorize(
             "hasAnyRole('ROLE_ADMIN', 'ROLE_MANAGER')" +
-            " or (hasRole('ROLE_USER') and @securityService.canAccessAccount(#accountId))"
+            " or (hasRole('ROLE_USER') and @securityWall.canAccessAccount(#accountId))"
     )
     public ResponseEntity<CompletableFuture<List<TransactionResponse>>> getWithdrawTransactionHistory(
-            @PathVariable @NotNull Long accountId,
+            @PathVariable(name = "accountId") @NotNull Long accountId,
             @RequestParam(value = "0") int page,
             @RequestParam(value = "10") int size
     ) {
@@ -99,13 +112,13 @@ public class TransactionController {
         return ResponseEntity.ok(response);
     }
 
-    @GetMapping("/history/deposit")
+    @GetMapping("{accountId}/history/deposit")
     @PreAuthorize(
             "hasAnyRole('ROLE_ADMIN', 'ROLE_MANAGER')" +
-            " or (hasRole('ROLE_USER') and @securityService.canAccessAccount(#accountId))"
+            " or (hasRole('ROLE_USER') and @securityWall.canAccessAccount(#accountId))"
     )
     public ResponseEntity<CompletableFuture<List<TransactionResponse>>> getTransferredTransactionHistory(
-            @PathVariable @NotNull Long accountId,
+            @PathVariable(name = "accountId") @NotNull Long accountId,
             @RequestParam(value = "0") int page,
             @RequestParam(value = "10") int size
     ) {
@@ -114,13 +127,13 @@ public class TransactionController {
         return ResponseEntity.ok(response);
     }
 
-    @GetMapping("/history/deposit")
+    @GetMapping("{accountId}/history/deposit")
     @PreAuthorize(
             "hasAnyRole('ROLE_ADMIN', 'ROLE_MANAGER')" +
-            " or (hasRole('ROLE_USER') and @securityService.canAccessAccount(#accountId))"
+            " or (hasRole('ROLE_USER') and @securityWall.canAccessAccount(#accountId))"
     )
     public ResponseEntity<CompletableFuture<List<TransactionResponse>>> getReceivedTransactionHistory(
-            @PathVariable @NotNull Long accountId,
+            @PathVariable(name = "accountId") @NotNull Long accountId,
             @RequestParam(value = "0") int page,
             @RequestParam(value = "10") int size
     ) {

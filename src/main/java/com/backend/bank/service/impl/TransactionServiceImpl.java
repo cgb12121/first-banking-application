@@ -362,7 +362,8 @@ public class TransactionServiceImpl implements TransactionService {
         return CompletableFuture.completedFuture(transactions.stream()
                 .filter(transaction -> transaction.getType() == TransactionType.DEPOSIT)
                 .sorted((t1, t2) -> t2.getTimestamp().compareTo(t1.getTimestamp()))
-                .map(this::mapToResponse).collect(Collectors.toList()));
+                .map(this::mapToResponse)
+                .collect(Collectors.toList()));
     }
 
     /**
@@ -394,7 +395,8 @@ public class TransactionServiceImpl implements TransactionService {
         return CompletableFuture.completedFuture(transactions.stream()
                 .filter(transaction -> transaction.getType() == TransactionType.WITHDRAWAL)
                 .sorted((t1, t2) -> t2.getTimestamp().compareTo(t1.getTimestamp()))
-                .map(this::mapToResponse).collect(Collectors.toList()));
+                .map(this::mapToResponse)
+                .collect(Collectors.toList()));
     }
 
     /**
@@ -426,7 +428,8 @@ public class TransactionServiceImpl implements TransactionService {
         return CompletableFuture.completedFuture(transactions.stream()
                 .filter(transaction -> transaction.getType() == TransactionType.TRANSFER)
                 .sorted((t1, t2) -> t2.getTimestamp().compareTo(t1.getTimestamp()))
-                .map(this::mapToResponse).collect(Collectors.toList()));
+                .map(this::mapToResponse)
+                .collect(Collectors.toList()));
     }
 
     /**
@@ -458,7 +461,8 @@ public class TransactionServiceImpl implements TransactionService {
         return CompletableFuture.completedFuture(transactions.stream()
                 .filter(transaction -> transaction.getType() == TransactionType.TRANSFER)
                 .sorted((t1, t2) -> t2.getTimestamp().compareTo(t1.getTimestamp()))
-                .map(this::mapToResponse).collect(Collectors.toList()));
+                .map(this::mapToResponse)
+                .collect(Collectors.toList()));
     }
 
     /**

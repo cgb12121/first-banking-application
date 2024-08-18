@@ -26,15 +26,11 @@ import lombok.RequiredArgsConstructor;
 
 import org.apache.commons.lang3.RandomStringUtils;
 import org.springframework.mail.MailException;
-import org.springframework.scheduling.annotation.Async;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Calendar;
-import java.util.Date;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
@@ -55,6 +51,10 @@ public class SignupServiceImpl implements SignupService {
     private final VerifyRepository verifyRepository;
 
     private final RequestValidator<SignupRequest> signupRequestValidator;
+
+    private final RequestValidator<AccountRequest> accountRequestValidator;
+
+    private final RequestValidator<CardRequest> cardRequestValidator;
 
     @Override
     @Transactional(
@@ -93,6 +93,7 @@ public class SignupServiceImpl implements SignupService {
 
     @Override
     public CompletableFuture<String> verifyUser(String httpRequest) throws InvalidVerifyLinkException {
+
         Verify userVerify = verifyRepository.findByVerifyLink(httpRequest)
                 .orElseThrow(() -> new InvalidVerifyLinkException("Invalid verify request: " + httpRequest));
 
@@ -141,6 +142,12 @@ public class SignupServiceImpl implements SignupService {
     }
 
     private Account createAccount(AccountRequest accountRequest, Customer customer) {
+
+        Set<String> violations = accountRequestValidator.validate(accountRequest);
+        if (!violations.isEmpty()) {
+            throw new InputViolationException(String.join("\n", violations));
+        }
+
         Account account = new Account();
         account.setAccountNumber(accountRequest.accountNumber());
         account.setBalance(accountRequest.balance());
@@ -151,6 +158,15 @@ public class SignupServiceImpl implements SignupService {
     }
 
     private List<Card> createCards(List<CardRequest> cardRequests, Customer customer) {
+
+        Set<String> violations =  new HashSet<>();
+        for (CardRequest cardRequest : cardRequests) {
+            violations.addAll(cardRequestValidator.validate(cardRequest));
+        }
+        if (!violations.isEmpty()) {
+            throw new InputViolationException(String.join("\n", violations));
+        }
+
         return cardRequests.stream().map(cardRequest -> {
             Card card = new Card();
             card.setCardNumber(cardRequest.cardNumber());

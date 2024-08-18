@@ -26,6 +26,7 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @Service
@@ -47,6 +48,12 @@ public class LoanServiceImpl implements LoanService {
 
     @Override
     public LoanApplicationResponse applyForLoan(LoanApplicationRequest request) throws CustomerNotFoundException {
+
+        Set<String> violations = loanApplicationRequestValidator.validate(request);
+        if (!violations.isEmpty()) {
+            throw new InputViolationException(String.join("\n", violations));
+        }
+
         Customer customer = customerRepository.findById(request.customerId())
                 .orElseThrow(() -> new CustomerNotFoundException("Customer not found"));
 
@@ -75,7 +82,14 @@ public class LoanServiceImpl implements LoanService {
     }
 
     @Override
-    public LoanApplicationResponse approveLoan(LoanApprovalRequest request) throws LoanNotFoundException, InvalidLoanStatusException, AccountNotExistException {
+    public LoanApplicationResponse approveLoan(LoanApprovalRequest request)
+            throws LoanNotFoundException, InvalidLoanStatusException, AccountNotExistException {
+
+        Set<String> violations = loanApprovalRequestValidator.validate(request);
+        if (!violations.isEmpty()) {
+            throw new InputViolationException(String.join("\n", violations));
+        }
+
         Loan loan = loanRepository.findById(request.loanId())
                 .orElseThrow(() -> new LoanNotFoundException("Loan not found"));
 
@@ -97,7 +111,14 @@ public class LoanServiceImpl implements LoanService {
     }
 
     @Override
-    public LoanRepaymentResponse makeRepayment(LoanRepaymentRequest request) throws LoanNotFoundException, InvalidRepaymentAmountException, InsufficientFundsException, AccountNotExistException {
+    public LoanRepaymentResponse makeRepayment(LoanRepaymentRequest request)
+            throws LoanNotFoundException, InvalidRepaymentAmountException, InsufficientFundsException, AccountNotExistException {
+
+        Set<String> violations = loanRepaymentRequestValidator.validate(request);
+        if (!violations.isEmpty()) {
+            throw new InputViolationException(String.join("\n", violations));
+        }
+
         Loan loan = loanRepository.findById(request.loanId())
                 .orElseThrow(() -> new LoanNotFoundException("Loan not found"));
 

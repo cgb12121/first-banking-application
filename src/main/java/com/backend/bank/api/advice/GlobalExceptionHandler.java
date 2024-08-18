@@ -201,6 +201,17 @@ public class GlobalExceptionHandler {
         return buildErrorResponse(errorDetails, HttpStatus.UNAUTHORIZED);
     }
 
+    @ExceptionHandler(IllegalAccountTypeException.class)
+    public ResponseEntity<Map<String, Object>> handleIllegalAccountTypeException(
+            IllegalAccountTypeException e, HttpServletRequest request, WebRequest webRequest) {
+
+        Map<String, Object> errorDetails = buildErrorDetails(request, e);
+        log.error("IllegalAccountTypeException occurred: {}, {}, {} ",
+                webRequest.getHeaderNames(), webRequest.getParameterMap(), errorDetails, e);
+        return buildErrorResponse(errorDetails, HttpStatus.BAD_REQUEST);
+    }
+
+
     @ExceptionHandler(Exception.class)
     public ResponseEntity<Map<String, Object>> handleAllExceptions(
             Exception e, HttpServletRequest request, WebRequest webRequest) {

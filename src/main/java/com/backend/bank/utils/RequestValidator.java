@@ -5,13 +5,13 @@ import jakarta.validation.Validation;
 import jakarta.validation.Validator;
 import jakarta.validation.ValidatorFactory;
 import org.springframework.stereotype.Component;
+import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
 
-import java.util.Collections;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Component
-public class RequestValidator<T> {
+public class RequestValidator<T> extends ResponseEntityExceptionHandler {
 
     private final ValidatorFactory validatorFactory = Validation.buildDefaultValidatorFactory();
 

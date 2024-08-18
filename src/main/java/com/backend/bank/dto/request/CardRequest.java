@@ -8,9 +8,7 @@ import jakarta.validation.constraints.DecimalMax;
 import jakarta.validation.constraints.Future;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.PositiveOrZero;
-import lombok.Builder;
 
-@Builder(toBuilder = true)
 public record CardRequest(
         @NotNull(message = "Card number can not be null")
         String cardNumber,
