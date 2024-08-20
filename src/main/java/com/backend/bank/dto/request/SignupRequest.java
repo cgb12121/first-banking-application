@@ -5,10 +5,12 @@ import jakarta.validation.constraints.*;
 
 import java.util.List;
 
+@NotNull(message = "Please finish all the information")
+@NotBlank(message = "Please finish all the information")
+@NotEmpty(message = "Please finish all the information")
 public record SignupRequest(
 
         @NotNull(message = "Email can not be empty")
-        @NotNull(message = "You must provide your new email address")
         @Email(message = "Please enter a valid email address")
         @NotBlank(message = "This field can not be blank or contain any white space")
         @Size(min = 5, max = 100, message = "Email length must be between 5 and 100 characters")

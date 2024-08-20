@@ -1,10 +1,10 @@
 package com.backend.bank.security;
 
-import org.springframework.stereotype.Component;
+import org.springframework.context.annotation.Configuration;
 
 import java.util.concurrent.ConcurrentHashMap;
 
-@Component
+@Configuration
 public class ApiRateLimiter {
 
     private static final ConcurrentHashMap<String, RequestCounter> requestCounts = new ConcurrentHashMap<>();

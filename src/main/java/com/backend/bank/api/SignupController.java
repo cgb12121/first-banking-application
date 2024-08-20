@@ -30,7 +30,9 @@ public class SignupController {
             BindingResult bindingResult) {
 
         if (bindingResult.hasErrors()) {
-            List<String> errors = bindingResult.getAllErrors().stream()
+            List<String> errors = bindingResult
+                    .getAllErrors()
+                    .stream()
                     .map(ObjectError::getDefaultMessage)
                     .collect(Collectors.toList());
 

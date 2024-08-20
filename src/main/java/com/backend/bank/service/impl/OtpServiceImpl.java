@@ -23,20 +23,17 @@ public class OtpServiceImpl implements OtpService {
 
     private static final int EXPIRATION_TIME = 5; // 5 minutes
 
-    @Value("${twilio.account-sid}")
-    private String accountSid;
+    private final String twilioPhoneNumber;
 
-    @Value("${twilio.auth-token}")
-    private String authToken;
-
-    @Value("${twilio.phone-number}")
-    private String twilioPhoneNumber;
-
-    public OtpServiceImpl() {
+    public OtpServiceImpl(
+            @Value("${twilio.account-sid}") String accountSid,
+            @Value("${twilio.auth-token}") String authToken,
+            @Value("${twilio.phone-number}") String twilioPhoneNumber
+    ) {
+        this.twilioPhoneNumber = twilioPhoneNumber;
         Twilio.init(accountSid, authToken);
     }
 
-    // TODO: may generate from else into json format then use twilio.Message.fromJson() to convert to message.
     @Override
     public String generateOTP(String identifier) {
         Random random = new Random();

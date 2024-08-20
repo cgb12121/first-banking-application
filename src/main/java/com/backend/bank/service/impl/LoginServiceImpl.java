@@ -4,12 +4,12 @@ import com.backend.bank.entity.constant.AccountStatus;
 import com.backend.bank.exception.AccountBannedException;
 import com.backend.bank.exception.AccountInactiveException;
 import com.backend.bank.exception.InputViolationException;
-import com.backend.bank.security.auth.JwtProviderImpl;
 import com.backend.bank.dto.request.LoginRequest;
 import com.backend.bank.dto.response.LoginResponse;
 import com.backend.bank.entity.Customer;
 import com.backend.bank.exception.AccountNotExistException;
 import com.backend.bank.repository.CustomerRepository;
+import com.backend.bank.security.auth.JwtProvider;
 import com.backend.bank.service.intf.LoginService;
 
 import com.backend.bank.utils.RequestValidator;
@@ -32,9 +32,10 @@ public class LoginServiceImpl implements LoginService {
 
     private final PasswordEncoder passwordEncoder;
 
+    private final JwtProvider jwtProvider;
+
     private final RequestValidator<LoginRequest> loginRequestRequestValidator;
 
-    private final JwtProviderImpl jwtService;
 
     @Async
     @Override
@@ -65,7 +66,7 @@ public class LoginServiceImpl implements LoginService {
             throw new AccountBannedException("You are banned from using our services!");
         }
 
-        String token = jwtService.generateToken(customer);
+        String token = jwtProvider.generateToken(customer);
 
         return CompletableFuture.completedFuture(new LoginResponse("Login successful", token));
     }

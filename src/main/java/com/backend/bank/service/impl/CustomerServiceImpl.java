@@ -27,11 +27,14 @@ import com.backend.bank.utils.EmailUtils;
 import com.backend.bank.utils.RequestValidator;
 import lombok.RequiredArgsConstructor;
 
+import org.springframework.context.annotation.Lazy;
+import org.springframework.context.annotation.Primary;
 import org.springframework.mail.MailException;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -41,13 +44,14 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 
+@Primary
 @Service
-@RequiredArgsConstructor
+@RequiredArgsConstructor(onConstructor = @__(@Lazy))
 public class CustomerServiceImpl implements CustomerService, UserDetailsService {
 
     private final CustomerRepository customerRepository;
 
-    private final PasswordEncoder passwordEncoder;
+    private final PasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
 
     private final AccountRepository accountRepository;
 

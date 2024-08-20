@@ -11,8 +11,6 @@ import org.springframework.mail.MailException;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.scheduling.annotation.Async;
-import org.springframework.scheduling.annotation.Scheduled;
-import org.springframework.scheduling.annotation.Schedules;
 import org.springframework.stereotype.Service;
 
 import java.util.Date;
@@ -36,20 +34,6 @@ public class NotificationServiceImpl implements NotificationService {
         } catch (MailException e) {
             logEmailSentError(emailDetails, e);
             throw new RuntimeException(e.getMessage());
-        }
-    }
-
-    @Schedules({
-            @Scheduled(cron = "0 30 9 * * Mon"),
-            @Scheduled(cron = "0 0 0 1 1 *")
-    })
-    @Async(value = "emailTaskExecutor")
-    public void sendHelloMessage(EmailDetails emailDetails) {
-        try {
-            sendEmail(emailDetails);
-            logEmailSentSuccessfully(emailDetails);
-        } catch (MailException e) {
-            logEmailSentError(emailDetails, e);
         }
     }
 

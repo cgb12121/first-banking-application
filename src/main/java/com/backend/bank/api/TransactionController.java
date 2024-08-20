@@ -29,7 +29,7 @@ public class TransactionController {
 
     private final ApiRateLimiter apiRateLimiter;
 
-    @PostMapping("{accountId}/deposit")
+    @PostMapping("/deposit")
     @PreAuthorize("hasAnyRole('ROLE_ADMIN', 'ROLE_MANAGER', 'ROLE_STAFF')")
     public ResponseEntity<CompletableFuture<TransactionResponse>> deposit(
             @PathVariable(name = "accountId") Long accountId,
@@ -40,7 +40,7 @@ public class TransactionController {
         return ResponseEntity.ok(response);
     }
 
-    @PostMapping("{accountId}/withdraw")
+    @PostMapping("/withdraw")
     @PreAuthorize("hasRole('ROLE_USER') and @securityWall.canAccessAccount(#accountId)")
     public ResponseEntity<CompletableFuture<TransactionResponse>> withdraw(
             @PathVariable(name = "accountId") Long accountId,
@@ -51,7 +51,7 @@ public class TransactionController {
         return ResponseEntity.ok(response);
     }
 
-    @PostMapping("{accountId}/transfer")
+    @PostMapping("/transfer")
     @PreAuthorize("hasRole('ROLE_USER') and @securityWall.canAccessAccount(#accountId)")
     public ResponseEntity<CompletableFuture<TransactionResponse>> transfer(
             @PathVariable(name = "accountId") @NotNull Long accountId,
@@ -62,7 +62,7 @@ public class TransactionController {
         return ResponseEntity.ok(response);
     }
 
-    @GetMapping("{accountId}/history/all")
+    @GetMapping("/history/all")
     @PreAuthorize(
             "hasAnyRole('ROLE_ADMIN', 'ROLE_MANAGER')" +
             " or (hasRole('ROLE_USER') and @securityWall.canAccessAccount(#accountId))"
@@ -82,7 +82,7 @@ public class TransactionController {
         return ResponseEntity.ok(response);
     }
 
-    @GetMapping("{accountId}/history/deposit")
+    @GetMapping("/history/deposit-transaction-history")
     @PreAuthorize(
             "hasAnyRole('ROLE_ADMIN', 'ROLE_MANAGER')" +
             " or (hasRole('ROLE_USER') and @securityWall.canAccessAccount(#accountId))"
@@ -97,7 +97,7 @@ public class TransactionController {
         return ResponseEntity.ok(response);
     }
 
-    @GetMapping("{accountId}/history/deposit")
+    @GetMapping("/history/withdraw-transaction-history")
     @PreAuthorize(
             "hasAnyRole('ROLE_ADMIN', 'ROLE_MANAGER')" +
             " or (hasRole('ROLE_USER') and @securityWall.canAccessAccount(#accountId))"
@@ -112,7 +112,7 @@ public class TransactionController {
         return ResponseEntity.ok(response);
     }
 
-    @GetMapping("{accountId}/history/deposit")
+    @GetMapping("/history/transferred-transaction-history")
     @PreAuthorize(
             "hasAnyRole('ROLE_ADMIN', 'ROLE_MANAGER')" +
             " or (hasRole('ROLE_USER') and @securityWall.canAccessAccount(#accountId))"
@@ -127,7 +127,7 @@ public class TransactionController {
         return ResponseEntity.ok(response);
     }
 
-    @GetMapping("{accountId}/history/deposit")
+    @GetMapping("/history/received-transaction-history")
     @PreAuthorize(
             "hasAnyRole('ROLE_ADMIN', 'ROLE_MANAGER')" +
             " or (hasRole('ROLE_USER') and @securityWall.canAccessAccount(#accountId))"

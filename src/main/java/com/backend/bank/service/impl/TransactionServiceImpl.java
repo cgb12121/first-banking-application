@@ -502,7 +502,6 @@ public class TransactionServiceImpl implements TransactionService {
         }
     }
 
-
     /**
      * {@code Send Email Notification}.
      *
