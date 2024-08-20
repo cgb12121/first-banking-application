@@ -31,15 +31,13 @@ public class PasswordValidator implements ConstraintValidator<PasswordConstraint
 
     @Override
     public boolean isValid(String password, ConstraintValidatorContext context) {
-        boolean isPasswordEmpty = password == null || password.isEmpty();
-        assert password != null;
-        boolean isValidLength = password.length() < minLength && password.length() > maxLength;
-        boolean hasLowerCase = requireLowercase && !password.matches(".*[a-z].*");
-        boolean hasUpperCase = requireUppercase && !password.matches(".*[A-Z].*");
-        boolean hasDigit = requireDigit && !password.matches(".*[0-9].*");
-        boolean hasSpecialChar = requireSpecialChar && !password.matches(".*[@$!%*?&].*");
+        boolean isValidLength = password.length() > minLength && password.length() < maxLength;
+        boolean hasLowerCase = requireLowercase && password.matches(".*[a-z].*");
+        boolean hasUpperCase = requireUppercase && password.matches(".*[A-Z].*");
+        boolean hasDigit = requireDigit && password.matches(".*[0-9].*");
+        boolean hasSpecialChar = requireSpecialChar && password.matches(".*[@$!%*?&].*");
 
-        return !isPasswordEmpty && isValidLength && hasLowerCase && hasUpperCase && hasDigit && hasSpecialChar;
+        return isValidLength && hasLowerCase && hasUpperCase && hasDigit && hasSpecialChar;
     }
 }
 

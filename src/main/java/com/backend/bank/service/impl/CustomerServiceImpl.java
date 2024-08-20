@@ -27,7 +27,6 @@ import com.backend.bank.utils.EmailUtils;
 import com.backend.bank.utils.RequestValidator;
 import lombok.RequiredArgsConstructor;
 
-import org.springframework.context.annotation.Lazy;
 import org.springframework.context.annotation.Primary;
 import org.springframework.mail.MailException;
 import org.springframework.security.authentication.BadCredentialsException;
@@ -39,6 +38,9 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 import java.util.Date;
 import java.util.Optional;
 import java.util.Set;
@@ -46,7 +48,7 @@ import java.util.UUID;
 
 @Primary
 @Service
-@RequiredArgsConstructor(onConstructor = @__(@Lazy))
+@RequiredArgsConstructor
 public class CustomerServiceImpl implements CustomerService, UserDetailsService {
 
     private final CustomerRepository customerRepository;
@@ -138,7 +140,7 @@ public class CustomerServiceImpl implements CustomerService, UserDetailsService 
         emailChangeToken.setToken(token);
         emailChangeToken.setNewEmail(request.newEmail());
         emailChangeToken.setOldEmail(request.oldEmail());
-        emailChangeToken.setExpiryDate(new Date(System.currentTimeMillis() + 3600000)); // 1 hour
+        emailChangeToken.setExpiryDate(LocalDateTime.from(LocalDateTime.now().plusHours(1).toInstant(ZoneOffset.UTC)));
         emailChangeTokenRepository.save(emailChangeToken);
 
         String confirmLink = "https://localhost:8080/confirm-email-change?token=" + token;
@@ -162,7 +164,7 @@ public class CustomerServiceImpl implements CustomerService, UserDetailsService 
         EmailChangeToken emailChangeToken = (EmailChangeToken) emailChangeTokenRepository.findByToken(token)
                 .orElseThrow(() -> new IllegalArgumentException("Invalid token"));
 
-        boolean isTokenExpired = emailChangeToken.getExpiryDate().before(new Date());
+        boolean isTokenExpired = emailChangeToken.getExpiryDate().toInstant(ZoneOffset.UTC).isBefore(Instant.now());
         if (isTokenExpired) {
             throw new IllegalArgumentException("Token expired");
         }
@@ -203,7 +205,7 @@ public class CustomerServiceImpl implements CustomerService, UserDetailsService 
         phoneChangeToken.setToken(token);
         phoneChangeToken.setNewPhoneNumber(request.newPhoneNumber());
         phoneChangeToken.setOldPhoneNumber(request.oldPhoneNumber());
-        phoneChangeToken.setExpiryDate(new Date(System.currentTimeMillis() + 3600000)); // 1 hour expiry
+        phoneChangeToken.setExpiryDate(LocalDateTime.from(LocalDateTime.now().plusHours(1).toInstant(ZoneOffset.UTC)));
         phoneChangeTokenRepository.save(phoneChangeToken);
 
         String confirmLink = "https://localhost:8080/api/phone/confirm-phone-change/" + token;
@@ -230,7 +232,7 @@ public class CustomerServiceImpl implements CustomerService, UserDetailsService 
         PhoneChangeToken phoneChangeToken = phoneChangeTokenRepository.findByToken(token)
                 .orElseThrow(() -> new IllegalArgumentException("Invalid token"));
 
-        boolean isTokenExpired = phoneChangeToken.getExpiryDate().before(new Date());
+        boolean isTokenExpired = phoneChangeToken.getExpiryDate().toInstant(ZoneOffset.UTC).isBefore(Instant.now());
         if (isTokenExpired) {
             throw new IllegalArgumentException("Token expired");
         }

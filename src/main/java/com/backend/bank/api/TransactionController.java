@@ -19,7 +19,7 @@ import java.util.concurrent.CompletableFuture;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/accounts/{accountId}/transactions")
+@RequestMapping("/transactions/{accountId}/")
 public class TransactionController {
 
     private final TransactionService transactionService;

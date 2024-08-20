@@ -3,6 +3,7 @@ package com.backend.bank.entity;
 import com.backend.bank.entity.constant.LoanStatus;
 import com.backend.bank.entity.constant.TakeLoanStatus;
 import jakarta.persistence.*;
+import jdk.jfr.Timestamp;
 import lombok.*;
 
 import java.math.BigDecimal;
@@ -22,10 +23,10 @@ public class Loan {
     @Column(name = "id")
     private Long id;
 
-    @Column(name = "origianal_loan", nullable = false)
+    @Column(name = "amount", nullable = false)
     private BigDecimal amount;
 
-    @Column(name = "interest_loan")
+    @Column(name = "interest_amount")
     private BigDecimal interestAmount;
 
     @Column(name = "interest_rate", nullable = false)
@@ -37,6 +38,7 @@ public class Loan {
     @Column(name = "end_date", nullable = false)
     private LocalDateTime endDate;
 
+    @Timestamp
     @Column(name = "late_date")
     private LocalDateTime lateDate;
 

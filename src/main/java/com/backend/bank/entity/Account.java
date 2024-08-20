@@ -32,11 +32,11 @@ public class Account {
     private BigDecimal interest;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "account_type", nullable = false, columnDefinition = "VARCHAR(255) DEFAULT 'REGULAR'")
+    @Column(name = "account_type", nullable = false)
     private AccountType accountType;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "account_status", nullable = false, columnDefinition = "VARCHAR(255) DEFAULT 'INACTIVE'")
+    @Column(name = "account_status", nullable = false)
     private AccountStatus accountStatus;
 
     @OneToOne

@@ -7,7 +7,6 @@ import com.backend.bank.entity.constant.CardType;
 import jakarta.validation.constraints.DecimalMax;
 import jakarta.validation.constraints.Future;
 import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.PositiveOrZero;
 
 public record CardRequest(
         @NotNull(message = "Card number can not be null")
@@ -20,11 +19,9 @@ public record CardRequest(
         LocalDate expiryDate,
 
         @DecimalMax(value = "999999999999999999999999", message = "Credit limit must be less than or equal to the specified value")
-        BigDecimal creditLimit,
+        BigDecimal creditLimit) {
 
-        @PositiveOrZero(message = "Hello poor ppl")
-        BigDecimal balance) {
-
+        @SuppressWarnings("all")
         public static CardRequestBuilder builder() {
                 return new CardRequestBuilder();
         }
@@ -36,14 +33,12 @@ public record CardRequest(
                 private CardType cardType;
                 private LocalDate expiryDate;
                 private BigDecimal creditLimit;
-                private BigDecimal balance;
 
                 public CardRequestBuilder cardNumber(String cardNumber, CardType cardType) {
                         this.cardNumber = cardNumber;
                         this.cardType = cardType;
                         this.expiryDate = calculateExpiryDate(cardType);
                         this.creditLimit = calculateCreditLimit(cardType);
-                        this.balance = BigDecimal.valueOf(0);
                         return this;
                 }
 
@@ -71,7 +66,7 @@ public record CardRequest(
                 }
 
                 public CardRequest build() {
-                        return new CardRequest(cardNumber, cardType, expiryDate, creditLimit, balance);
+                        return new CardRequest(cardNumber, cardType, expiryDate, creditLimit);
                 }
         }
 

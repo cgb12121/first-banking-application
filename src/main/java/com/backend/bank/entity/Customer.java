@@ -2,6 +2,7 @@ package com.backend.bank.entity;
 
 import com.backend.bank.entity.constant.AccountStatus;
 import jakarta.persistence.*;
+import jdk.jfr.Timestamp;
 import lombok.*;
 
 import org.springframework.security.core.GrantedAuthority;
@@ -41,6 +42,7 @@ public class Customer implements UserDetails {
     @Column(name = "last_name", nullable = false)
     private String lastName;
 
+    @Timestamp
     @Column(name = "created_date", nullable = false)
     private LocalDateTime createdDate;
 

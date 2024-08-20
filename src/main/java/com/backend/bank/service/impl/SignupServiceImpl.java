@@ -10,7 +10,9 @@ import com.backend.bank.entity.Card;
 import com.backend.bank.entity.Customer;
 import com.backend.bank.entity.Verify;
 import com.backend.bank.entity.constant.AccountStatus;
+import com.backend.bank.entity.constant.AccountType;
 import com.backend.bank.exception.AccountAlreadyExistsException;
+import com.backend.bank.exception.IllegalAccountTypeException;
 import com.backend.bank.exception.InputViolationException;
 import com.backend.bank.exception.InvalidVerifyLinkException;
 import com.backend.bank.repository.AccountRepository;
@@ -30,6 +32,10 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
+import java.time.LocalDateTime;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
@@ -78,6 +84,18 @@ public class SignupServiceImpl implements SignupService {
         customer.setAccount(account);
         customer.setCards(cards);
 
+        AccountType accountType = account.getAccountType();
+        BigDecimal interest;
+        switch (accountType) {
+            case REGULAR -> interest = BigDecimal.valueOf(3.0);
+            case VIP -> interest = BigDecimal.valueOf(5.0);
+            case BANK_STAFF -> interest = BigDecimal.valueOf(7.0);
+            case ENTERPRISE -> interest = BigDecimal.valueOf(10.0);
+            case null, default -> throw new InputViolationException("Invalid account type");
+        }
+        customer.getAccount().setInterest(interest);
+        customer.getAccount().setBalance(BigDecimal.ZERO);
+
         customerRepository.save(customer);
 
         sendSignupSuccessEmail(signupRequest);
@@ -97,7 +115,7 @@ public class SignupServiceImpl implements SignupService {
         Verify userVerify = verifyRepository.findByVerifyLink(httpRequest)
                 .orElseThrow(() -> new InvalidVerifyLinkException("Invalid verify request: " + httpRequest));
 
-        boolean isExpired = userVerify.getCreateDate().after(userVerify.getExpiryDate());
+        boolean isExpired = userVerify.getCreateDate().isAfter(userVerify.getExpiryDate());
         if (isExpired) {
             throw new InvalidVerifyLinkException("Verify link expired: " + httpRequest);
         }
@@ -150,9 +168,9 @@ public class SignupServiceImpl implements SignupService {
 
         Account account = new Account();
         account.setAccountNumber(accountRequest.accountNumber());
-        account.setBalance(accountRequest.balance());
+        account.setBalance(BigDecimal.valueOf(0));
         account.setAccountType(accountRequest.accountType());
-        account.setAccountStatus(accountRequest.accountStatus());
+        account.setAccountStatus(AccountStatus.INACTIVE);
         account.setAccountHolder(customer);
         return account;
     }
@@ -167,16 +185,30 @@ public class SignupServiceImpl implements SignupService {
             throw new InputViolationException(String.join("\n", violations));
         }
 
+        BigDecimal finalCreditLimit = getFinalCreditLimit(customer);
         return cardRequests.stream().map(cardRequest -> {
             Card card = new Card();
             card.setCardNumber(cardRequest.cardNumber());
             card.setCardType(cardRequest.cardType());
             card.setExpiryDate(cardRequest.expiryDate());
-            card.setCreditLimit(cardRequest.creditLimit());
-            card.setBalance(cardRequest.balance());
+            card.setCreditLimit(finalCreditLimit);
+            card.setBalance(BigDecimal.valueOf(0));
             card.setCustomer(customer);
             return card;
         }).collect(Collectors.toList());
+    }
+
+    private static BigDecimal getFinalCreditLimit(Customer customer) {
+        BigDecimal creditLimit;
+        AccountType accountType = customer.getAccount().getAccountType();
+        switch (accountType) {
+            case REGULAR, BANK_STAFF -> creditLimit = BigDecimal.valueOf(1000000); //1M
+            case VIP -> creditLimit = BigDecimal.valueOf(10000000); //10M
+            case ENTERPRISE -> creditLimit = BigDecimal.valueOf(1000000000); // 1T
+            case null, default -> throw new IllegalAccountTypeException("Invalid account type");
+        }
+
+        return creditLimit;
     }
 
     private void sendSignupSuccessEmail(SignupRequest signupRequest) {
@@ -207,23 +239,20 @@ public class SignupServiceImpl implements SignupService {
         );
     }
 
-    private String generateVerificationCode(Customer Customer) {
-        String siteVerifyURL = "localhost:8080/auth/verify=?";
-        String encodeUserName = passwordEncoder.encode(Customer.getFirstName());
-        String userVerifyPath = RandomStringUtils.randomAlphanumeric(30) + "/" + encodeUserName;
+    private String generateVerificationCode(Customer customer) {
+        String siteVerifyURL = "localhost:8080/auth/verify/";
+        String encodedUserName = URLEncoder.encode(customer.getFirstName(), StandardCharsets.UTF_8);
+        String userVerifyPath = RandomStringUtils.randomAlphanumeric(30) + "+" + encodedUserName;
         String verifyLink = siteVerifyURL + userVerifyPath;
 
-        Date currentTime = new Date();
-
-        Calendar calendar = Calendar.getInstance();
-        calendar.setTime(currentTime);
-        calendar.add(Calendar.MINUTE, 15);
+        LocalDateTime currentTime = LocalDateTime.now();
+        LocalDateTime expiryDate = currentTime.plusMinutes(15);
 
         Verify verify = new Verify();
         verify.setVerifyLink(verifyLink);
         verify.setCreateDate(currentTime);
-        verify.setExpiryDate(calendar.getTime());
-        verify.setCustomer(Customer);
+        verify.setExpiryDate(expiryDate);
+        verify.setCustomer(customer);
 
         verifyRepository.save(verify);
 

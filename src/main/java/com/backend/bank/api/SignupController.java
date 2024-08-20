@@ -53,8 +53,8 @@ public class SignupController {
                 });
     }
 
-    @GetMapping("/verify")
-    public CompletableFuture<ResponseEntity<String>> verifyAccount(@RequestParam("code") String verificationCode) {
+    @GetMapping("/verify/{verificationCode}")
+    public CompletableFuture<ResponseEntity<String>> verifyAccount(@PathVariable String verificationCode) {
         return this.signupService.verifyUser(verificationCode)
                 .thenApply(ResponseEntity::ok);
     }

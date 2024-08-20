@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import jdk.jfr.Timestamp;
 import lombok.*;
 
+import java.time.LocalDateTime;
 import java.util.Date;
 
 @Entity
@@ -25,11 +26,11 @@ public class Verify {
 
     @Timestamp
     @Column(name = "created_date", nullable = false)
-    private Date createDate;
+    private LocalDateTime createDate;
 
     @Timestamp
     @Column(name = "expiry_date", nullable = false)
-    private Date expiryDate;
+    private LocalDateTime expiryDate;
 
     @OneToOne(cascade = CascadeType.ALL)
     private Customer customer;

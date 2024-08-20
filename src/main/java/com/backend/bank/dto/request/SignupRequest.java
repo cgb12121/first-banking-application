@@ -5,9 +5,6 @@ import jakarta.validation.constraints.*;
 
 import java.util.List;
 
-@NotNull(message = "Please finish all the information")
-@NotBlank(message = "Please finish all the information")
-@NotEmpty(message = "Please finish all the information")
 public record SignupRequest(
 
         @NotNull(message = "Email can not be empty")
@@ -24,7 +21,7 @@ public record SignupRequest(
         @Size(min = 8, max = 30, message = "Password must be between 8 and 20 characters")
         @Pattern(regexp = "^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[@$!%*?&])[A-Za-z\\d@$!%*?&]{8,}$",
                 message = "Password must contain at least one lowercase, one uppercase, one number, and one special character")
-        @PasswordConstraint
+        @PasswordConstraint(message = "Your password is so lor")
         String password,
 
         @NotNull(message = "First name is required")
