@@ -15,7 +15,7 @@ public class ApiRateLimiter {
 
     public boolean isRateLimited(String key) {
         long currentTime = System.currentTimeMillis();
-        RequestCounter counter = requestCounts.computeIfAbsent(key, k -> new RequestCounter(MAX_REQUESTS, TIME_WINDOW));
+        RequestCounter counter = requestCounts.computeIfAbsent(key, _ -> new RequestCounter(MAX_REQUESTS, TIME_WINDOW));
 
         synchronized (counter) {
             if (counter.isRateLimited(currentTime)) {

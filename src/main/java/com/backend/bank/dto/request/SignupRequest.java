@@ -21,7 +21,7 @@ public record SignupRequest(
         @Size(min = 8, max = 30, message = "Password must be between 8 and 20 characters")
         @Pattern(regexp = "^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[@$!%*?&])[A-Za-z\\d@$!%*?&]{8,}$",
                 message = "Password must contain at least one lowercase, one uppercase, one number, and one special character")
-        @PasswordConstraint(message = "Your password is so lor")
+        @PasswordConstraint(message = "Bro why ur pass is so cringe")
         String password,
 
         @NotNull(message = "First name is required")
