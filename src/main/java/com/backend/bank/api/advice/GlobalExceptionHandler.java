@@ -26,6 +26,7 @@ import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.ServletRequestBindingException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.context.request.WebRequest;
 import org.springframework.web.context.request.async.AsyncRequestTimeoutException;
@@ -45,18 +46,20 @@ import java.util.Map;
 @RestControllerAdvice
 public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
 
+    @ResponseStatus(HttpStatus.CONFLICT)
     @ExceptionHandler(AccountAlreadyExistsException.class)
     public ResponseEntity<Map<String, Object>> handleAccountAlreadyExistsException(
             AccountAlreadyExistsException e,
             HttpServletRequest request,
             WebRequest webRequest
     ) {
-        Map<String, Object> errorDetails = buildErrorDetails(request, e, HttpStatus.BAD_REQUEST);
+        Map<String, Object> errorDetails = buildErrorDetails(request, e, HttpStatus.CONFLICT);
         log.error("AccountAlreadyExistsException occurred: {}, {}, {} ",
                 webRequest.getHeaderNames(), webRequest.getParameterMap(), errorDetails, e);
         return buildErrorResponse(errorDetails, HttpStatus.CONFLICT);
     }
 
+    @ResponseStatus(HttpStatus.FORBIDDEN)
     @ExceptionHandler(AccountBannedException.class)
     public ResponseEntity<Map<String, Object>> handleAccountBannedException(
             AccountBannedException e,
@@ -69,6 +72,7 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
         return buildErrorResponse(errorDetails, HttpStatus.FORBIDDEN);
     }
 
+    @ResponseStatus(HttpStatus.FORBIDDEN)
     @ExceptionHandler(AccountFrozenException.class)
     public ResponseEntity<Map<String, Object>> handleAccountFrozenException(
             AccountFrozenException e,
@@ -81,6 +85,7 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
         return buildErrorResponse(errorDetails, HttpStatus.FORBIDDEN);
     }
 
+    @ResponseStatus(HttpStatus.FORBIDDEN)
     @ExceptionHandler(AccountInactiveException.class)
     public ResponseEntity<Map<String, Object>> handleAccountInactiveException(
             AccountInactiveException e,
@@ -93,6 +98,7 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
         return buildErrorResponse(errorDetails, HttpStatus.FORBIDDEN);
     }
 
+    @ResponseStatus(HttpStatus.UNAUTHORIZED)
     @ExceptionHandler(AccountNotExistException.class)
     public ResponseEntity<Map<String, Object>> handleAccountNotExistException(
             AccountNotExistException e,
@@ -105,6 +111,7 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
         return buildErrorResponse(errorDetails, HttpStatus.UNAUTHORIZED);
     }
 
+    @ResponseStatus(HttpStatus.FORBIDDEN)
     @ExceptionHandler(CantTransferToSelfException.class)
     public ResponseEntity<Map<String, Object>> handleCantTransferToSelfException(
             CantTransferToSelfException e,
@@ -117,6 +124,7 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
         return buildErrorResponse(errorDetails, HttpStatus.FORBIDDEN);
     }
 
+    @ResponseStatus(HttpStatus.NOT_FOUND)
     @ExceptionHandler(CustomerNotFoundException.class)
     public ResponseEntity<Map<String, Object>> handleCustomerNotFoundException(
             CustomerNotFoundException e,
@@ -129,6 +137,7 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
         return buildErrorResponse(errorDetails, HttpStatus.NOT_FOUND);
     }
 
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
     @ExceptionHandler(InputViolationException.class)
     public ResponseEntity<Map<String, Object>> handleInputViolationException(
             InputViolationException e,
@@ -141,6 +150,7 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
         return buildErrorResponse(errorDetails, HttpStatus.BAD_REQUEST);
     }
 
+    @ResponseStatus(HttpStatus.FORBIDDEN)
     @ExceptionHandler(InsufficientFundsException.class)
     public ResponseEntity<Map<String, Object>> handleInsufficientFundsException(
             InsufficientFundsException e,
@@ -153,6 +163,7 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
         return buildErrorResponse(errorDetails, HttpStatus.FORBIDDEN);
     }
 
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
     @ExceptionHandler(InvalidLoanStatusException.class)
     public ResponseEntity<Map<String, Object>> handleInvalidLoanStatusException(
             InvalidLoanStatusException e,
@@ -165,6 +176,7 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
         return buildErrorResponse(errorDetails, HttpStatus.BAD_REQUEST);
     }
 
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
     @ExceptionHandler(InvalidRepaymentAmountException.class)
     public ResponseEntity<Map<String, Object>> handleInvalidRepaymentAmountException(
             InvalidRepaymentAmountException e,
@@ -177,6 +189,7 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
         return buildErrorResponse(errorDetails, HttpStatus.BAD_REQUEST);
     }
 
+    @ResponseStatus(HttpStatus.UNAUTHORIZED)
     @ExceptionHandler(InvalidTokenException.class)
     public ResponseEntity<Map<String, Object>> handleInvalidTokenException(
             InvalidTokenException e,
@@ -189,6 +202,7 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
         return buildErrorResponse(errorDetails, HttpStatus.UNAUTHORIZED);
     }
 
+    @ResponseStatus(HttpStatus.UNAUTHORIZED)
     @ExceptionHandler(InvalidTransactionAmountException.class)
     public ResponseEntity<Map<String, Object>> handleInvalidTransactionAmountException(
             InvalidTransactionAmountException e,
@@ -201,6 +215,7 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
         return buildErrorResponse(errorDetails, HttpStatus.UNAUTHORIZED);
     }
 
+    @ResponseStatus(HttpStatus.UNAUTHORIZED)
     @ExceptionHandler(InvalidVerifyLinkException.class)
     public ResponseEntity<Map<String, Object>> handleInvalidVerifyLinkException(
             InvalidVerifyLinkException e,
@@ -213,6 +228,7 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
         return buildErrorResponse(errorDetails, HttpStatus.UNAUTHORIZED);
     }
 
+    @ResponseStatus(HttpStatus.NOT_FOUND)
     @ExceptionHandler(LoanNotFoundException.class)
     public ResponseEntity<Map<String, Object>> handleLoanNotFoundException(
             LoanNotFoundException e,
@@ -225,6 +241,7 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
         return buildErrorResponse(errorDetails, HttpStatus.NOT_FOUND);
     }
 
+    @ResponseStatus(HttpStatus.UNAUTHORIZED)
     @ExceptionHandler(TokenExpiredException.class)
     public ResponseEntity<Map<String, Object>> handleTokenExpiredException(
             TokenExpiredException e,
@@ -237,6 +254,7 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
         return buildErrorResponse(errorDetails, HttpStatus.UNAUTHORIZED);
     }
 
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
     @ExceptionHandler(UnknownTransactionTypeException.class)
     public ResponseEntity<Map<String, Object>> handleUnknownTransactionTypeException(
             UnknownTransactionTypeException e,
@@ -249,6 +267,7 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
         return buildErrorResponse(errorDetails, HttpStatus.BAD_REQUEST);
     }
 
+    @ResponseStatus(HttpStatus.UNAUTHORIZED)
     @ExceptionHandler(BadCredentialsException.class)
     public ResponseEntity<Map<String, Object>> handleBadCredentialsException(
             BadCredentialsException e,
@@ -261,6 +280,7 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
         return buildErrorResponse(errorDetails, HttpStatus.UNAUTHORIZED);
     }
 
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
     @ExceptionHandler(IllegalAccountTypeException.class)
     public ResponseEntity<Map<String, Object>> handleIllegalAccountTypeException(
             IllegalAccountTypeException e,
@@ -273,6 +293,7 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
         return buildErrorResponse(errorDetails, HttpStatus.BAD_REQUEST);
     }
 
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
     @ExceptionHandler(HttpMessageNotReadableException.class)
     public ResponseEntity<Map<String, Object>> handleHttpMessageNotReadableException(
             HttpMessageNotReadableException e,
@@ -285,6 +306,7 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
     }
 
     @ExceptionHandler(Exception.class)
+    @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
     public ResponseEntity<Map<String, Object>> handleAllExceptions(
             Exception e,
             HttpServletRequest request,
