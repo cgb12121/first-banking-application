@@ -51,12 +51,9 @@ public class AccountController {
             return ResponseEntity.badRequest().body(response);
         }
 
-        try {
-            UpgradeAccountResponse upgradeResponse = accountService.upgradeAccount(request);
-            return ResponseEntity.ok(createSuccessResponse(upgradeResponse));
-        } catch (Exception ex) {
-            return handleException(ex);
-        }
+
+        UpgradeAccountResponse upgradeResponse = accountService.upgradeAccount(request);
+        return ResponseEntity.ok(createSuccessResponse(upgradeResponse));
     }
 
     @PatchMapping("/update-info")
@@ -78,12 +75,9 @@ public class AccountController {
             return ResponseEntity.badRequest().body(response);
         }
 
-        try {
-            UpdateCustomerInfoResponse infoResponse = accountService.updateCustomerInfo(request);
-            return ResponseEntity.ok(createSuccessResponse(infoResponse));
-        } catch (Exception ex) {
-            return handleException(ex);
-        }
+        UpdateCustomerInfoResponse infoResponse = accountService.updateCustomerInfo(request);
+        return ResponseEntity.ok(createSuccessResponse(infoResponse));
+
     }
 
     private Map<String, Object> createSuccessResponse(Object response) {
@@ -94,6 +88,7 @@ public class AccountController {
         return responseBody;
     }
 
+    @SuppressWarnings("all")
     private ResponseEntity<Map<String, Object>> handleException(Exception ex) {
         Throwable cause = ex.getCause();
         if (cause instanceof AccountNotExistException) {
