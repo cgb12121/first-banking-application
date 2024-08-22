@@ -154,6 +154,19 @@
             <version>3.3.2</version>
         </dependency>
 
+        <!-- Spring Security OAuth2 Resource Server for JWT authentication support -->
+        <dependency>
+            <groupId>org.springframework.security</groupId>
+            <artifactId>spring-security-oauth2-resource-server</artifactId>
+        </dependency>
+
+        <!-- Spring Security OAuth2 JOSE for JWT processing -->
+        <dependency>
+            <groupId>org.springframework.security</groupId>
+            <artifactId>spring-security-oauth2-jose</artifactId>
+        </dependency>
+
+
     </dependencies>
 
     <build>

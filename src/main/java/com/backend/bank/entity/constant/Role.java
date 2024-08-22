@@ -4,7 +4,8 @@ import lombok.*;
 
 @Getter
 @RequiredArgsConstructor
-public enum StaffRole {
+public enum Role {
+    USER("ROLE_USER"),
     STAFF("ROLE_STAFF"),
     MANAGER("ROLE_MANAGER"),
     ADMIN("ROLE_ADMIN"),;

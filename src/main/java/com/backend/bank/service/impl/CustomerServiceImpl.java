@@ -41,10 +41,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
-import java.util.Date;
-import java.util.Optional;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 
 @Primary
 @Service
@@ -75,11 +72,16 @@ public class CustomerServiceImpl implements CustomerService, UserDetailsService 
 
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-        Optional<Customer> customer = customerRepository.findByEmail(username)
+        Customer customer = customerRepository.findByEmail(username)
                 .or(() -> customerRepository.findByPhoneNumber(username))
-                .or(() -> customerRepository.findByAccount_AccountNumber(username));
+                .or(() -> customerRepository.findByAccount_AccountNumber(username))
+                .orElseThrow(() -> new UsernameNotFoundException("User not found"));
 
-        return customer.orElseThrow(() -> new UsernameNotFoundException("User not found"));
+        return new org.springframework.security.core.userdetails.User(
+                customer.getEmail(),
+                customer.getPassword(),
+                new ArrayList<>(customer.getAuthorities())
+        );
     }
 
     @Override

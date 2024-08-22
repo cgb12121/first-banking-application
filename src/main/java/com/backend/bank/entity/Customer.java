@@ -1,6 +1,7 @@
 package com.backend.bank.entity;
 
 import com.backend.bank.entity.constant.AccountStatus;
+import com.backend.bank.entity.constant.Role;
 import jakarta.persistence.*;
 import jdk.jfr.Timestamp;
 import lombok.*;
@@ -44,6 +45,10 @@ public class Customer implements UserDetails {
     @Column(name = "last_name", nullable = false)
     String lastName;
 
+    @Enumerated(EnumType.STRING)
+    @Column(name = "role", nullable = false)
+    Role role;
+
     @Timestamp
     @Column(name = "created_date", nullable = false)
     LocalDateTime createdDate;
@@ -64,7 +69,7 @@ public class Customer implements UserDetails {
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        return List.of(new SimpleGrantedAuthority("ROLE_USER"));
+        return List.of(new SimpleGrantedAuthority(this.getRole().name()));
     }
 
     @Override

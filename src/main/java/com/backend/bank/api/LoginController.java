@@ -13,10 +13,13 @@ import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 
 import lombok.experimental.FieldDefaults;
+import lombok.extern.log4j.Log4j2;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.ObjectError;
 import org.springframework.web.bind.annotation.*;
@@ -25,6 +28,7 @@ import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
+@Log4j2
 @RestController
 @RequiredArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
@@ -55,6 +59,16 @@ public class LoginController {
 
             return CompletableFuture.completedFuture(ResponseEntity.badRequest().body(response));
         }
+
+        Authentication authentication = (Authentication) loginService.login(loginRequest);
+        if (!authentication.isAuthenticated()){
+            return CompletableFuture.completedFuture(ResponseEntity.status(HttpStatus.UNAUTHORIZED).build());
+        }
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        log.info(auth.getName());
+        auth.getAuthorities().forEach(
+                authority -> log.info(authority.getAuthority())
+        );
 
         return this.loginService.login(loginRequest)
                 .thenApply(loginResponse -> ResponseEntity.ok(createSuccessResponse(loginResponse)))

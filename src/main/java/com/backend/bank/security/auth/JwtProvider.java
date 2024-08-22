@@ -6,7 +6,6 @@ import com.backend.bank.exception.TokenExpiredException;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.impl.lang.Function;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
 
@@ -17,6 +16,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 import javax.crypto.SecretKey;
 import java.util.Date;
 import java.util.Map;
+import java.util.function.Function;
 
 @Configuration
 public class JwtProvider {
@@ -27,15 +27,15 @@ public class JwtProvider {
     @Value("${security.jwt.issuer}")
     private String issuer;
 
-    private static final int ONE_DAY = 86400000;
+    private static final int ONE_HOUR = 86400000 / 24;
 
     public String generateToken(UserDetails userDetails) {
         return Jwts.builder()
                 .issuer(issuer)
                 .issuedAt(new Date(System.currentTimeMillis()))
-                .expiration(new Date(System.currentTimeMillis() + ONE_DAY) )
+                .expiration(new Date(System.currentTimeMillis() + ONE_HOUR) )
                 .subject(userDetails.getUsername())
-                .claim("authority: ", userDetails.getAuthorities())
+                .claim("authority", userDetails.getAuthorities())
                 .signWith(getSigningKey())
                 .compact();
     }
@@ -44,7 +44,7 @@ public class JwtProvider {
         return Jwts.builder()
                 .issuer(issuer)
                 .issuedAt(new Date(System.currentTimeMillis()))
-                .expiration(new Date(System.currentTimeMillis() + ONE_DAY))
+                .expiration(new Date(System.currentTimeMillis() + ONE_HOUR))
                 .subject(userDetails.getUsername())
                 .claims(extraClaims)
                 .signWith(getSigningKey())
