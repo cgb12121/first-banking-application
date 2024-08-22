@@ -5,6 +5,7 @@ import jakarta.persistence.*;
 import jdk.jfr.Timestamp;
 import lombok.*;
 
+import lombok.experimental.FieldDefaults;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -19,41 +20,42 @@ import java.util.List;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
+@FieldDefaults(level = AccessLevel.PRIVATE)
 @Table(name = "customers")
 public class Customer implements UserDetails {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id")
-    private Long id;
+    Long id;
 
     @Column(name = "password", nullable = false)
-    private String password;
+    String password;
 
     @Column(name = "email", nullable = false, unique = true)
-    private String email;
+    String email;
 
     @Column(name = "phone_number", nullable = false)
-    private String phoneNumber;
+    String phoneNumber;
 
     @Column(name = "first_name", nullable = false)
-    private String firstName;
+    String firstName;
 
     @Column(name = "last_name", nullable = false)
-    private String lastName;
+    String lastName;
 
     @Timestamp
     @Column(name = "created_date", nullable = false)
-    private LocalDateTime createdDate;
+    LocalDateTime createdDate;
 
     @OneToOne(mappedBy = "accountHolder", cascade = CascadeType.ALL)
-    private Account account;
+    Account account;
 
     @OneToMany(mappedBy = "customer", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-    private List<Loan> loans;
+    List<Loan> loans;
 
     @OneToMany(mappedBy = "customer", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-    private List<Card> cards;
+    List<Card> cards;
 
     @PrePersist
     protected void onCreate() {

@@ -9,8 +9,10 @@ import com.backend.bank.dto.response.LoanRepaymentResponse;
 import com.backend.bank.service.intf.LoanService;
 
 import jakarta.validation.Valid;
+import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 
+import lombok.experimental.FieldDefaults;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -18,11 +20,12 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/loans")
 @RequiredArgsConstructor
+@FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
+@RequestMapping("/api/loans")
 public class LoanController {
 
-    private final LoanService loanService;
+    LoanService loanService;
 
     @PostMapping("/apply")
     @PreAuthorize("hasRole('ROLE_USER')")

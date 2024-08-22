@@ -2,10 +2,8 @@ package com.backend.bank.entity;
 
 import jakarta.persistence.*;
 import jdk.jfr.Timestamp;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
+import lombok.experimental.FieldDefaults;
 
 import java.time.LocalDateTime;
 import java.util.Date;
@@ -15,24 +13,25 @@ import java.util.Date;
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
+@FieldDefaults(level = AccessLevel.PRIVATE)
 @Table(name = "email_change_token")
 public class EmailChangeToken {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id", nullable = false)
-    private Long id;
+    Long id;
 
     @Column(name = "token", nullable = false)
-    private String token;
+    String token;
 
     @Column(name = "new_email", nullable = false)
-    private String newEmail;
+    String newEmail;
 
     @Column(name = "old_email", nullable = false)
-    private String oldEmail;
+    String oldEmail;
 
     @Timestamp
     @Column(name = "expiry_date", nullable = false)
-    private LocalDateTime expiryDate;
+    LocalDateTime expiryDate;
 }

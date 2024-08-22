@@ -4,6 +4,7 @@ import com.backend.bank.entity.constant.AccountStatus;
 import com.backend.bank.entity.constant.AccountType;
 import jakarta.persistence.*;
 import lombok.*;
+import lombok.experimental.FieldDefaults;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -14,35 +15,36 @@ import java.util.List;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
+@FieldDefaults(level = AccessLevel.PRIVATE)
 @Table(name = "accounts")
 public class Account {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id")
-    private Long id;
+    Long id;
 
     @Column(name = "account_number", nullable = false, unique = true)
-    private String accountNumber;
+    String accountNumber;
 
     @Column(name = "balance", nullable = false)
-    private BigDecimal balance;
+    BigDecimal balance;
 
     @Column(name = "interest", nullable = false)
-    private BigDecimal interest;
+    BigDecimal interest;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "account_type", nullable = false)
-    private AccountType accountType;
+    AccountType accountType;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "account_status", nullable = false)
-    private AccountStatus accountStatus;
+    AccountStatus accountStatus;
 
     @OneToOne
     @JoinColumn(name = "customer_id", nullable = false)
-    private Customer accountHolder;
+    Customer accountHolder;
 
     @OneToMany(mappedBy = "account", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-    private List<Transaction> transactions;
+    List<Transaction> transactions;
 }

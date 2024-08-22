@@ -5,16 +5,19 @@ import com.backend.bank.dto.response.ChangeEmailResponse;
 import com.backend.bank.service.intf.CustomerService;
 
 import jakarta.validation.Valid;
+import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 
+import lombok.experimental.FieldDefaults;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequiredArgsConstructor
+@FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 @RequestMapping("/customer/email")
 public class EmailController {
 
-    private final CustomerService customerService;
+    CustomerService customerService;
 
     @PostMapping("/change")
     public ChangeEmailResponse changeEmail(@RequestBody @Valid ChangeEmailRequest request) {

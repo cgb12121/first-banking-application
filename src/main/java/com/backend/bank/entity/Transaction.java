@@ -4,6 +4,7 @@ import com.backend.bank.entity.constant.TransactionStatus;
 import com.backend.bank.entity.constant.TransactionType;
 import jakarta.persistence.*;
 import lombok.*;
+import lombok.experimental.FieldDefaults;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -14,32 +15,33 @@ import java.time.LocalDateTime;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
+@FieldDefaults(level = AccessLevel.PRIVATE)
 @Table(name = "transactions")
 public class Transaction {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id")
-    private Long id;
+    Long id;
 
     @Column(name = "amount", nullable = false)
-    private BigDecimal amount;
+    BigDecimal amount;
 
     @Column(name = "timestamp", nullable = false)
-    private LocalDateTime timestamp;
+    LocalDateTime timestamp;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "type", nullable = false)
-    private TransactionType type;
+    TransactionType type;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "status", nullable = false)
-    private TransactionStatus status;
+    TransactionStatus status;
 
     @Column(name = "transfer_to_account")
-    private String transferToAccount;
+    String transferToAccount;
 
     @ManyToOne
     @JoinColumn(name = "account_id", nullable = false)
-    private Account account;
+    Account account;
 }

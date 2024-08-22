@@ -11,8 +11,10 @@ import com.backend.bank.service.intf.AccountService;
 
 import jakarta.validation.Valid;
 
+import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 
+import lombok.experimental.FieldDefaults;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.BindingResult;
@@ -27,10 +29,11 @@ import java.util.stream.Collectors;
 
 @RestController
 @RequiredArgsConstructor
+@FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 @RequestMapping("/account")
 public class AccountController {
 
-    private final AccountService accountService;
+    AccountService accountService;
 
     @PatchMapping("/upgrade-account")
     public ResponseEntity<Map<String, Object>> updateAccount(

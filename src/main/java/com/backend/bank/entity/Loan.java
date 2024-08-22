@@ -5,6 +5,7 @@ import com.backend.bank.entity.constant.TakeLoanStatus;
 import jakarta.persistence.*;
 import jdk.jfr.Timestamp;
 import lombok.*;
+import lombok.experimental.FieldDefaults;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -15,42 +16,43 @@ import java.time.LocalDateTime;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
+@FieldDefaults(level = AccessLevel.PRIVATE)
 @Table(name = "loans")
 public class Loan {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id")
-    private Long id;
+    Long id;
 
     @Column(name = "amount", nullable = false)
-    private BigDecimal amount;
+    BigDecimal amount;
 
     @Column(name = "interest_amount")
-    private BigDecimal interestAmount;
+    BigDecimal interestAmount;
 
     @Column(name = "interest_rate", nullable = false)
-    private BigDecimal interestRate;
+    BigDecimal interestRate;
 
     @Column(name = "start_date", nullable = false)
-    private LocalDateTime startDate;
+    LocalDateTime startDate;
 
     @Column(name = "end_date", nullable = false)
-    private LocalDateTime endDate;
+    LocalDateTime endDate;
 
     @Timestamp
     @Column(name = "late_date")
-    private LocalDateTime lateDate;
+    LocalDateTime lateDate;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "take_loan_status", nullable = false)
-    private TakeLoanStatus takeLoanStatus;
+    TakeLoanStatus takeLoanStatus;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "loan_status")
-    private LoanStatus loanStatus;
+    LoanStatus loanStatus;
 
     @ManyToOne
     @JoinColumn(name = "customer_id", nullable = false)
-    private Customer customer;
+    Customer customer;
 }

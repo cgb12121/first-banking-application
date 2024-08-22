@@ -3,6 +3,7 @@ package com.backend.bank.entity;
 import com.backend.bank.entity.constant.CardType;
 import jakarta.persistence.*;
 import lombok.*;
+import lombok.experimental.FieldDefaults;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -13,31 +14,32 @@ import java.time.LocalDate;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
+@FieldDefaults(level = AccessLevel.PRIVATE)
 @Table(name = "cards")
 public class Card {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id")
-    private Long id;
+    Long id;
 
     @Column(name = "card_number", nullable = false, unique = true)
-    private String cardNumber;
+    String cardNumber;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "card_type", nullable = false)
-    private CardType cardType;
+    CardType cardType;
 
     @Column(name = "expiry_date", nullable = false)
-    private LocalDate expiryDate;
+    LocalDate expiryDate;
 
     @Column(name = "credit_limit", nullable = false)
-    private BigDecimal creditLimit;
+    BigDecimal creditLimit;
 
     @Column(name = "balance", nullable = false)
-    private BigDecimal balance;
+    BigDecimal balance;
 
     @ManyToOne
     @JoinColumn(name = "customer_id", nullable = false)
-    private Customer customer;
+    Customer customer;
 }

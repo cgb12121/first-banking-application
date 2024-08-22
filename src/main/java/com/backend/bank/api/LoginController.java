@@ -9,8 +9,11 @@ import com.backend.bank.service.intf.LoginService;
 
 import jakarta.validation.Valid;
 
+import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 
+import lombok.experimental.FieldDefaults;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.BadCredentialsException;
@@ -24,11 +27,16 @@ import java.util.stream.Collectors;
 
 @RestController
 @RequiredArgsConstructor
+@FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 @RequestMapping("/auth")
 public class LoginController {
 
-    private final LoginService loginService;
+    LoginService loginService;
 
+    @Cacheable(
+            value = "user",
+            key = "#loginRequest.identifier()"
+    )
     @PostMapping("/login")
     public CompletableFuture<ResponseEntity<Map<String, Object>>> login(
             @RequestBody @Valid LoginRequest loginRequest,

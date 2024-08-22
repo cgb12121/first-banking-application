@@ -5,16 +5,19 @@ import com.backend.bank.dto.response.ChangePhoneNumberResponse;
 import com.backend.bank.service.intf.CustomerService;
 
 import jakarta.validation.Valid;
+import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 
+import lombok.experimental.FieldDefaults;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequiredArgsConstructor
+@FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 @RequestMapping("/api/phone")
 public class PhoneController {
 
-    private final CustomerService customerService;
+    CustomerService customerService;
 
     @PostMapping("/change")
     public ChangePhoneNumberResponse changePhoneNumber(@RequestBody @Valid ChangePhoneNumberRequest request) {

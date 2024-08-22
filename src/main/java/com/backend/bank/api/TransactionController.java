@@ -8,7 +8,9 @@ import com.backend.bank.service.intf.TransactionService;
 
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
+import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
+import lombok.experimental.FieldDefaults;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -19,15 +21,16 @@ import java.util.concurrent.CompletableFuture;
 
 @RestController
 @RequiredArgsConstructor
+@FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 @RequestMapping("/transactions/{accountId}/")
 public class TransactionController {
 
-    private final TransactionService transactionService;
+    TransactionService transactionService;
 
     @SuppressWarnings("unused")
-    private final SecurityWall securityWall;
+    SecurityWall securityWall;
 
-    private final ApiRateLimiter apiRateLimiter;
+    ApiRateLimiter apiRateLimiter;
 
     @PostMapping("/deposit")
     @PreAuthorize("hasAnyRole('ROLE_ADMIN', 'ROLE_MANAGER', 'ROLE_STAFF')")

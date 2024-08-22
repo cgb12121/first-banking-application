@@ -6,7 +6,10 @@ import com.backend.bank.exception.AccountAlreadyExistsException;
 import com.backend.bank.service.intf.SignupService;
 
 import jakarta.validation.Valid;
+import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
+import lombok.experimental.FieldDefaults;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.BindingResult;
@@ -19,11 +22,18 @@ import java.util.stream.Collectors;
 
 @RestController
 @RequiredArgsConstructor
+@FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 @RequestMapping("/auth")
 public class SignupController {
 
-    private final SignupService signupService;
+    SignupService signupService;
 
+    @Cacheable(
+            value = "user",
+            key = "#signupRequest.account().accountNumber() " +
+                    "+ '_' + #signupRequest.email() " +
+                    "+ '_' + #signupRequest.phoneNumber()"
+    )
     @PostMapping("/signup")
     public CompletableFuture<ResponseEntity<Map<String, Object>>> signup(
             @RequestBody @Valid SignupRequest signupRequest,
