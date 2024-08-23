@@ -1,9 +1,9 @@
 package com.backend.bank.utils.annotation;
 
 import com.backend.bank.utils.PasswordValidator;
+
 import jakarta.validation.Constraint;
 import jakarta.validation.Payload;
-
 
 import java.lang.annotation.Documented;
 import java.lang.annotation.Retention;

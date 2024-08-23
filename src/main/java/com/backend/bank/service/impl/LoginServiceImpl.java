@@ -11,8 +11,8 @@ import com.backend.bank.exception.AccountNotExistException;
 import com.backend.bank.repository.CustomerRepository;
 import com.backend.bank.security.auth.JwtProvider;
 import com.backend.bank.service.intf.LoginService;
-
 import com.backend.bank.utils.RequestValidator;
+
 import lombok.RequiredArgsConstructor;
 
 import org.springframework.scheduling.annotation.Async;

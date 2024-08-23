@@ -11,8 +11,8 @@ import com.backend.bank.exception.IllegalAccountTypeException;
 import com.backend.bank.exception.InputViolationException;
 import com.backend.bank.repository.AccountRepository;
 import com.backend.bank.service.intf.AccountService;
-
 import com.backend.bank.utils.RequestValidator;
+
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;

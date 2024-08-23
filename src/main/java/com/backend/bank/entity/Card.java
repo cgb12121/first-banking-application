@@ -3,7 +3,9 @@ package com.backend.bank.entity;
 import com.backend.bank.entity.constant.CardType;
 import com.backend.bank.security.data.EncryptionAttributeConverter;
 import com.backend.bank.security.data.IdAttributeConverter;
+
 import jakarta.persistence.*;
+
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 

@@ -3,8 +3,11 @@ package com.backend.bank.entity;
 import com.backend.bank.entity.constant.LoanStatus;
 import com.backend.bank.entity.constant.TakeLoanStatus;
 import com.backend.bank.security.data.IdAttributeConverter;
+
 import com.fasterxml.jackson.annotation.JsonFormat;
+
 import jakarta.persistence.*;
+
 import jdk.jfr.Timestamp;
 import lombok.*;
 import lombok.experimental.FieldDefaults;

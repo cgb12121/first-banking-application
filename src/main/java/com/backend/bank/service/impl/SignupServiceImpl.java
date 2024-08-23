@@ -22,11 +22,12 @@ import com.backend.bank.repository.VerifyRepository;
 import com.backend.bank.service.intf.NotificationService;
 import com.backend.bank.service.intf.SignupService;
 import com.backend.bank.utils.EmailUtils;
-
 import com.backend.bank.utils.RequestValidator;
+
 import lombok.RequiredArgsConstructor;
 
 import org.apache.commons.lang3.RandomStringUtils;
+
 import org.springframework.mail.MailException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;

@@ -16,10 +16,12 @@ import com.backend.bank.repository.AccountRepository;
 import com.backend.bank.repository.CustomerRepository;
 import com.backend.bank.repository.LoanRepository;
 import com.backend.bank.service.intf.LoanService;
-
 import com.backend.bank.utils.RequestValidator;
+
 import jakarta.transaction.Transactional;
+
 import lombok.RequiredArgsConstructor;
+
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;

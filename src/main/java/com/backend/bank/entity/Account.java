@@ -4,7 +4,9 @@ import com.backend.bank.entity.constant.AccountStatus;
 import com.backend.bank.entity.constant.AccountType;
 import com.backend.bank.security.data.EncryptionAttributeConverter;
 import com.backend.bank.security.data.IdAttributeConverter;
+
 import jakarta.persistence.*;
+
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 

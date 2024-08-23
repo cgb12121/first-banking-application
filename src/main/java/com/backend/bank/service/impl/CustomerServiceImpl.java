@@ -19,12 +19,11 @@ import com.backend.bank.repository.CustomerRepository;
 import com.backend.bank.repository.EmailChangeTokenRepository;
 import com.backend.bank.repository.PhoneChangeTokenRepository;
 import com.backend.bank.service.intf.CustomerService;
-
 import com.backend.bank.service.intf.NotificationService;
 import com.backend.bank.service.intf.OtpService;
 import com.backend.bank.utils.EmailUtils;
-
 import com.backend.bank.utils.RequestValidator;
+
 import lombok.RequiredArgsConstructor;
 
 import org.springframework.context.annotation.Primary;

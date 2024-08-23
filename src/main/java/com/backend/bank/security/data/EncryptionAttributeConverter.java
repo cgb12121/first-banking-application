@@ -7,7 +7,9 @@ import javax.crypto.spec.SecretKeySpec;
 
 import jakarta.persistence.AttributeConverter;
 import jakarta.persistence.Converter;
+
 import lombok.extern.log4j.Log4j2;
+
 import org.springframework.beans.factory.annotation.Value;
 
 import java.security.spec.KeySpec;

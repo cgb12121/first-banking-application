@@ -16,8 +16,8 @@ import com.backend.bank.service.intf.NotificationService;
 import com.backend.bank.service.intf.InterestService;
 import com.backend.bank.service.intf.TransactionService;
 import com.backend.bank.utils.EmailUtils;
-
 import com.backend.bank.utils.RequestValidator;
+
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 

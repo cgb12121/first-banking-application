@@ -1,6 +1,7 @@
 package com.backend.bank.repository;
 
 import com.backend.bank.entity.Verify;
+
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 

@@ -4,6 +4,7 @@ import com.backend.bank.entity.constant.AccountStatus;
 import com.backend.bank.entity.constant.Role;
 import com.backend.bank.security.data.EncryptionAttributeConverter;
 import com.backend.bank.security.data.IdAttributeConverter;
+
 import jakarta.persistence.*;
 import jdk.jfr.Timestamp;
 import lombok.*;
