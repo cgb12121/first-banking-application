@@ -2,6 +2,8 @@ package com.backend.bank.entity;
 
 import com.backend.bank.entity.constant.AccountStatus;
 import com.backend.bank.entity.constant.AccountType;
+import com.backend.bank.security.data.EncryptionAttributeConverter;
+import com.backend.bank.security.data.IdAttributeConverter;
 import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
@@ -21,9 +23,11 @@ public class Account {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "id")
+    @Convert(converter = IdAttributeConverter.class)
+    @Column(name = "id", unique = true, nullable = false)
     Long id;
 
+    @Convert(converter = EncryptionAttributeConverter.class)
     @Column(name = "account_number", nullable = false, unique = true)
     String accountNumber;
 

@@ -2,6 +2,8 @@ package com.backend.bank.entity;
 
 import com.backend.bank.entity.constant.AccountStatus;
 import com.backend.bank.entity.constant.Role;
+import com.backend.bank.security.data.EncryptionAttributeConverter;
+import com.backend.bank.security.data.IdAttributeConverter;
 import jakarta.persistence.*;
 import jdk.jfr.Timestamp;
 import lombok.*;
@@ -27,15 +29,19 @@ public class Customer implements UserDetails {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "id")
+    @Convert(converter = IdAttributeConverter.class)
+    @Column(name = "id", unique = true, nullable = false)
     Long id;
 
+    @Convert(converter = EncryptionAttributeConverter.class)
     @Column(name = "password", nullable = false)
     String password;
 
+    @Convert(converter = EncryptionAttributeConverter.class)
     @Column(name = "email", nullable = false, unique = true)
     String email;
 
+    @Convert(converter = EncryptionAttributeConverter.class)
     @Column(name = "phone_number", nullable = false)
     String phoneNumber;
 

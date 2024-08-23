@@ -4,9 +4,6 @@ import com.backend.bank.dto.request.UpdateCustomerInfoRequest;
 import com.backend.bank.dto.request.UpgradeAccountRequest;
 import com.backend.bank.dto.response.UpdateCustomerInfoResponse;
 import com.backend.bank.dto.response.UpgradeAccountResponse;
-import com.backend.bank.exception.AccountNotExistException;
-import com.backend.bank.exception.AccountBannedException;
-import com.backend.bank.exception.AccountInactiveException;
 import com.backend.bank.service.intf.AccountService;
 
 import jakarta.validation.Valid;
@@ -94,14 +91,16 @@ public class AccountController {
     @SuppressWarnings("all")
     private ResponseEntity<Map<String, Object>> handleException(Exception ex) {
         Throwable cause = ex.getCause();
-        if (cause instanceof AccountNotExistException) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(createErrorResponse("Account does not exist."));
-        } else if (cause instanceof AccountBannedException) {
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(createErrorResponse("Account is banned."));
-        } else if (cause instanceof AccountInactiveException) {
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(createErrorResponse("Account is inactive."));
-        }
-        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(createErrorResponse("An error occurred"));
+        return switch (cause.getClass().getSimpleName()) {
+            case "AccountNotExistException" ->
+                    ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(createErrorResponse("Account does not exist."));
+            case "AccountBannedException" ->
+                    ResponseEntity.status(HttpStatus.FORBIDDEN).body(createErrorResponse("Account is banned."));
+            case "AccountInactiveException" ->
+                    ResponseEntity.status(HttpStatus.CONFLICT).body(createErrorResponse("Account is in use."));
+            default ->
+                    ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(createErrorResponse("An error occurred"));
+        };
     }
 
     private Map<String, Object> createErrorResponse(String message) {

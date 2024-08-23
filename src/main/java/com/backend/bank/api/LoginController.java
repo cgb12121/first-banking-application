@@ -2,9 +2,6 @@ package com.backend.bank.api;
 
 import com.backend.bank.dto.request.LoginRequest;
 import com.backend.bank.dto.response.LoginResponse;
-import com.backend.bank.exception.AccountBannedException;
-import com.backend.bank.exception.AccountInactiveException;
-import com.backend.bank.exception.AccountNotExistException;
 import com.backend.bank.service.intf.LoginService;
 
 import jakarta.validation.Valid;
@@ -17,7 +14,8 @@ import lombok.extern.log4j.Log4j2;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.validation.BindingResult;
@@ -36,6 +34,8 @@ import java.util.stream.Collectors;
 public class LoginController {
 
     LoginService loginService;
+
+    AuthenticationManager authenticationManager;
 
     @Cacheable(
             value = "user",
@@ -60,9 +60,11 @@ public class LoginController {
             return CompletableFuture.completedFuture(ResponseEntity.badRequest().body(response));
         }
 
-        Authentication authentication = (Authentication) loginService.login(loginRequest);
+        Authentication authentication = authenticationManager.authenticate(
+                new UsernamePasswordAuthenticationToken(loginRequest.identifier(), loginRequest.password())
+        );
         if (!authentication.isAuthenticated()){
-            return CompletableFuture.completedFuture(ResponseEntity.status(HttpStatus.UNAUTHORIZED).build());
+            return CompletableFuture.completedFuture(ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(createErrorResponse("Invalid request")));
         }
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         log.info(auth.getName());
@@ -74,16 +76,18 @@ public class LoginController {
                 .thenApply(loginResponse -> ResponseEntity.ok(createSuccessResponse(loginResponse)))
                 .exceptionally(ex -> {
                     Throwable cause = ex.getCause();
-                    if (cause instanceof AccountNotExistException) {
-                        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(createErrorResponse("Account does not exist."));
-                    } else if (cause instanceof AccountBannedException) {
-                        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(createErrorResponse("Account is banned."));
-                    } else if (cause instanceof AccountInactiveException) {
-                        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(createErrorResponse("Account is inactive."));
-                    } else if (cause instanceof BadCredentialsException) {
-                        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(createErrorResponse("Invalid credentials."));
-                    }
-                    return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(createErrorResponse("An error occurred"));
+                    return switch (cause.getClass().getSimpleName()) {
+                        case "AccountNotExistException" ->
+                                ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(createErrorResponse("Account does not exist."));
+                        case "AccountBannedException" ->
+                                ResponseEntity.status(HttpStatus.FORBIDDEN).body(createErrorResponse("Account is banned."));
+                        case "AccountInactiveException" ->
+                                ResponseEntity.status(HttpStatus.FORBIDDEN).body(createErrorResponse("Account is inactive."));
+                        case "BadCredentialsException" ->
+                                ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(createErrorResponse("Invalid credentials."));
+                        default ->
+                                ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(createErrorResponse("An error occurred"));
+                    };
                 });
     }
 

@@ -1,12 +1,13 @@
 package com.backend.bank.entity;
 
+import com.backend.bank.security.data.EncryptionAttributeConverter;
+import com.backend.bank.security.data.IdAttributeConverter;
 import jakarta.persistence.*;
 import jdk.jfr.Timestamp;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 
 import java.time.LocalDateTime;
-import java.util.Date;
 
 @Entity
 @Getter
@@ -19,15 +20,19 @@ public class EmailChangeToken {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "id", nullable = false)
+    @Convert(converter = IdAttributeConverter.class)
+    @Column(name = "id", unique = true, nullable = false)
     Long id;
 
+    @Convert(converter = EncryptionAttributeConverter.class)
     @Column(name = "token", nullable = false)
     String token;
 
+    @Convert(converter = EncryptionAttributeConverter.class)
     @Column(name = "new_email", nullable = false)
     String newEmail;
 
+    @Convert(converter = EncryptionAttributeConverter.class)
     @Column(name = "old_email", nullable = false)
     String oldEmail;
 

@@ -1,7 +1,6 @@
 package com.backend.bank.security;
 
 import com.backend.bank.security.auth.JwtAuthenticationFilter;
-import com.backend.bank.security.auth.JwtProvider;
 import lombok.RequiredArgsConstructor;
 
 import org.springframework.beans.factory.annotation.Value;
@@ -45,10 +44,14 @@ public class SecurityConfig {
                 .cors(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests (request -> request
                         .requestMatchers("/auth/**").permitAll()
-                        .requestMatchers(HttpMethod.POST, "/auth/verify").anonymous()
+                        .requestMatchers(HttpMethod.POST, "/auth/verify/**").anonymous()
+                        .requestMatchers(HttpMethod.POST, "/auth/login").anonymous()
+                        .requestMatchers(HttpMethod.POST, "/auth/logout").anonymous()
+                        .requestMatchers(HttpMethod.POST, "/auth/signup").anonymous()
+                        .requestMatchers("account/update-info").hasRole("STAFF")
                         .anyRequest().authenticated()
                 )
-                .authenticationProvider((AuthenticationProvider) jwtAuthenticationFilter)
+                .authenticationProvider(authenticationProvider())
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
                 .sessionManagement(session -> session
                         .sessionCreationPolicy(SessionCreationPolicy.STATELESS)

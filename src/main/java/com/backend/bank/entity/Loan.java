@@ -2,6 +2,8 @@ package com.backend.bank.entity;
 
 import com.backend.bank.entity.constant.LoanStatus;
 import com.backend.bank.entity.constant.TakeLoanStatus;
+import com.backend.bank.security.data.IdAttributeConverter;
+import com.fasterxml.jackson.annotation.JsonFormat;
 import jakarta.persistence.*;
 import jdk.jfr.Timestamp;
 import lombok.*;
@@ -22,7 +24,8 @@ public class Loan {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "id")
+    @Convert(converter = IdAttributeConverter.class)
+    @Column(name = "id", unique = true, nullable = false)
     Long id;
 
     @Column(name = "amount", nullable = false)
@@ -35,9 +38,11 @@ public class Loan {
     BigDecimal interestRate;
 
     @Column(name = "start_date", nullable = false)
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "dd-MM-yyyy")
     LocalDateTime startDate;
 
     @Column(name = "end_date", nullable = false)
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "dd-MM-yyyy")
     LocalDateTime endDate;
 
     @Timestamp
