@@ -1,9 +1,14 @@
-package com.backend.bank.api;
+package com.backend.bank.api.beta;
 
 import com.backend.bank.dto.request.LoginRequest;
 import com.backend.bank.dto.response.LoginResponse;
-import com.backend.bank.service.intf.LoginService;
+import com.backend.bank.entity.Customer;
+import com.backend.bank.security.auth.token.JwtService;
+import com.backend.bank.security.auth.token.TokenType;
+import com.backend.bank.service.beta.LoginServiceUsingJwtService;
+import com.backend.bank.service.intf.CustomerService;
 
+import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 
 import lombok.AccessLevel;
@@ -11,7 +16,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import lombok.extern.log4j.Log4j2;
 
-import org.springframework.cache.annotation.Cacheable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -31,20 +35,21 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 @RequestMapping("/auth")
-public class LoginController {
+public class LoginUsingJwtServiceController {
 
-    LoginService loginService;
+    LoginServiceUsingJwtService loginServiceUsingJwtService;
 
     AuthenticationManager authenticationManager;
 
-    @Cacheable(
-            value = "user",
-            key = "#loginRequest.identifier()"
-    )
+    CustomerService customerService;
+
+    JwtService jwtService;
+
     @PostMapping("/login")
     public CompletableFuture<ResponseEntity<Map<String, Object>>> login(
             @RequestBody @Valid LoginRequest loginRequest,
-            BindingResult bindingResult) {
+            BindingResult bindingResult,
+            HttpServletResponse response) {
 
         if (bindingResult.hasErrors()) {
             List<String> errors = bindingResult
@@ -53,26 +58,26 @@ public class LoginController {
                     .map(ObjectError::getDefaultMessage)
                     .collect(Collectors.toList());
 
-            Map<String, Object> response = new HashMap<>();
-            response.put("status: ", HttpStatus.BAD_REQUEST.value());
-            response.put("errors: ", errors);
+            Map<String, Object> responseBody = new HashMap<>();
+            responseBody.put("status", HttpStatus.BAD_REQUEST.value());
+            responseBody.put("errors", errors);
 
-            return CompletableFuture.completedFuture(ResponseEntity.badRequest().body(response));
+            return CompletableFuture.completedFuture(ResponseEntity.badRequest().body(responseBody));
         }
 
         Authentication authentication = authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(loginRequest.identifier(), loginRequest.password())
         );
-        if (!authentication.isAuthenticated()){
-            return CompletableFuture.completedFuture(ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(createErrorResponse("Invalid request")));
+        if (!authentication.isAuthenticated()) {
+            return CompletableFuture.completedFuture(ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(createErrorResponse("Unauthorized access")));
         }
-        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        log.info(auth.getName());
-        auth.getAuthorities().forEach(
-                authority -> { log.info(authority.getAuthority()); }
-        );
 
-        return this.loginService.login(loginRequest)
+        Customer customer = customerService.getCustomerById(Long.valueOf(SecurityContextHolder.getContext().getAuthentication().getName()));
+
+        jwtService.addCookie(response, customer, TokenType.ACCESS);
+
+        loginServiceUsingJwtService.login(loginRequest);
+        return this.loginServiceUsingJwtService.login(loginRequest)
                 .thenApply(loginResponse -> ResponseEntity.ok(createSuccessResponse(loginResponse)))
                 .exceptionally(ex -> {
                     Throwable cause = ex.getCause();
@@ -107,4 +112,3 @@ public class LoginController {
         return responseBody;
     }
 }
-

@@ -92,7 +92,7 @@ public class SignupServiceImpl implements SignupService {
             case VIP -> interest = BigDecimal.valueOf(5.0);
             case BANK_STAFF -> interest = BigDecimal.valueOf(7.0);
             case ENTERPRISE -> interest = BigDecimal.valueOf(10.0);
-            case null, default -> throw new InputViolationException("Invalid account type");
+            case null, default -> throw new IllegalAccountTypeException("Invalid account type");
         }
         customer.getAccount().setInterest(interest);
         customer.getAccount().setBalance(BigDecimal.ZERO);

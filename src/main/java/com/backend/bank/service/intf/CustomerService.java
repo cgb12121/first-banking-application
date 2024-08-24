@@ -9,6 +9,7 @@ import com.backend.bank.dto.response.ChangePasswordResponse;
 import com.backend.bank.dto.response.ChangePhoneNumberResponse;
 import com.backend.bank.dto.response.RegisterNewCardResponse;
 
+import com.backend.bank.entity.Customer;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -26,4 +27,6 @@ public interface CustomerService {
     String confirmPhoneNumberChangeByOTP(String otp, String newPhoneNumber);
 
     RegisterNewCardResponse registerNewCard(RegisterNewCardRequest registerNewCardRequest);
+
+    Customer getCustomerById(Long id);
 }

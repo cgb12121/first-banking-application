@@ -287,6 +287,11 @@ public class CustomerServiceImpl implements CustomerService, UserDetailsService 
         return null;
     }
 
+    @Override
+    public Customer getCustomerById(Long id) {
+        return customerRepository.findById(id);
+    }
+
     private void sendChangedPasswordSuccessEmail(ChangePasswordRequest changePasswordRequest, Date changedPasswordDate) {
         EmailDetails emailDetails = new EmailDetails();
         emailDetails.setReceiver(changePasswordRequest.email());
