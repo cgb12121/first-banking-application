@@ -14,10 +14,12 @@ import com.backend.bank.service.intf.AccountService;
 import com.backend.bank.utils.RequestValidator;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Set;
+import java.util.concurrent.CompletableFuture;
 
 @Service
 @RequiredArgsConstructor
@@ -30,8 +32,9 @@ public class AccountServiceImpl implements AccountService {
     private final RequestValidator<UpdateCustomerInfoRequest> updateCustomerInfoRequestValidator;
 
     @Override
+    @Async
     @Transactional(rollbackFor = Exception.class)
-    public UpgradeAccountResponse upgradeAccount(UpgradeAccountRequest request) {
+    public CompletableFuture<UpgradeAccountResponse> upgradeAccount(UpgradeAccountRequest request) {
         Set<String> violations = upgradeAccountRequestValidator.validate(request);
         if (!violations.isEmpty()) {
             throw new InputViolationException(String.join("\n", violations));
@@ -49,12 +52,13 @@ public class AccountServiceImpl implements AccountService {
             case null, default -> throw new IllegalAccountTypeException("Can not find accountType: " + accountTypeRequest);
         }
 
-        return new UpgradeAccountResponse("You have upgraded your account to: ", accountTypeRequest);
+        return CompletableFuture.completedFuture(new UpgradeAccountResponse("You have upgraded your account to: ", accountTypeRequest));
     }
 
     @Override
+    @Async
     @Transactional(rollbackFor = Exception.class)
-    public UpdateCustomerInfoResponse updateCustomerInfo(UpdateCustomerInfoRequest request) {
+    public CompletableFuture<UpdateCustomerInfoResponse> updateCustomerInfo(UpdateCustomerInfoRequest request) {
         Set<String> violations = updateCustomerInfoRequestValidator.validate(request);
         if (!violations.isEmpty()) {
             throw new InputViolationException(String.join("\n", violations));
@@ -74,13 +78,13 @@ public class AccountServiceImpl implements AccountService {
         account.getAccountHolder().setPhoneNumber(newPhoneNumber);
         accountRepository.save(account);
 
-        return new UpdateCustomerInfoResponse(
+        return CompletableFuture.completedFuture(new UpdateCustomerInfoResponse(
                 newFirstName,
                 newLastName,
                 newEmail,
                 newPhoneNumber,
                 "Changed successfully"
-        );
+        ));
     }
 
 }

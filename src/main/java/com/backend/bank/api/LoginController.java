@@ -85,8 +85,7 @@ public class LoginController {
                                 ResponseEntity.status(HttpStatus.FORBIDDEN).body(createErrorResponse("Account is inactive."));
                         case "BadCredentialsException" ->
                                 ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(createErrorResponse("Invalid credentials."));
-                        default ->
-                                ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(createErrorResponse("An error occurred"));
+                        default -> ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(createErrorResponse("An error occurred"));
                     };
                 });
     }

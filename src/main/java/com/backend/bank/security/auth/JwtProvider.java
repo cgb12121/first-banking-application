@@ -1,6 +1,8 @@
 package com.backend.bank.security.auth;
 
+import com.auth0.jwt.JWT;
 import com.auth0.jwt.algorithms.Algorithm;
+
 import com.backend.bank.exception.InvalidTokenException;
 import com.backend.bank.exception.TokenExpiredException;
 
@@ -23,10 +25,7 @@ import java.security.interfaces.RSAPublicKey;
 import java.security.spec.InvalidKeySpecException;
 import java.security.spec.PKCS8EncodedKeySpec;
 import java.security.spec.X509EncodedKeySpec;
-import java.util.Base64;
-import java.util.Date;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 import java.util.function.Function;
 
 @SuppressWarnings("unused")
@@ -43,11 +42,22 @@ public class JwtProvider {
 
     private static final int ONE_HOUR = 86400000 / 24;
 
+    @Deprecated(since = "This is use auth0.jwt might not suitable", forRemoval = true)
+    public String generateTokenV2(UserDetails userDetails) {
+        return JWT.create()
+                .withIssuer(issuer)
+                .withIssuedAt(new Date(System.currentTimeMillis()))
+                .withExpiresAt(new Date(System.currentTimeMillis() + ONE_HOUR))
+                .withSubject(userDetails.getUsername())
+                .withClaim("authority", (List<?>) userDetails.getAuthorities())
+                .sign(Algorithm.HMAC256(secretKey));
+    }
+
     public String generateToken(UserDetails userDetails) {
         return Jwts.builder()
                 .issuer(issuer)
                 .issuedAt(new Date(System.currentTimeMillis()))
-                .expiration(new Date(System.currentTimeMillis() + ONE_HOUR) )
+                .expiration(new Date(System.currentTimeMillis() + ONE_HOUR))
                 .subject(userDetails.getUsername())
                 .claim("authority", userDetails.getAuthorities())
                 .signWith(getSigningKey())

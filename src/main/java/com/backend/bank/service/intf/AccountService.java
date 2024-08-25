@@ -6,9 +6,11 @@ import com.backend.bank.dto.response.UpdateCustomerInfoResponse;
 import com.backend.bank.dto.response.UpgradeAccountResponse;
 import org.springframework.stereotype.Service;
 
+import java.util.concurrent.CompletableFuture;
+
 @Service
 public interface AccountService {
-    UpgradeAccountResponse upgradeAccount(UpgradeAccountRequest request);
+    CompletableFuture<UpgradeAccountResponse> upgradeAccount(UpgradeAccountRequest request);
 
-    UpdateCustomerInfoResponse updateCustomerInfo(UpdateCustomerInfoRequest request);
+    CompletableFuture<UpdateCustomerInfoResponse> updateCustomerInfo(UpdateCustomerInfoRequest request);
 }

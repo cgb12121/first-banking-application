@@ -1,6 +1,5 @@
 package com.backend.bank.api.beta;
 
-import com.backend.bank.entity.Customer;
 import com.backend.bank.security.auth.token.JwtService;
 import com.backend.bank.security.auth.token.TokenData;
 import lombok.RequiredArgsConstructor;

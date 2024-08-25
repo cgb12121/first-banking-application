@@ -2,8 +2,6 @@ package com.backend.bank.api;
 
 import com.backend.bank.dto.request.UpdateCustomerInfoRequest;
 import com.backend.bank.dto.request.UpgradeAccountRequest;
-import com.backend.bank.dto.response.UpdateCustomerInfoResponse;
-import com.backend.bank.dto.response.UpgradeAccountResponse;
 import com.backend.bank.service.intf.AccountService;
 
 import jakarta.validation.Valid;
@@ -22,6 +20,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.*;
+import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
 @RestController
@@ -33,7 +32,7 @@ public class AccountController {
     AccountService accountService;
 
     @PatchMapping("/upgrade-account")
-    public ResponseEntity<Map<String, Object>> updateAccount(
+    public CompletableFuture<ResponseEntity<Map<String, Object>>> updateAccount(
             @RequestBody @Valid UpgradeAccountRequest request,
             BindingResult bindingResult
     ) {
@@ -48,16 +47,16 @@ public class AccountController {
             response.put("status", HttpStatus.BAD_REQUEST.value());
             response.put("errors", errors);
 
-            return ResponseEntity.badRequest().body(response);
+            return CompletableFuture.completedFuture(ResponseEntity.badRequest().body(response));
         }
 
-
-        UpgradeAccountResponse upgradeResponse = accountService.upgradeAccount(request);
-        return ResponseEntity.ok(createSuccessResponse(upgradeResponse));
+        return this.accountService.upgradeAccount(request)
+                .thenApply(upgradeAccountResponse -> ResponseEntity.ok().body(createSuccessResponse(upgradeAccountResponse)))
+                .exceptionally(ex -> handleException((Exception) ex));
     }
 
     @PatchMapping("/update-info")
-    public ResponseEntity<Map<String, Object>> updateCustomerInfo(
+    public CompletableFuture<ResponseEntity<Map<String, Object>>> updateCustomerInfo(
             @RequestBody @Valid UpdateCustomerInfoRequest request,
             BindingResult bindingResult
     ) {
@@ -72,12 +71,12 @@ public class AccountController {
             response.put("status", HttpStatus.BAD_REQUEST.value());
             response.put("errors", errors);
 
-            return ResponseEntity.badRequest().body(response);
+            return CompletableFuture.completedFuture(ResponseEntity.badRequest().body(response));
         }
 
-        UpdateCustomerInfoResponse infoResponse = accountService.updateCustomerInfo(request);
-        return ResponseEntity.ok(createSuccessResponse(infoResponse));
-
+        return this.accountService.updateCustomerInfo(request)
+                .thenApply(updateCustomerInfoResponse -> ResponseEntity.ok(createSuccessResponse(updateCustomerInfoResponse)))
+                .exceptionally(ex -> handleException((Exception) ex));
     }
 
     private Map<String, Object> createSuccessResponse(Object response) {
@@ -88,7 +87,6 @@ public class AccountController {
         return responseBody;
     }
 
-    @SuppressWarnings("all")
     private ResponseEntity<Map<String, Object>> handleException(Exception ex) {
         Throwable cause = ex.getCause();
         return switch (cause.getClass().getSimpleName()) {
