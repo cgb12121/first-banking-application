@@ -29,6 +29,7 @@ import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.RandomStringUtils;
 
 import org.springframework.mail.MailException;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -68,6 +69,7 @@ public class SignupServiceImpl implements SignupService {
             rollbackFor = Exception.class,
             noRollbackFor = MailException.class
     )
+    @Async(value = "userTaskExecutor")
     public CompletableFuture<SignupResponse> signup(SignupRequest signupRequest)
             throws AccountAlreadyExistsException, InputViolationException {
 
@@ -111,6 +113,7 @@ public class SignupServiceImpl implements SignupService {
     }
 
     @Override
+    @Async(value = "userTaskExecutor")
     public CompletableFuture<String> verifyUser(String httpRequest) throws InvalidVerifyLinkException {
 
         Verify userVerify = verifyRepository.findByVerifyLink(httpRequest)

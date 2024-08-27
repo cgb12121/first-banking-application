@@ -19,7 +19,7 @@ public class ProtectedResourceController {
 
     private final JwtService jwtService;
 
-    @GetMapping
+    @GetMapping("/")
     public ResponseEntity<String> getProtectedResource(@RequestHeader("Authorization") String authorizationHeader) {
         String token = authorizationHeader.substring("Bearer ".length());
 

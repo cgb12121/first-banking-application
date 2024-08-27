@@ -6,7 +6,7 @@ import jakarta.persistence.Converter;
 import java.util.Base64;
 
 @Converter()
-public class IdAttributeConverterBase64 implements AttributeConverter<Long, String> {
+public class Base64IdAttributeConverter implements AttributeConverter<Long, String> {
 
     @Override
     public String convertToDatabaseColumn(Long id) {

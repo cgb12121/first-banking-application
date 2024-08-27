@@ -36,8 +36,8 @@ public class LoginServiceImpl implements LoginService {
 
     private final RequestValidator<LoginRequest> loginRequestRequestValidator;
 
-    @Async
     @Override
+    @Async(value = "userTaskExecutor")
     public CompletableFuture<LoginResponse> login(LoginRequest loginRequest)
             throws AccountNotExistException, AccountBannedException, AccountInactiveException, InputViolationException {
         Set<String> violations = loginRequestRequestValidator.validate(loginRequest);

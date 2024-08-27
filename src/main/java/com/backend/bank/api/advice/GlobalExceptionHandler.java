@@ -5,37 +5,15 @@ import com.backend.bank.exception.*;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.log4j.Log4j2;
 
-import org.springframework.beans.ConversionNotSupportedException;
-import org.springframework.beans.TypeMismatchException;
-import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
-import org.springframework.http.converter.HttpMessageNotReadableException;
-import org.springframework.http.converter.HttpMessageNotWritableException;
-import org.springframework.lang.NonNull;
 import org.springframework.security.authentication.BadCredentialsException;
-import org.springframework.validation.method.MethodValidationException;
-import org.springframework.web.ErrorResponseException;
-import org.springframework.web.HttpMediaTypeNotAcceptableException;
-import org.springframework.web.HttpMediaTypeNotSupportedException;
-import org.springframework.web.HttpRequestMethodNotSupportedException;
-import org.springframework.web.bind.MethodArgumentNotValidException;
-import org.springframework.web.bind.MissingPathVariableException;
-import org.springframework.web.bind.MissingServletRequestParameterException;
-import org.springframework.web.bind.ServletRequestBindingException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.context.request.WebRequest;
-import org.springframework.web.context.request.async.AsyncRequestTimeoutException;
-import org.springframework.web.method.annotation.HandlerMethodValidationException;
-import org.springframework.web.multipart.MaxUploadSizeExceededException;
-import org.springframework.web.multipart.support.MissingServletRequestPartException;
-import org.springframework.web.servlet.NoHandlerFoundException;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
-import org.springframework.web.servlet.resource.NoResourceFoundException;
 
 import java.time.Instant;
 import java.util.HashMap;
@@ -293,18 +271,6 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
         return buildErrorResponse(errorDetails, HttpStatus.BAD_REQUEST);
     }
 
-    @ResponseStatus(HttpStatus.BAD_REQUEST)
-    @ExceptionHandler(HttpMessageNotReadableException.class)
-    public ResponseEntity<Map<String, Object>> handleHttpMessageNotReadableException(
-            HttpMessageNotReadableException e,
-            HttpServletRequest request,
-            WebRequest webRequest
-    ) {
-        Map<String, Object> errorDetails = buildErrorDetails(request, e, HttpStatus.BAD_REQUEST);
-        loggingError(e, webRequest, errorDetails);
-        return buildErrorResponse(errorDetails, HttpStatus.BAD_REQUEST);
-    }
-
     @ExceptionHandler(Exception.class)
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
     public ResponseEntity<Map<String, Object>> handleAllExceptions(
@@ -315,311 +281,6 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
         Map<String, Object> errorDetails = buildErrorDetails(request, e, HttpStatus.INTERNAL_SERVER_ERROR);
         loggingError(e, webRequest, errorDetails);
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorDetails);
-    }
-
-    @Override
-    @ExceptionHandler(ErrorResponseException.class)
-    protected ResponseEntity<Object> handleErrorResponseException(
-            @NonNull ErrorResponseException e,
-            @NonNull HttpHeaders headers,
-            @NonNull HttpStatusCode status,
-            @NonNull WebRequest request
-    ) {
-        HttpServletRequest httpServletRequest = ((HttpServletRequest) request);
-        Map<String, Object> errorDetails = buildErrorDetails(httpServletRequest, e);
-        log.error("ErrorResponseException occurred: {}, {}, {} ",
-                request.getHeaderNames(), request.getParameterMap(), errorDetails, e);
-        Object response = buildErrorResponse(errorDetails, (HttpStatus) status);
-        return ResponseEntity.status(status).body(response);
-    }
-
-
-
-    @Override
-    @ExceptionHandler(MethodValidationException.class)
-    protected ResponseEntity<Object> handleMethodValidationException(
-            @NonNull MethodValidationException e,
-            @NonNull HttpHeaders headers,
-            @NonNull HttpStatus status,
-            @NonNull WebRequest request
-    ) {
-        HttpServletRequest httpServletRequest = ((HttpServletRequest) request);
-        Map<String, Object> errorDetails = buildErrorDetails(httpServletRequest, e);
-        log.error("MethodValidationException occurred: {}, {}, {} ",
-                request.getHeaderNames(), request.getParameterMap(), errorDetails, e);
-        Object response = buildErrorResponse(errorDetails, status);
-        return ResponseEntity.status(status).body(response);
-    }
-
-    @Override
-    @ExceptionHandler(AsyncRequestTimeoutException.class)
-    protected ResponseEntity<Object> handleAsyncRequestTimeoutException(
-            @NonNull AsyncRequestTimeoutException e,
-            @NonNull HttpHeaders headers,
-            @NonNull HttpStatusCode status,
-            @NonNull WebRequest request
-    ) {
-        HttpServletRequest httpServletRequest = ((HttpServletRequest) request);
-        Map<String, Object> errorDetails = buildErrorDetails(httpServletRequest, e);
-        log.error("AsyncRequestTimeoutException occurred: {}, {}, {} ",
-                request.getHeaderNames(), request.getParameterMap(), errorDetails, e);
-        Object response = buildErrorResponse(errorDetails, (HttpStatus) status);
-        return ResponseEntity.status(status).body(response);
-    }
-
-    @Override
-    @ExceptionHandler(ConversionNotSupportedException.class)
-    protected ResponseEntity<Object> handleConversionNotSupported(
-            @NonNull ConversionNotSupportedException e,
-            @NonNull HttpHeaders headers,
-            @NonNull HttpStatusCode status,
-            @NonNull WebRequest request
-    ) {
-        HttpServletRequest httpServletRequest = ((HttpServletRequest) request);
-        Map<String, Object> errorDetails = buildErrorDetails(httpServletRequest, e);
-        log.error("ConversionNotSupportedException occurred: {}, {}, {} ",
-                request.getHeaderNames(), request.getParameterMap(), errorDetails, e);
-        Object response = buildErrorResponse(errorDetails, (HttpStatus) status);
-        return ResponseEntity.status(status).body(response);
-    }
-
-    @Override
-    @ExceptionHandler(HttpMessageNotReadableException.class)
-    protected ResponseEntity<Object> handleHandlerMethodValidationException(
-            @NonNull HandlerMethodValidationException e,
-            @NonNull HttpHeaders headers,
-            @NonNull HttpStatusCode status,
-            @NonNull WebRequest request
-    ) {
-        HttpServletRequest httpServletRequest = ((HttpServletRequest) request);
-        Map<String, Object> errorDetails = buildErrorDetails(httpServletRequest, e);
-        log.error("HttpMessageNotReadableException occurred: {}, {}, {} ",
-                request.getHeaderNames(), request.getParameterMap(), errorDetails, e);
-        Object response = buildErrorResponse(errorDetails, (HttpStatus) status);
-        return ResponseEntity.status(status).body(response);
-    }
-
-    @Override
-    @ExceptionHandler(HttpMediaTypeNotAcceptableException.class)
-    protected ResponseEntity<Object> handleHttpMediaTypeNotAcceptable(
-            @NonNull HttpMediaTypeNotAcceptableException e,
-            @NonNull HttpHeaders headers,
-            @NonNull HttpStatusCode status,
-            @NonNull WebRequest request
-    ) {
-        HttpServletRequest httpServletRequest = ((HttpServletRequest) request);
-        Map<String, Object> errorDetails = buildErrorDetails(httpServletRequest, e);
-        log.error("HttpMediaTypeNotAcceptableException occurred: {}, {}, {} ",
-                request.getHeaderNames(), request.getParameterMap(), errorDetails, e);
-        Object response = buildErrorResponse(errorDetails, (HttpStatus) status);
-        return ResponseEntity.status(status).body(response);
-    }
-
-    @Override
-    @ExceptionHandler(HttpMediaTypeNotSupportedException.class)
-    protected ResponseEntity<Object> handleHttpMediaTypeNotSupported(
-            @NonNull HttpMediaTypeNotSupportedException e,
-            @NonNull HttpHeaders headers,
-            @NonNull HttpStatusCode status,
-            @NonNull WebRequest request
-    ) {
-        HttpServletRequest httpServletRequest = ((HttpServletRequest) request);
-        Map<String, Object> errorDetails = buildErrorDetails(httpServletRequest, e);
-        log.error("HttpMediaTypeNotSupportedException occurred: {}, {}, {} ",
-                request.getHeaderNames(), request.getParameterMap(), errorDetails, e);
-        Object response = buildErrorResponse(errorDetails, (HttpStatus) status);
-        return ResponseEntity.status(status).body(response);
-    }
-
-    @Override
-    @ExceptionHandler(HttpMessageNotReadableException.class)
-    protected ResponseEntity<Object> handleHttpMessageNotReadable(
-            @NonNull HttpMessageNotReadableException e,
-            @NonNull HttpHeaders headers,
-            @NonNull HttpStatusCode status,
-            @NonNull WebRequest request
-    ) {
-        HttpServletRequest httpServletRequest = ((HttpServletRequest) request);
-        Map<String, Object> errorDetails = buildErrorDetails(httpServletRequest, e);
-        log.error("HttpMessageNotReadableException occurred: {}, {}, {} ",
-                request.getHeaderNames(), request.getParameterMap(), errorDetails, e);
-        Object response = buildErrorResponse(errorDetails, (HttpStatus) status);
-        return ResponseEntity.status(status).body(response);
-    }
-
-    @Override
-    @ExceptionHandler(HttpMessageNotWritableException.class)
-    protected ResponseEntity<Object> handleHttpMessageNotWritable(
-            @NonNull HttpMessageNotWritableException e,
-            @NonNull HttpHeaders headers,
-            @NonNull HttpStatusCode status,
-            @NonNull WebRequest request
-    ) {
-        HttpServletRequest httpServletRequest = ((HttpServletRequest) request);
-        Map<String, Object> errorDetails = buildErrorDetails(httpServletRequest, e);
-        log.error("HttpMessageNotWritableException occurred: {}, {}, {} ",
-                request.getHeaderNames(), request.getParameterMap(), errorDetails, e);
-        Object response = buildErrorResponse(errorDetails, (HttpStatus) status);
-        return ResponseEntity.status(status).body(response);
-    }
-
-    @Override
-    @ExceptionHandler(HttpRequestMethodNotSupportedException.class)
-    protected ResponseEntity<Object> handleHttpRequestMethodNotSupported(
-            @NonNull HttpRequestMethodNotSupportedException e,
-            @NonNull HttpHeaders headers,
-            @NonNull HttpStatusCode status,
-            @NonNull WebRequest request
-    ) {
-        HttpServletRequest httpServletRequest = ((HttpServletRequest) request);
-        Map<String, Object> errorDetails = buildErrorDetails(httpServletRequest, e);
-        log.error("HttpRequestMethodNotSupportedException occurred: {}, {}, {} ",
-                request.getHeaderNames(), request.getParameterMap(), errorDetails, e);
-        Object response = buildErrorResponse(errorDetails, (HttpStatus) status);
-        return ResponseEntity.status(status).body(response);
-    }
-
-    @Override
-    @ExceptionHandler(MaxUploadSizeExceededException.class)
-    protected ResponseEntity<Object> handleMaxUploadSizeExceededException(
-            @NonNull MaxUploadSizeExceededException e,
-            @NonNull HttpHeaders headers,
-            @NonNull HttpStatusCode status,
-            @NonNull WebRequest request
-    ) {
-        HttpServletRequest httpServletRequest = ((HttpServletRequest) request);
-        Map<String, Object> errorDetails = buildErrorDetails(httpServletRequest, e);
-        log.error("MaxUploadSizeExceededException occurred: {}, {}, {} ",
-                request.getHeaderNames(), request.getParameterMap(), errorDetails, e);
-        Object response = buildErrorResponse(errorDetails, (HttpStatus) status);
-        return ResponseEntity.status(status).body(response);
-    }
-
-    @Override
-    @ExceptionHandler(MethodArgumentNotValidException.class)
-    protected ResponseEntity<Object> handleMethodArgumentNotValid(
-            @NonNull MethodArgumentNotValidException e,
-            @NonNull HttpHeaders headers,
-            @NonNull HttpStatusCode status,
-            @NonNull WebRequest request
-    ) {
-        HttpServletRequest httpServletRequest = ((HttpServletRequest) request);
-        Map<String, Object> errorDetails = buildErrorDetails(httpServletRequest, e);
-        log.error("MethodArgumentNotValidException occurred: {}, {}, {} ",
-                request.getHeaderNames(), request.getParameterMap(), errorDetails, e);
-        Object response = buildErrorResponse(errorDetails, (HttpStatus) status);
-        return ResponseEntity.status(status).body(response);
-    }
-
-    @Override
-    @ExceptionHandler(MissingPathVariableException.class)
-    protected ResponseEntity<Object> handleMissingPathVariable(
-            @NonNull MissingPathVariableException e,
-            @NonNull HttpHeaders headers,
-            @NonNull HttpStatusCode status,
-            @NonNull WebRequest request
-    ) {
-        HttpServletRequest httpServletRequest = ((HttpServletRequest) request);
-        Map<String, Object> errorDetails = buildErrorDetails(httpServletRequest, e);
-        log.error("MissingPathVariableException occurred: {}, {}, {} ",
-                request.getHeaderNames(), request.getParameterMap(), errorDetails, e);
-        Object response = buildErrorResponse(errorDetails, (HttpStatus) status);
-        return ResponseEntity.status(status).body(response);
-    }
-
-    @Override
-    @ExceptionHandler(MissingServletRequestParameterException.class)
-    protected ResponseEntity<Object> handleMissingServletRequestParameter(
-            @NonNull MissingServletRequestParameterException e,
-            @NonNull HttpHeaders headers,
-            @NonNull HttpStatusCode status,
-            @NonNull WebRequest request) {
-        HttpServletRequest httpServletRequest = ((HttpServletRequest) request);
-        Map<String, Object> errorDetails = buildErrorDetails(httpServletRequest, e);
-        log.error("MissingServletRequestParameterException occurred: {}, {}, {} ",
-                request.getHeaderNames(), request.getParameterMap(), errorDetails, e);
-        Object response = buildErrorResponse(errorDetails, (HttpStatus) status);
-        return ResponseEntity.status(status).body(response);
-    }
-
-    @Override
-    @ExceptionHandler(MissingServletRequestPartException.class)
-    protected ResponseEntity<Object> handleMissingServletRequestPart(
-            @NonNull MissingServletRequestPartException e,
-            @NonNull HttpHeaders headers,
-            @NonNull HttpStatusCode status,
-            @NonNull WebRequest request
-    ) {
-        HttpServletRequest httpServletRequest = ((HttpServletRequest) request);
-        Map<String, Object> errorDetails = buildErrorDetails(httpServletRequest, e);
-        log.error("MissingServletRequestPartException occurred: {}, {}, {} ",
-                request.getHeaderNames(), request.getParameterMap(), errorDetails, e);
-        Object response = buildErrorResponse(errorDetails, (HttpStatus) status);
-        return ResponseEntity.status(status).body(response);
-    }
-
-    @Override
-    @ExceptionHandler(NoHandlerFoundException.class)
-    protected ResponseEntity<Object> handleNoHandlerFoundException(
-            @NonNull NoHandlerFoundException e,
-            @NonNull HttpHeaders headers,
-            @NonNull HttpStatusCode status,
-            @NonNull WebRequest request
-    ) {
-        HttpServletRequest httpServletRequest = ((HttpServletRequest) request);
-        Map<String, Object> errorDetails = buildErrorDetails(httpServletRequest, e);
-        log.error("NoHandlerFoundException occurred: {}, {}, {} ",
-                request.getHeaderNames(), request.getParameterMap(), errorDetails, e);
-        Object response = buildErrorResponse(errorDetails, (HttpStatus) status);
-        return ResponseEntity.status(status).body(response);
-    }
-
-    @Override
-    @ExceptionHandler(NoResourceFoundException.class)
-    protected ResponseEntity<Object> handleNoResourceFoundException(
-            @NonNull NoResourceFoundException e,
-            @NonNull HttpHeaders headers,
-            @NonNull HttpStatusCode status,
-            @NonNull WebRequest request
-    ) {
-        HttpServletRequest httpServletRequest = ((HttpServletRequest) request);
-        Map<String, Object> errorDetails = buildErrorDetails(httpServletRequest, e);
-        log.error("NoResourceFoundException occurred: {}, {}, {} ",
-                request.getHeaderNames(), request.getParameterMap(), errorDetails, e);
-        Object response = buildErrorResponse(errorDetails, (HttpStatus) status);
-        return ResponseEntity.status(status).body(response);
-    }
-
-    @Override
-    @ExceptionHandler(ServletRequestBindingException.class)
-    protected ResponseEntity<Object> handleServletRequestBindingException(
-            @NonNull ServletRequestBindingException e,
-            @NonNull HttpHeaders headers,
-            @NonNull HttpStatusCode status,
-            @NonNull WebRequest request
-    ) {
-        HttpServletRequest httpServletRequest = ((HttpServletRequest) request);
-        Map<String, Object> errorDetails = buildErrorDetails(httpServletRequest, e);
-        log.error("ServletRequestBindingException occurred: {}, {}, {} ",
-                request.getHeaderNames(), request.getParameterMap(), errorDetails, e);
-        Object response = buildErrorResponse(errorDetails, (HttpStatus) status);
-        return ResponseEntity.status(status).body(response);
-    }
-
-    @Override
-    @ExceptionHandler(TypeMismatchException.class)
-    protected ResponseEntity<Object> handleTypeMismatch(
-            @NonNull TypeMismatchException e,
-            @NonNull HttpHeaders headers,
-            @NonNull HttpStatusCode status,
-            @NonNull WebRequest request
-    ) {
-        HttpServletRequest httpServletRequest = ((HttpServletRequest) request);
-        Map<String, Object> errorDetails = buildErrorDetails(httpServletRequest, e);
-        log.error("TypeMismatchException occurred: {}, {}, {} ",
-                request.getHeaderNames(), request.getParameterMap(), errorDetails, e);
-        Object response = buildErrorResponse(errorDetails, (HttpStatus) status);
-        return ResponseEntity.status(status).body(response);
     }
 
     private Map<String, Object> buildErrorDetails(HttpServletRequest request, Exception e, HttpStatus status) {
@@ -634,6 +295,7 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
         return errorDetails;
     }
 
+    @SuppressWarnings("unused")
     private Map<String, Object> buildErrorDetails(HttpServletRequest request, Exception e) {
         Map<String, Object> errorDetails = new HashMap<>();
         errorDetails.put("timestamp", Instant.now());

@@ -14,9 +14,9 @@ public class AsyncConfig {
     @Bean(name = "emailTaskExecutor")
     public Executor emailTaskExecutor() {
         ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
-        executor.setCorePoolSize(1);
-        executor.setMaxPoolSize(1);
-        executor.setQueueCapacity(1);
+        executor.setCorePoolSize(5);
+        executor.setMaxPoolSize(500);
+        executor.setQueueCapacity(500);
         executor.initialize();
         return executor;
     }
@@ -24,9 +24,19 @@ public class AsyncConfig {
     @Bean(name = "verifyTaskExecutor")
     public Executor verifyTaskExecutor() {
         ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
-        executor.setCorePoolSize(1);
-        executor.setMaxPoolSize(1);
-        executor.setQueueCapacity(1);
+        executor.setCorePoolSize(5);
+        executor.setMaxPoolSize(500);
+        executor.setQueueCapacity(500);
+        executor.initialize();
+        return executor;
+    }
+
+    @Bean(name = "userTaskExecutor")
+    public Executor userTaskExecutor() {
+        ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
+        executor.setCorePoolSize(5);
+        executor.setMaxPoolSize(500);
+        executor.setQueueCapacity(500);
         executor.initialize();
         return executor;
     }
@@ -34,11 +44,11 @@ public class AsyncConfig {
     @Bean(name = "transactionTaskExecutor")
     public Executor transactionTaskExecutor() {
         ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
-        executor.setCorePoolSize(1);
-        executor.setMaxPoolSize(1);
-        executor.setQueueCapacity(1);
+        executor.setCorePoolSize(5);
+        executor.setMaxPoolSize(500);
+        executor.setQueueCapacity(500);
         executor.setAllowCoreThreadTimeOut(true);
-        executor.setKeepAliveSeconds(30);
+        executor.setKeepAliveSeconds(300);
         executor.setPrestartAllCoreThreads(true);
         executor.setStrictEarlyShutdown(true);
         executor.initialize();

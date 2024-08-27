@@ -11,7 +11,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import lombok.extern.log4j.Log4j2;
 
-import org.springframework.cache.annotation.Cacheable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -37,10 +36,6 @@ public class LoginController {
 
     AuthenticationManager authenticationManager;
 
-    @Cacheable(
-            value = "user",
-            key = "#loginRequest.identifier()"
-    )
     @PostMapping("/login")
     public CompletableFuture<ResponseEntity<Map<String, Object>>> login(
             @RequestBody @Valid LoginRequest loginRequest,
@@ -69,7 +64,7 @@ public class LoginController {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         log.info(auth.getName());
         auth.getAuthorities().forEach(
-                authority -> { log.info(authority.getAuthority()); }
+                authority -> log.info(authority.getAuthority())
         );
 
         return this.loginService.login(loginRequest)

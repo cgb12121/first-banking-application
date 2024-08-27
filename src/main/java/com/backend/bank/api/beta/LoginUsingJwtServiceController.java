@@ -34,7 +34,7 @@ import java.util.stream.Collectors;
 @RestController
 @RequiredArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
-@RequestMapping("/auth")
+@RequestMapping("/auth-v2")
 public class LoginUsingJwtServiceController {
 
     LoginServiceUsingJwtService loginServiceUsingJwtService;
@@ -45,7 +45,7 @@ public class LoginUsingJwtServiceController {
 
     JwtService jwtService;
 
-    @PostMapping("/login")
+    @PostMapping("/login-v2")
     public CompletableFuture<ResponseEntity<Map<String, Object>>> login(
             @RequestBody @Valid LoginRequest loginRequest,
             BindingResult bindingResult,

@@ -10,7 +10,6 @@ import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 
-import org.springframework.cache.annotation.Cacheable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.BindingResult;
@@ -29,12 +28,6 @@ public class SignupController {
 
     SignupService signupService;
 
-    @Cacheable(
-            value = "user",
-            key = "#signupRequest.account().accountNumber() " +
-                    "+ '_' + #signupRequest.email() " +
-                    "+ '_' + #signupRequest.phoneNumber()"
-    )
     @PostMapping("/signup")
     public CompletableFuture<ResponseEntity<Map<String, Object>>> signup(
             @RequestBody @Valid SignupRequest signupRequest,

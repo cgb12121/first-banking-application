@@ -1,8 +1,7 @@
 package com.backend.bank.entity;
 
+import com.backend.bank.security.data.EncryptIdAttributeConverter;
 import com.backend.bank.security.data.EncryptionAttributeConverter;
-import com.backend.bank.security.data.IdAttributeConverter;
-
 import jakarta.persistence.*;
 
 import jdk.jfr.Timestamp;
@@ -22,7 +21,7 @@ public class EmailChangeToken {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Convert(converter = IdAttributeConverter.class)
+    @Convert(converter = EncryptIdAttributeConverter.class)
     @Column(name = "id", unique = true, nullable = false)
     Long id;
 
@@ -34,7 +33,7 @@ public class EmailChangeToken {
     @Column(name = "new_email", nullable = false)
     String newEmail;
 
-    @Convert(converter = EncryptionAttributeConverter.class)
+//    @Convert(converter = EncryptionAttributeConverter.class)
     @Column(name = "old_email", nullable = false)
     String oldEmail;
 

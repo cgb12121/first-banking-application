@@ -13,6 +13,7 @@ import com.backend.bank.entity.Account;
 import com.backend.bank.entity.Customer;
 import com.backend.bank.entity.EmailChangeToken;
 import com.backend.bank.entity.PhoneChangeToken;
+import com.backend.bank.exception.AccountNotExistException;
 import com.backend.bank.exception.InputViolationException;
 import com.backend.bank.repository.AccountRepository;
 import com.backend.bank.repository.CustomerRepository;
@@ -289,7 +290,7 @@ public class CustomerServiceImpl implements CustomerService, UserDetailsService 
 
     @Override
     public Customer getCustomerById(Long id) {
-        return customerRepository.findById(id);
+        return customerRepository.findById(id).orElseThrow(() -> new AccountNotExistException("Customer not found"));
     }
 
     private void sendChangedPasswordSuccessEmail(ChangePasswordRequest changePasswordRequest, Date changedPasswordDate) {

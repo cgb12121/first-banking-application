@@ -1,8 +1,7 @@
 package com.backend.bank.entity;
 
+import com.backend.bank.security.data.EncryptIdAttributeConverter;
 import com.backend.bank.security.data.EncryptionAttributeConverter;
-import com.backend.bank.security.data.IdAttributeConverter;
-
 import jakarta.persistence.*;
 import jdk.jfr.Timestamp;
 import lombok.*;
@@ -22,7 +21,7 @@ public class Verify {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Convert(converter = IdAttributeConverter.class)
+    @Convert(converter = EncryptIdAttributeConverter.class)
     @Column(name = "id", unique = true, nullable = false)
     Long id;
 
