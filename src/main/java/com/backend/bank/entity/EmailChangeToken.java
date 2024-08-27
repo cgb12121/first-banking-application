@@ -21,15 +21,15 @@ public class EmailChangeToken {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Convert(converter = EncryptIdAttributeConverter.class)
+//    @Convert(converter = EncryptIdAttributeConverter.class)
     @Column(name = "id", unique = true, nullable = false)
     Long id;
 
-    @Convert(converter = EncryptionAttributeConverter.class)
+//    @Convert(converter = EncryptionAttributeConverter.class)
     @Column(name = "token", nullable = false)
     String token;
 
-    @Convert(converter = EncryptionAttributeConverter.class)
+//    @Convert(converter = EncryptionAttributeConverter.class)
     @Column(name = "new_email", nullable = false)
     String newEmail;
 

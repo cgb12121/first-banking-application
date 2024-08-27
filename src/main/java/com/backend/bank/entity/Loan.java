@@ -27,7 +27,7 @@ public class Loan {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Convert(converter = EncryptIdAttributeConverter.class)
+//    @Convert(converter = EncryptIdAttributeConverter.class)
     @Column(name = "id", unique = true, nullable = false)
     Long id;
 
@@ -41,11 +41,9 @@ public class Loan {
     BigDecimal interestRate;
 
     @Column(name = "start_date", nullable = false)
-    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "dd-MM-yyyy")
     LocalDateTime startDate;
 
     @Column(name = "end_date", nullable = false)
-    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "dd-MM-yyyy")
     LocalDateTime endDate;
 
     @Timestamp

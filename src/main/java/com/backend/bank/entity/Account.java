@@ -25,11 +25,11 @@ public class Account {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Convert(converter = EncryptIdAttributeConverter.class)
+//    @Convert(converter = EncryptIdAttributeConverter.class)
     @Column(name = "id", unique = true, nullable = false)
     Long id;
 
-    @Convert(converter = EncryptionAttributeConverter.class)
+//    @Convert(converter = EncryptionAttributeConverter.class)
     @Column(name = "account_number", nullable = false, unique = true)
     String accountNumber;
 

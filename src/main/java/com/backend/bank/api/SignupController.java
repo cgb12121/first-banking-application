@@ -10,6 +10,7 @@ import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 
+import lombok.extern.log4j.Log4j2;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.BindingResult;
@@ -20,6 +21,7 @@ import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
+@Log4j2
 @RestController
 @RequiredArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
@@ -48,22 +50,33 @@ public class SignupController {
         }
 
         return this.signupService.signup(signupRequest)
-                .thenApply(signupResponse -> ResponseEntity.ok(createSuccessResponse(signupResponse)))
+                .thenApply(signupResponse -> {
+                    log.info(signupResponse);
+                    return ResponseEntity.ok(createSuccessResponse(signupResponse));
+                })
                 .exceptionally(ex -> {
                     if (ex.getCause() instanceof AccountAlreadyExistsException) {
-                        return ResponseEntity.status(HttpStatus.CONFLICT).body(createErrorResponse(ex.getCause().getMessage()));
+                        ResponseEntity<Map<String, Object>> errors = ResponseEntity.status(HttpStatus.CONFLICT).body(createErrorResponse(ex.getCause().getMessage(), HttpStatus.CONFLICT));
+                        log.error(errors);
+                        return errors;
                     }
-                    return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(createErrorResponse("An error occurred"));
+                    ResponseEntity<Map<String, Object>> errors = ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(createErrorResponse("An error occurred: "+ ex.getCause().getMessage(), HttpStatus.INTERNAL_SERVER_ERROR));
+                    log.error(errors);
+                    return errors;
                 });
     }
 
-    @GetMapping("/verify/{verificationCode}")
+    @PostMapping("/verify/{verificationCode}")
     public CompletableFuture<ResponseEntity<String>> verifyAccount(@PathVariable String verificationCode) {
         return this.signupService.verifyUser(verificationCode)
-                .thenApply(ResponseEntity::ok);
+                .thenApply(ResponseEntity::ok)
+                .exceptionally(ex -> {
+                    log.error(ex);
+                    return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(ex.getMessage());
+                });
     }
 
-    @GetMapping("/resend-verify-email")
+    @PostMapping("/resend-verify-email")
     public void resendVerifyEmail(@RequestBody SignupRequest signupRequest) {
         this.signupService.resendVerificationEmail(signupRequest);
     }
@@ -76,10 +89,10 @@ public class SignupController {
         return responseBody;
     }
 
-    private Map<String, Object> createErrorResponse(String message) {
+    private Map<String, Object> createErrorResponse(String message, HttpStatus status) {
         Map<String, Object> responseBody = new LinkedHashMap<>();
         responseBody.put("timestamp", new Date());
-        responseBody.put("status", HttpStatus.CONFLICT.value());
+        responseBody.put("status", status.value());
         responseBody.put("message", message);
         return responseBody;
     }

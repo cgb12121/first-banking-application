@@ -21,11 +21,11 @@ public class Verify {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Convert(converter = EncryptIdAttributeConverter.class)
+//    @Convert(converter = EncryptIdAttributeConverter.class)
     @Column(name = "id", unique = true, nullable = false)
     Long id;
 
-    @Convert(converter = EncryptionAttributeConverter.class)
+//    @Convert(converter = EncryptionAttributeConverter.class)
     @Column(name = "verify_link", nullable = false)
     String verifyLink;
 
@@ -37,6 +37,6 @@ public class Verify {
     @Column(name = "expiry_date", nullable = false)
     LocalDateTime expiryDate;
 
-    @OneToOne(cascade = CascadeType.ALL)
+    @OneToOne(cascade = CascadeType.PERSIST)
     Customer customer;
 }

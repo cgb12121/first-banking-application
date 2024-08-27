@@ -11,6 +11,7 @@ import com.backend.bank.entity.Customer;
 import com.backend.bank.entity.Verify;
 import com.backend.bank.entity.constant.AccountStatus;
 import com.backend.bank.entity.constant.AccountType;
+import com.backend.bank.entity.constant.Role;
 import com.backend.bank.exception.AccountAlreadyExistsException;
 import com.backend.bank.exception.IllegalAccountTypeException;
 import com.backend.bank.exception.InputViolationException;
@@ -35,8 +36,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
-import java.net.URLEncoder;
-import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
@@ -64,6 +63,8 @@ public class SignupServiceImpl implements SignupService {
 
     private final RequestValidator<CardRequest> cardRequestValidator;
 
+    private final String DOMAIN_VERIFY_LINK = "localhost:8080/auth/verify/";
+
     @Override
     @Transactional(
             rollbackFor = Exception.class,
@@ -82,9 +83,8 @@ public class SignupServiceImpl implements SignupService {
 
         Customer customer = createCustomer(signupRequest);
         Account account = createAccount(signupRequest.account(), customer);
-        List<Card> cards = createCards(signupRequest.card(), customer);
-
         customer.setAccount(account);
+        List<Card> cards = createCards(signupRequest.card(), customer);
         customer.setCards(cards);
 
         AccountType accountType = account.getAccountType();
@@ -115,8 +115,9 @@ public class SignupServiceImpl implements SignupService {
     @Override
     @Async(value = "userTaskExecutor")
     public CompletableFuture<String> verifyUser(String httpRequest) throws InvalidVerifyLinkException {
+        String link = DOMAIN_VERIFY_LINK + httpRequest;
 
-        Verify userVerify = verifyRepository.findByVerifyLink(httpRequest)
+        Verify userVerify = verifyRepository.findByVerifyLink(link)
                 .orElseThrow(() -> new InvalidVerifyLinkException("Invalid verify request: " + httpRequest));
 
         boolean isExpired = userVerify.getCreateDate().isAfter(userVerify.getExpiryDate());
@@ -159,6 +160,7 @@ public class SignupServiceImpl implements SignupService {
         customer.setPhoneNumber(signupRequest.phoneNumber());
         customer.setPassword(passwordEncoder.encode(signupRequest.password()));
         customer.setFirstName(signupRequest.firstName());
+        customer.setRole(Role.USER);
         customer.setLastName(signupRequest.lastName());
         return customer;
     }
@@ -244,10 +246,8 @@ public class SignupServiceImpl implements SignupService {
     }
 
     private String generateVerificationCode(Customer customer) {
-        String siteVerifyURL = "localhost:8080/auth/verify/";
-        String encodedUserName = URLEncoder.encode(customer.getFirstName(), StandardCharsets.UTF_8);
-        String userVerifyPath = RandomStringUtils.randomAlphanumeric(30) + "+" + encodedUserName;
-        String verifyLink = siteVerifyURL + userVerifyPath;
+        String userVerifyPath = RandomStringUtils.randomAlphanumeric(30);
+        String verifyLink = DOMAIN_VERIFY_LINK + userVerifyPath;
 
         LocalDateTime currentTime = LocalDateTime.now();
         LocalDateTime expiryDate = currentTime.plusMinutes(15);

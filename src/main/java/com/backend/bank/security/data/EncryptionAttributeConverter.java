@@ -16,7 +16,7 @@ import java.security.spec.KeySpec;
 import java.util.Base64;
 
 @Log4j2
-@Converter
+@Converter(autoApply = false)
 public class EncryptionAttributeConverter implements AttributeConverter<String, String> {
 
     @Value("${database.secret-key-password}")

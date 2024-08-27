@@ -30,19 +30,19 @@ public class Customer implements UserDetails {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Convert(converter = EncryptIdAttributeConverter.class)
+//    @Convert(converter = EncryptIdAttributeConverter.class)
     @Column(name = "id", unique = true, nullable = false)
     Long id;
 
-    @Convert(converter = EncryptionAttributeConverter.class)
+//    @Convert(converter = EncryptionAttributeConverter.class)
     @Column(name = "password", nullable = false)
     String password;
 
-    @Convert(converter = EncryptionAttributeConverter.class)
+//    @Convert(converter = EncryptionAttributeConverter.class)
     @Column(name = "email", nullable = false, unique = true)
     String email;
 
-    @Convert(converter = EncryptionAttributeConverter.class)
+//    @Convert(converter = EncryptionAttributeConverter.class)
     @Column(name = "phone_number", nullable = false)
     String phoneNumber;
 

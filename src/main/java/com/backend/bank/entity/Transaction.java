@@ -25,7 +25,7 @@ public class Transaction {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Convert(converter = EncryptIdAttributeConverter.class)
+//    @Convert(converter = EncryptIdAttributeConverter.class)
     @Column(name = "id", unique = true, nullable = false)
     Long id;
 
@@ -43,7 +43,7 @@ public class Transaction {
     @Column(name = "status", nullable = false)
     TransactionStatus status;
 
-    @Convert(converter = EncryptionAttributeConverter.class)
+//    @Convert(converter = EncryptionAttributeConverter.class)
     @Column(name = "transfer_to_account")
     String transferToAccount;
 

@@ -11,7 +11,7 @@ import org.springframework.transaction.annotation.EnableTransactionManagement;
 public class BankApplication {
 
     public static void main(String[] args) {
-        SpringApplication.run(BankApplication.class, args).close();
+        SpringApplication.run(BankApplication.class, args);
     }
 
 }
