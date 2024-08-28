@@ -48,14 +48,23 @@ public class EncryptionAttributeConverter implements AttributeConverter<String, 
     @Override
     public String convertToDatabaseColumn(String attribute) {
         try {
+            boolean isEmail = false;
+            if (attribute.contains("@gmail.com")) {
+                attribute = attribute.split("@gmail.com")[0];
+                isEmail = true;
+            }
+
             Cipher cipher = Cipher.getInstance(ALGORITHM);
             SecretKeySpec keySpec = getKeySpec();
             cipher.init(Cipher.ENCRYPT_MODE, keySpec);
 
-            String encryptedData =  Base64.getUrlEncoder().encodeToString(cipher.doFinal(attribute.getBytes()));
+            String encryptedData = Base64.getUrlEncoder().encodeToString(cipher.doFinal(attribute.getBytes()));
 
             log.info("encrypted data: {}", encryptedData);
 
+            if (isEmail) {
+                return encryptedData + "@gmail.com";
+            }
             return encryptedData;
         } catch (Exception e) {
             log.error("Encryption failed for data [{}]: {} with error: {}", attribute, e, e.getMessage(), e.getCause());
@@ -66,14 +75,24 @@ public class EncryptionAttributeConverter implements AttributeConverter<String, 
     @Override
     public String convertToEntityAttribute(String dbData) {
         try {
+            boolean isEmail = false;
+            if (dbData.contains("@gmail.com")) {
+                dbData = dbData.split("@gmail.com")[0];
+                isEmail = true;
+            }
+
             Cipher cipher = Cipher.getInstance(ALGORITHM);
             SecretKeySpec keySpec = getKeySpec();
             cipher.init(Cipher.DECRYPT_MODE, keySpec);
 
-            String decryptedData = new String(cipher.doFinal(Base64.getUrlDecoder().decode(dbData)));
+            byte[] decodedBytes = Base64.getUrlDecoder().decode(dbData);
+            String decryptedData = new String(cipher.doFinal(decodedBytes));
 
             log.info("Decrypted data: {}", decryptedData);
 
+            if (isEmail) {
+                return decryptedData + "@gmail.com";
+            }
             return decryptedData;
         } catch (Exception e) {
             log.error("Decryption failed for data [{}]: {} with error: {}", dbData, e, e.getMessage(), e.getCause());

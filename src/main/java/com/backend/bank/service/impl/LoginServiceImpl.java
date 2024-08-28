@@ -16,6 +16,7 @@ import org.springframework.scheduling.annotation.Async;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.util.HashMap;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
@@ -62,8 +63,9 @@ public class LoginServiceImpl implements LoginService {
         }
 
         String token = jwtProvider.generateToken(customer);
+        String refreshToken = jwtProvider.generateRefreshToken(new HashMap<>(),customer);
 
-        return CompletableFuture.completedFuture(new LoginResponse("Login successful", token));
+        return CompletableFuture.completedFuture(new LoginResponse("Login successful", token, refreshToken));
     }
 
     private Optional<Customer> findCustomerByIdentifier(String identifier) {

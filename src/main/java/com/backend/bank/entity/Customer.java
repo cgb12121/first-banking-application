@@ -35,7 +35,6 @@ public class Customer implements UserDetails {
     @Column(name = "id", unique = true, nullable = false)
     Long id;
 
-    @Convert(converter = EncryptionAttributeConverter.class)
     @Column(name = "password", nullable = false)
     String password;
 

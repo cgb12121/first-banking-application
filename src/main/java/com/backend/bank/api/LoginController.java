@@ -68,21 +68,21 @@ public class LoginController {
                     .body(createErrorResponse("Invalid request"))
             );
         }
-        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        log.info(auth.getName());
-        auth.getAuthorities().forEach(
-                authority -> log.info(authority.getAuthority())
-        );
-
-        if (!loginAttemptService.isLoginAttemptAllowed(loginRequest.identifier())) {
-            return CompletableFuture.completedFuture(ResponseEntity
-                    .status(HttpStatus.TOO_MANY_REQUESTS)
-                    .body(createErrorResponse("Too many login attempts. Please try again later."))
-            );
-        }
 
         return this.loginService.login(loginRequest)
-                .thenApply(loginResponse -> ResponseEntity.ok(createSuccessResponse(loginResponse)));
+                .thenApply(loginResponse -> {
+                    Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+                    log.info(auth.getName());
+                    auth.getAuthorities().forEach(
+                            authority -> log.info(authority.getAuthority())
+                    );
+                    if (!authentication.isAuthenticated()){
+                        loginAttemptService.updateLoginAttempt(loginRequest.identifier());
+                        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(createErrorResponse("Invalid request"));
+                    }
+
+                    return ResponseEntity.ok(createSuccessResponse(loginResponse));
+                });
     }
 
     private Map<String, Object> createSuccessResponse(LoginResponse response) {
