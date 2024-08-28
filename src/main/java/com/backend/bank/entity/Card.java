@@ -1,6 +1,6 @@
 package com.backend.bank.entity;
 
-import com.backend.bank.entity.constant.CardType;
+import com.backend.bank.entity.enums.CardType;
 
 import com.backend.bank.security.data.EncryptIdAttributeConverter;
 import com.backend.bank.security.data.EncryptionAttributeConverter;
@@ -24,11 +24,11 @@ public class Card {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-//    @Convert(converter = EncryptIdAttributeConverter.class)
+    @Convert(converter = EncryptIdAttributeConverter.class)
     @Column(name = "id", unique = true, nullable = false)
     Long id;
 
-//    @Convert(converter = EncryptionAttributeConverter.class)
+    @Convert(converter = EncryptionAttributeConverter.class)
     @Column(name = "card_number", nullable = false, unique = true)
     String cardNumber;
 

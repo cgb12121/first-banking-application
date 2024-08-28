@@ -2,6 +2,7 @@ package com.backend.bank.api;
 
 import com.backend.bank.dto.request.LoginRequest;
 import com.backend.bank.dto.response.LoginResponse;
+import com.backend.bank.service.LoginAttemptService;
 import com.backend.bank.service.intf.LoginService;
 
 import jakarta.validation.Valid;
@@ -36,6 +37,8 @@ public class LoginController {
 
     AuthenticationManager authenticationManager;
 
+    LoginAttemptService loginAttemptService;
+
     @PostMapping("/login")
     public CompletableFuture<ResponseEntity<Map<String, Object>>> login(
             @RequestBody @Valid LoginRequest loginRequest,
@@ -59,7 +62,11 @@ public class LoginController {
                 new UsernamePasswordAuthenticationToken(loginRequest.identifier(), loginRequest.password())
         );
         if (!authentication.isAuthenticated()){
-            return CompletableFuture.completedFuture(ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(createErrorResponse("Invalid request")));
+            loginAttemptService.updateLoginAttempt(loginRequest.identifier());
+            return CompletableFuture.completedFuture(ResponseEntity.
+                    status(HttpStatus.UNAUTHORIZED)
+                    .body(createErrorResponse("Invalid request"))
+            );
         }
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         log.info(auth.getName());
@@ -67,22 +74,15 @@ public class LoginController {
                 authority -> log.info(authority.getAuthority())
         );
 
+        if (!loginAttemptService.isLoginAttemptAllowed(loginRequest.identifier())) {
+            return CompletableFuture.completedFuture(ResponseEntity
+                    .status(HttpStatus.TOO_MANY_REQUESTS)
+                    .body(createErrorResponse("Too many login attempts. Please try again later."))
+            );
+        }
+
         return this.loginService.login(loginRequest)
-                .thenApply(loginResponse -> ResponseEntity.ok(createSuccessResponse(loginResponse)))
-                .exceptionally(ex -> {
-                    Throwable cause = ex.getCause();
-                    return switch (cause.getClass().getSimpleName()) {
-                        case "AccountNotExistException" ->
-                                ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(createErrorResponse("Account does not exist."));
-                        case "AccountBannedException" ->
-                                ResponseEntity.status(HttpStatus.FORBIDDEN).body(createErrorResponse("Account is banned."));
-                        case "AccountInactiveException" ->
-                                ResponseEntity.status(HttpStatus.FORBIDDEN).body(createErrorResponse("Account is inactive."));
-                        case "BadCredentialsException" ->
-                                ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(createErrorResponse("Invalid credentials."));
-                        default -> ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(createErrorResponse("An error occurred"));
-                    };
-                });
+                .thenApply(loginResponse -> ResponseEntity.ok(createSuccessResponse(loginResponse)));
     }
 
     private Map<String, Object> createSuccessResponse(LoginResponse response) {

@@ -2,7 +2,6 @@ package com.backend.bank.api;
 
 import com.backend.bank.dto.request.SignupRequest;
 import com.backend.bank.dto.response.SignupResponse;
-import com.backend.bank.exception.AccountAlreadyExistsException;
 import com.backend.bank.service.intf.SignupService;
 
 import jakarta.validation.Valid;
@@ -53,16 +52,6 @@ public class SignupController {
                 .thenApply(signupResponse -> {
                     log.info(signupResponse);
                     return ResponseEntity.ok(createSuccessResponse(signupResponse));
-                })
-                .exceptionally(ex -> {
-                    if (ex.getCause() instanceof AccountAlreadyExistsException) {
-                        ResponseEntity<Map<String, Object>> errors = ResponseEntity.status(HttpStatus.CONFLICT).body(createErrorResponse(ex.getCause().getMessage(), HttpStatus.CONFLICT));
-                        log.error(errors);
-                        return errors;
-                    }
-                    ResponseEntity<Map<String, Object>> errors = ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(createErrorResponse("An error occurred: "+ ex.getCause().getMessage(), HttpStatus.INTERNAL_SERVER_ERROR));
-                    log.error(errors);
-                    return errors;
                 });
     }
 
@@ -86,14 +75,6 @@ public class SignupController {
         responseBody.put("timestamp", new Date());
         responseBody.put("status", HttpStatus.OK.value());
         responseBody.put("message", response.message());
-        return responseBody;
-    }
-
-    private Map<String, Object> createErrorResponse(String message, HttpStatus status) {
-        Map<String, Object> responseBody = new LinkedHashMap<>();
-        responseBody.put("timestamp", new Date());
-        responseBody.put("status", status.value());
-        responseBody.put("message", message);
         return responseBody;
     }
 }

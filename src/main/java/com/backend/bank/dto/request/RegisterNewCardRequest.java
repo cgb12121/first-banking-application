@@ -1,7 +1,7 @@
 package com.backend.bank.dto.request;
 
 import com.backend.bank.entity.Customer;
-import com.backend.bank.entity.constant.CardType;
+import com.backend.bank.entity.enums.CardType;
 
 import jakarta.persistence.ManyToOne;
 import jakarta.validation.constraints.*;

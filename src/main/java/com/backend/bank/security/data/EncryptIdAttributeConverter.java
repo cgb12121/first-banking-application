@@ -12,7 +12,7 @@ import javax.crypto.spec.SecretKeySpec;
 import java.security.spec.KeySpec;
 import java.util.Base64;
 
-@Converter(autoApply = false)
+@Converter()
 public class EncryptIdAttributeConverter implements AttributeConverter<Long, String> {
 
     @Value("${database.secret-key-password}")

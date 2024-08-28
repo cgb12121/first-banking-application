@@ -47,11 +47,10 @@ public class NotificationServiceImpl implements NotificationService {
     }
 
     private void logEmailSentSuccessfully(EmailDetails emailDetails) {
-        log.info("[timestamp:{}] Sent {} email to: {} : {}",
+        log.info("[timestamp:{}] Sent {} email to: {}.",
                 new Date(),
                 emailDetails.getSubject().toUpperCase(),
-                emailDetails.getReceiver(),
-                emailDetails.getBody()
+                emailDetails.getReceiver()
         );
     }
 

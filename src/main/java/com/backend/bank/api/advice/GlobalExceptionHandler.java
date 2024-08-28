@@ -295,18 +295,6 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
         return errorDetails;
     }
 
-    @SuppressWarnings("unused")
-    private Map<String, Object> buildErrorDetails(HttpServletRequest request, Exception e) {
-        Map<String, Object> errorDetails = new HashMap<>();
-        errorDetails.put("timestamp", Instant.now());
-        errorDetails.put("error", e.getClass().getSimpleName());
-        errorDetails.put("message", e.getMessage());
-        errorDetails.put("path", request.getRequestURI());
-        errorDetails.put("method", request.getMethod());
-        errorDetails.put("user", request.getRemoteUser());
-        return errorDetails;
-    }
-
     private void loggingError(Exception e, WebRequest webRequest, Map<String, Object> errorDetails) {
         log.error("[TimeStamp: {}] {} occurred during request: {} [{} {}] by user [{}]: {}, {}",
                 Instant.now(),

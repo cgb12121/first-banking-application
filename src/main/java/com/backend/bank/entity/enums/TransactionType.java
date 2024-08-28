@@ -1,4 +1,4 @@
-package com.backend.bank.entity.constant;
+package com.backend.bank.entity.enums;
 
 public enum TransactionType {
     DEPOSIT,

@@ -1,7 +1,7 @@
 package com.backend.bank.dto.response;
 
-import com.backend.bank.entity.constant.TransactionStatus;
-import com.backend.bank.entity.constant.TransactionType;
+import com.backend.bank.entity.enums.TransactionStatus;
+import com.backend.bank.entity.enums.TransactionType;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;

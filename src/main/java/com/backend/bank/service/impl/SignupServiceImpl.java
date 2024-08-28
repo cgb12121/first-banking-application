@@ -9,9 +9,9 @@ import com.backend.bank.entity.Account;
 import com.backend.bank.entity.Card;
 import com.backend.bank.entity.Customer;
 import com.backend.bank.entity.Verify;
-import com.backend.bank.entity.constant.AccountStatus;
-import com.backend.bank.entity.constant.AccountType;
-import com.backend.bank.entity.constant.Role;
+import com.backend.bank.entity.enums.AccountStatus;
+import com.backend.bank.entity.enums.AccountType;
+import com.backend.bank.entity.enums.Role;
 import com.backend.bank.exception.AccountAlreadyExistsException;
 import com.backend.bank.exception.IllegalAccountTypeException;
 import com.backend.bank.exception.InputViolationException;
@@ -127,6 +127,7 @@ public class SignupServiceImpl implements SignupService {
 
         Customer customer = userVerify.getCustomer();
         customer.getAccount().setAccountStatus(AccountStatus.ACTIVE);
+        customerRepository.save(customer);
         verifyRepository.delete(userVerify);
 
         return CompletableFuture.completedFuture("Verified successfully");

@@ -5,7 +5,7 @@ import com.backend.bank.dto.request.UpgradeAccountRequest;
 import com.backend.bank.dto.response.UpdateCustomerInfoResponse;
 import com.backend.bank.dto.response.UpgradeAccountResponse;
 import com.backend.bank.entity.Account;
-import com.backend.bank.entity.constant.AccountType;
+import com.backend.bank.entity.enums.AccountType;
 import com.backend.bank.exception.AccountNotExistException;
 import com.backend.bank.exception.IllegalAccountTypeException;
 import com.backend.bank.exception.InputViolationException;
@@ -52,7 +52,10 @@ public class AccountServiceImpl implements AccountService {
             case null, default -> throw new IllegalAccountTypeException("Can not find accountType: " + accountTypeRequest);
         }
 
-        return CompletableFuture.completedFuture(new UpgradeAccountResponse("You have upgraded your account to: ", accountTypeRequest));
+        String message = "You have upgraded your account to: ";
+        UpgradeAccountResponse response = new UpgradeAccountResponse(message, accountTypeRequest);
+
+        return CompletableFuture.completedFuture(response);
     }
 
     @Override

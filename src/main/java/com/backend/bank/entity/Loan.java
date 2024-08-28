@@ -1,10 +1,9 @@
 package com.backend.bank.entity;
 
-import com.backend.bank.entity.constant.LoanStatus;
-import com.backend.bank.entity.constant.TakeLoanStatus;
+import com.backend.bank.entity.enums.LoanStatus;
+import com.backend.bank.entity.enums.TakeLoanStatus;
 
 import com.backend.bank.security.data.EncryptIdAttributeConverter;
-import com.fasterxml.jackson.annotation.JsonFormat;
 
 import jakarta.persistence.*;
 
@@ -27,7 +26,7 @@ public class Loan {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-//    @Convert(converter = EncryptIdAttributeConverter.class)
+    @Convert(converter = EncryptIdAttributeConverter.class)
     @Column(name = "id", unique = true, nullable = false)
     Long id;
 

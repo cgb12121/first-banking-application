@@ -16,7 +16,7 @@ import java.security.spec.KeySpec;
 import java.util.Base64;
 
 @Log4j2
-@Converter(autoApply = false)
+@Converter()
 public class EncryptionAttributeConverter implements AttributeConverter<String, String> {
 
     @Value("${database.secret-key-password}")
@@ -51,9 +51,14 @@ public class EncryptionAttributeConverter implements AttributeConverter<String, 
             Cipher cipher = Cipher.getInstance(ALGORITHM);
             SecretKeySpec keySpec = getKeySpec();
             cipher.init(Cipher.ENCRYPT_MODE, keySpec);
-            return Base64.getEncoder().encodeToString(cipher.doFinal(attribute.getBytes()));
+
+            String encryptedData =  Base64.getUrlEncoder().encodeToString(cipher.doFinal(attribute.getBytes()));
+
+            log.info("encrypted data: {}", encryptedData);
+
+            return encryptedData;
         } catch (Exception e) {
-            log.error(e.getMessage(), e);
+            log.error("Encryption failed for data [{}]: {} with error: {}", attribute, e, e.getMessage(), e.getCause());
             throw new RuntimeException("Encryption error", e);
         }
     }
@@ -64,9 +69,14 @@ public class EncryptionAttributeConverter implements AttributeConverter<String, 
             Cipher cipher = Cipher.getInstance(ALGORITHM);
             SecretKeySpec keySpec = getKeySpec();
             cipher.init(Cipher.DECRYPT_MODE, keySpec);
-            return new String(cipher.doFinal(Base64.getDecoder().decode(dbData)));
+
+            String decryptedData = new String(cipher.doFinal(Base64.getUrlDecoder().decode(dbData)));
+
+            log.info("Decrypted data: {}", decryptedData);
+
+            return decryptedData;
         } catch (Exception e) {
-            log.error(e.getMessage(), e);
+            log.error("Decryption failed for data [{}]: {} with error: {}", dbData, e, e.getMessage(), e.getCause());
             throw new RuntimeException("Decryption error", e);
         }
     }

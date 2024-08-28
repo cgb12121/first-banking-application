@@ -2,7 +2,7 @@ package com.backend.bank.repository;
 
 import com.backend.bank.entity.Customer;
 import com.backend.bank.entity.Transaction;
-import com.backend.bank.entity.constant.TransactionType;
+import com.backend.bank.entity.enums.TransactionType;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;

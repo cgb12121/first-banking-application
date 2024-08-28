@@ -1,6 +1,6 @@
 package com.backend.bank.dto.response;
 
-import com.backend.bank.entity.constant.LoanStatus;
+import com.backend.bank.entity.enums.LoanStatus;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;

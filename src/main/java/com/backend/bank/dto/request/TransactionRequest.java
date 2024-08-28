@@ -1,6 +1,6 @@
 package com.backend.bank.dto.request;
 
-import com.backend.bank.entity.constant.TransactionType;
+import com.backend.bank.entity.enums.TransactionType;
 
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;

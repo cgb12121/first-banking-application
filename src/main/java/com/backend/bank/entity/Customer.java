@@ -1,12 +1,13 @@
 package com.backend.bank.entity;
 
-import com.backend.bank.entity.constant.AccountStatus;
-import com.backend.bank.entity.constant.Role;
-
+import com.backend.bank.entity.enums.AccountStatus;
+import com.backend.bank.entity.enums.Role;
 import com.backend.bank.security.data.EncryptIdAttributeConverter;
 import com.backend.bank.security.data.EncryptionAttributeConverter;
 import jakarta.persistence.*;
+
 import jdk.jfr.Timestamp;
+
 import lombok.*;
 
 import lombok.experimental.FieldDefaults;
@@ -30,19 +31,19 @@ public class Customer implements UserDetails {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-//    @Convert(converter = EncryptIdAttributeConverter.class)
+    @Convert(converter = EncryptIdAttributeConverter.class)
     @Column(name = "id", unique = true, nullable = false)
     Long id;
 
-//    @Convert(converter = EncryptionAttributeConverter.class)
+    @Convert(converter = EncryptionAttributeConverter.class)
     @Column(name = "password", nullable = false)
     String password;
 
-//    @Convert(converter = EncryptionAttributeConverter.class)
+    @Convert(converter = EncryptionAttributeConverter.class)
     @Column(name = "email", nullable = false, unique = true)
     String email;
 
-//    @Convert(converter = EncryptionAttributeConverter.class)
+    @Convert(converter = EncryptionAttributeConverter.class)
     @Column(name = "phone_number", nullable = false)
     String phoneNumber;
 
@@ -103,5 +104,10 @@ public class Customer implements UserDetails {
     @Override
     public boolean isCredentialsNonExpired() {
         return true;
+    }
+
+    @Convert(converter = EncryptionAttributeConverter.class)
+    public String getEmail() {
+        return email;
     }
 }

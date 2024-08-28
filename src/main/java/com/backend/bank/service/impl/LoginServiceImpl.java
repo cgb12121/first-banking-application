@@ -1,13 +1,10 @@
 package com.backend.bank.service.impl;
 
-import com.backend.bank.entity.constant.AccountStatus;
-import com.backend.bank.exception.AccountBannedException;
-import com.backend.bank.exception.AccountInactiveException;
-import com.backend.bank.exception.InputViolationException;
+import com.backend.bank.entity.enums.AccountStatus;
+import com.backend.bank.exception.*;
 import com.backend.bank.dto.request.LoginRequest;
 import com.backend.bank.dto.response.LoginResponse;
 import com.backend.bank.entity.Customer;
-import com.backend.bank.exception.AccountNotExistException;
 import com.backend.bank.repository.CustomerRepository;
 import com.backend.bank.security.auth.JwtProvider;
 import com.backend.bank.service.intf.LoginService;
@@ -16,7 +13,6 @@ import com.backend.bank.utils.RequestValidator;
 import lombok.RequiredArgsConstructor;
 
 import org.springframework.scheduling.annotation.Async;
-import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -56,7 +52,7 @@ public class LoginServiceImpl implements LoginService {
         boolean isAccountBanned = customer.getAccount().getAccountStatus().equals(AccountStatus.BANNED);
 
         if (!isCorrectPassword) {
-            throw new BadCredentialsException("Invalid password");
+            throw new UnauthorizedAccessException("Invalid password");
         }
         if (isAccountInactive) {
             throw new AccountInactiveException("Your account is not active right now. Please contact us to active your account again.");
@@ -71,16 +67,8 @@ public class LoginServiceImpl implements LoginService {
     }
 
     private Optional<Customer> findCustomerByIdentifier(String identifier) {
-        Optional<Customer> optionalCustomer = customerRepository.findByEmail(identifier);
-        boolean isUserNotExist = optionalCustomer.isEmpty();
-
-        if (isUserNotExist) {
-            optionalCustomer = customerRepository.findByPhoneNumber(identifier);
-        }
-        if (isUserNotExist) {
-            optionalCustomer = customerRepository.findByAccount_AccountNumber(identifier);
-        }
-        return optionalCustomer;
+        return customerRepository.findByEmail(identifier)
+                .or(() -> customerRepository.findByPhoneNumber(identifier))
+                .or(() -> customerRepository.findByAccount_AccountNumber(identifier));
     }
 }
-

@@ -3,7 +3,7 @@ package com.backend.bank.dto.request;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 
-import com.backend.bank.entity.constant.CardType;
+import com.backend.bank.entity.enums.CardType;
 
 import jakarta.validation.constraints.DecimalMax;
 import jakarta.validation.constraints.Future;

@@ -1,7 +1,7 @@
 package com.backend.bank.entity;
 
-import com.backend.bank.entity.constant.AccountStatus;
-import com.backend.bank.entity.constant.AccountType;
+import com.backend.bank.entity.enums.AccountStatus;
+import com.backend.bank.entity.enums.AccountType;
 
 import com.backend.bank.security.data.EncryptIdAttributeConverter;
 import com.backend.bank.security.data.EncryptionAttributeConverter;
@@ -25,11 +25,11 @@ public class Account {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-//    @Convert(converter = EncryptIdAttributeConverter.class)
+    @Convert(converter = EncryptIdAttributeConverter.class)
     @Column(name = "id", unique = true, nullable = false)
     Long id;
 
-//    @Convert(converter = EncryptionAttributeConverter.class)
+    @Convert(converter = EncryptionAttributeConverter.class)
     @Column(name = "account_number", nullable = false, unique = true)
     String accountNumber;
 
