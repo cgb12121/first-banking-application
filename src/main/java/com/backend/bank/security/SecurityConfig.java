@@ -37,7 +37,8 @@ public class SecurityConfig {
                 .authorizeHttpRequests (request -> request
                         .requestMatchers("/auth/**").permitAll()
                         .requestMatchers("account/update-info").hasRole("STAFF")
-                        .anyRequest().authenticated()
+                                .anyRequest().permitAll()
+//                        .anyRequest().authenticated()
                 )
                 .authenticationProvider(authenticationProvider())
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)

@@ -17,14 +17,15 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.ObjectError;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.Instant;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
+
 
 @Log4j2
 @RestController
@@ -39,11 +40,10 @@ public class LoginController {
 
     LoginAttemptService loginAttemptService;
 
-    @PostMapping("/login")
+    @GetMapping("/login")
     public CompletableFuture<ResponseEntity<Map<String, Object>>> login(
             @RequestBody @Valid LoginRequest loginRequest,
             BindingResult bindingResult) {
-
         if (bindingResult.hasErrors()) {
             List<String> errors = bindingResult
                     .getAllErrors()
@@ -58,24 +58,27 @@ public class LoginController {
             return CompletableFuture.completedFuture(ResponseEntity.badRequest().body(response));
         }
 
-        Authentication authentication = authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(loginRequest.identifier(), loginRequest.password())
-        );
-        if (!authentication.isAuthenticated()){
-            loginAttemptService.updateLoginAttempt(loginRequest.identifier());
-            return CompletableFuture.completedFuture(ResponseEntity.
-                    status(HttpStatus.UNAUTHORIZED)
-                    .body(createErrorResponse())
-            );
-        }
-        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        log.info(auth.getName());
-        auth.getAuthorities().forEach(
-                authority -> log.info(authority.getAuthority())
-        );
 
         return this.loginService.login(loginRequest)
-                .thenApply(loginResponse -> ResponseEntity.ok(createSuccessResponse(loginResponse)));
+                .thenApply(loginResponse -> {
+                    Authentication authentication = authenticationManager.authenticate(
+                            new UsernamePasswordAuthenticationToken(loginRequest.identifier(), loginRequest.password())
+                    );
+
+                    if (!authentication.isAuthenticated()) {
+                        loginAttemptService.updateLoginAttempt(loginRequest.identifier());
+                        return ResponseEntity
+                                .status(HttpStatus.UNAUTHORIZED)
+                                .body(createErrorResponse());
+                    }
+
+                    log.info("[Timestamp: {}][Username]{}", Instant.now(), authentication.getName());
+                    authentication.getAuthorities().forEach(
+                            authority -> log.info("[Timestamp: {}][Role] {}", Instant.now(), authority.getAuthority())
+                    );
+
+                    return ResponseEntity.ok(createSuccessResponse(loginResponse));
+                });
     }
 
     private Map<String, Object> createSuccessResponse(LoginResponse response) {

@@ -4,7 +4,7 @@ import com.backend.bank.entity.Account;
 import com.backend.bank.entity.Customer;
 import com.backend.bank.exception.AccountNotExistException;
 import com.backend.bank.exception.UnauthorizedAccessException;
-import com.backend.bank.repository.AccountRepository;
+import com.backend.bank.repository.jpa.AccountRepository;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;

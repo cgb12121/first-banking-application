@@ -60,8 +60,6 @@ public class EncryptionAttributeConverter implements AttributeConverter<String, 
 
             String encryptedData = Base64.getUrlEncoder().encodeToString(cipher.doFinal(attribute.getBytes()));
 
-            log.info("encrypted data: {}", encryptedData);
-
             if (isEmail) {
                 return encryptedData + "@gmail.com";
             }
@@ -87,8 +85,6 @@ public class EncryptionAttributeConverter implements AttributeConverter<String, 
 
             byte[] decodedBytes = Base64.getUrlDecoder().decode(dbData);
             String decryptedData = new String(cipher.doFinal(decodedBytes));
-
-            log.info("Decrypted data: {}", decryptedData);
 
             if (isEmail) {
                 return decryptedData + "@gmail.com";

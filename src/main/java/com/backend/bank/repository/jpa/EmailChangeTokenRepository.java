@@ -1,4 +1,4 @@
-package com.backend.bank.repository;
+package com.backend.bank.repository.jpa;
 
 import com.backend.bank.entity.EmailChangeToken;
 

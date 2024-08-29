@@ -5,13 +5,14 @@ import com.backend.bank.exception.*;
 import com.backend.bank.dto.request.LoginRequest;
 import com.backend.bank.dto.response.LoginResponse;
 import com.backend.bank.entity.Customer;
-import com.backend.bank.repository.CustomerRepository;
+import com.backend.bank.repository.jpa.CustomerRepository;
 import com.backend.bank.security.auth.JwtProvider;
 import com.backend.bank.service.intf.LoginService;
 import com.backend.bank.utils.RequestValidator;
 
 import lombok.RequiredArgsConstructor;
 
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -22,6 +23,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class LoginServiceImpl implements LoginService {
@@ -46,7 +48,10 @@ public class LoginServiceImpl implements LoginService {
         String password = loginRequest.password();
 
         Customer customer = findCustomerByIdentifier(identifier)
-                .orElseThrow(() -> new AccountNotExistException("Customer not found: " + identifier));
+                .orElseThrow(() -> {
+                    log.error("Customer not found: {}", identifier);
+                    return new AccountNotExistException("Customer not found: " + identifier);
+                });
 
         boolean isCorrectPassword = passwordEncoder.matches(password, customer.getPassword());
         boolean isAccountInactive = customer.getAccount().getAccountStatus().equals(AccountStatus.INACTIVE);
@@ -63,11 +68,7 @@ public class LoginServiceImpl implements LoginService {
         }
 
         String token = jwtProvider.generateToken(customer);
-        Map<String, Object> claims = new HashMap<>();
-        claims.put("identifier", identifier);
-        claims.put("authorities", customer.getAuthorities());
-        claims.put("accountStatus", AccountStatus.ACTIVE);
-        String refreshToken = jwtProvider.generateRefreshToken(claims,customer);
+        String refreshToken = jwtProvider.generateRefreshToken(customer);
 
         return CompletableFuture.completedFuture(new LoginResponse("Login successful", token, refreshToken));
     }

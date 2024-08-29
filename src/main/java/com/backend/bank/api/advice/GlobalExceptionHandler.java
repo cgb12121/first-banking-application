@@ -271,6 +271,19 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
         return buildErrorResponse(errorDetails, HttpStatus.BAD_REQUEST);
     }
 
+    @ExceptionHandler(UnauthorizedAccessException.class)
+    @ResponseStatus(HttpStatus.UNAUTHORIZED)
+    public ResponseEntity<Map<String, Object>> handleUnauthorizedAccessException(
+            UnauthorizedAccessException e,
+            HttpServletRequest request,
+            WebRequest webRequest
+    ) {
+        Map<String, Object> errorDetails = buildErrorDetails(request, e, HttpStatus.UNAUTHORIZED);
+        log.error("UnauthorizedAccessException occurred: {}, {}, {} ",
+                webRequest.getHeaderNames(), webRequest.getParameterMap(), errorDetails, e);
+        return buildErrorResponse(errorDetails, HttpStatus.UNAUTHORIZED);
+    }
+
     @ExceptionHandler(Exception.class)
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
     public ResponseEntity<Map<String, Object>> handleAllExceptions(

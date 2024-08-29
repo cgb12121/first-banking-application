@@ -51,8 +51,9 @@ public class AccountController {
         }
 
         return this.accountService.upgradeAccount(request)
-                .thenApply(upgradeAccountResponse -> ResponseEntity.ok().body(createSuccessResponse(upgradeAccountResponse)))
-                .exceptionally(ex -> handleException((Exception) ex));
+                .thenApply(upgradeAccountResponse ->
+                        ResponseEntity.ok().body(createSuccessResponse(upgradeAccountResponse))
+                );
     }
 
     @PatchMapping("/update-info")
@@ -75,8 +76,9 @@ public class AccountController {
         }
 
         return this.accountService.updateCustomerInfo(request)
-                .thenApply(updateCustomerInfoResponse -> ResponseEntity.ok(createSuccessResponse(updateCustomerInfoResponse)))
-                .exceptionally(ex -> handleException((Exception) ex));
+                .thenApply(updateCustomerInfoResponse ->
+                        ResponseEntity.ok(createSuccessResponse(updateCustomerInfoResponse))
+                );
     }
 
     private Map<String, Object> createSuccessResponse(Object response) {
@@ -84,27 +86,6 @@ public class AccountController {
         responseBody.put("timestamp", new Date());
         responseBody.put("status", HttpStatus.OK.value());
         responseBody.put("response", response);
-        return responseBody;
-    }
-
-    private ResponseEntity<Map<String, Object>> handleException(Exception ex) {
-        Throwable cause = ex.getCause();
-        return switch (cause.getClass().getSimpleName()) {
-            case "AccountNotExistException" ->
-                    ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(createErrorResponse("Account does not exist."));
-            case "AccountBannedException" ->
-                    ResponseEntity.status(HttpStatus.FORBIDDEN).body(createErrorResponse("Account is banned."));
-            case "AccountInactiveException" ->
-                    ResponseEntity.status(HttpStatus.CONFLICT).body(createErrorResponse("Account is in use."));
-            default ->
-                    ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(createErrorResponse("An error occurred"));
-        };
-    }
-
-    private Map<String, Object> createErrorResponse(String message) {
-        Map<String, Object> responseBody = new LinkedHashMap<>();
-        responseBody.put("timestamp", new Date());
-        responseBody.put("message", message);
         return responseBody;
     }
 }

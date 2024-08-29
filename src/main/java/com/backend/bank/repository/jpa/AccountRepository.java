@@ -1,8 +1,9 @@
-package com.backend.bank.repository;
+package com.backend.bank.repository.jpa;
 
 import com.backend.bank.entity.Account;
 
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.keyvalue.repository.KeyValueRepository;
 import org.springframework.stereotype.Repository;
 
 import java.util.Optional;
