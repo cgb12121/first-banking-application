@@ -1,6 +1,5 @@
 package com.backend.bank.security.auth;
 
-import com.auth0.jwt.JWT;
 import com.backend.bank.exception.InvalidTokenException;
 import com.backend.bank.exception.TokenExpiredException;
 import com.fasterxml.jackson.databind.ObjectMapper;

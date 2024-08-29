@@ -26,10 +26,15 @@ public class JwtProvider {
     private String issuer;
 
     public String generateToken(UserDetails userDetails) {
+        Map<String, Object> headers = new HashMap<>();
+        headers.put("type", "token");
         return Jwts.builder()
+                .header()
+                .add(headers)
+                .and()
                 .issuer(issuer)
                 .subject(userDetails.getUsername())
-                .claim("authority: ", userDetails.getAuthorities())
+                .claim("authority", userDetails.getAuthorities())
                 .issuedAt(new Date(System.currentTimeMillis()))
                 .expiration(new Date(System.currentTimeMillis() + (ONE_DAY / 24)))
                 .signWith(getSigningKey())
@@ -37,7 +42,12 @@ public class JwtProvider {
     }
 
     public String generateRefreshToken(Map<String, Object> extraClaims, UserDetails userDetails) {
+        Map<String, Object> headers = new HashMap<>();
+        headers.put("type", "refresh-token");
         return Jwts.builder()
+                .header()
+                .add(headers)
+                .and()
                 .issuer(issuer)
                 .subject(userDetails.getUsername())
                 .claims(extraClaims)
@@ -47,15 +57,16 @@ public class JwtProvider {
                 .compact();
     }
 
+    public <T> T extractClaims(String token, Function<Claims, T> claimsResolvers) {
+        final Claims claims = extractAllClaims(token);
+        return claimsResolvers.apply(claims);
+    }
+
     private SecretKey getSigningKey() {
         byte[] key = Decoders.BASE64URL.decode(secretKey);
         return Keys.hmacShaKeyFor(key);
     }
 
-    public <T> T extractClaims(String token, Function<Claims, T> claimsResolvers) {
-        final Claims claims = extractAllClaims(token);
-        return claimsResolvers.apply(claims);
-    }
 
     public Claims extractAllClaims(String token) {
         return Jwts.parser()
@@ -71,11 +82,26 @@ public class JwtProvider {
 
     public boolean isTokenValid(String token, UserDetails userDetails) {
         final String username = extractUserName(token);
-        return username.equals(userDetails.getUsername()) && !isTokenExpired(token);
+        return username.equals(userDetails.getUsername()) &&
+                !isTokenExpired(token) &&
+                isValidSecretKey(token);
     }
 
     public boolean isTokenExpired(String token) {
         final Date expiration = extractClaims(token, Claims::getExpiration);
         return expiration.before(new Date());
+    }
+
+    public boolean isValidSecretKey(String token) {
+        try {
+            Jwts.parser()
+                    .verifyWith(getSigningKey())
+                    .build()
+                    .parseSignedClaims(token);
+            return true;
+        } catch (JwtException | IllegalArgumentException e) {
+            log.error("Invalid secret key or tampered token: {}", e.getMessage(), e);
+            return false;
+        }
     }
 }

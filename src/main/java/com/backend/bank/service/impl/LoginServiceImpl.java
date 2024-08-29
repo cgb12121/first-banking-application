@@ -17,6 +17,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.HashMap;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
@@ -35,8 +36,7 @@ public class LoginServiceImpl implements LoginService {
 
     @Override
     @Async(value = "userTaskExecutor")
-    public CompletableFuture<LoginResponse> login(LoginRequest loginRequest)
-            throws AccountNotExistException, AccountBannedException, AccountInactiveException, InputViolationException {
+    public CompletableFuture<LoginResponse> login(LoginRequest loginRequest) {
         Set<String> violations = loginRequestRequestValidator.validate(loginRequest);
         if (!violations.isEmpty()) {
             throw new InputViolationException(String.join("\n", violations));
@@ -63,7 +63,11 @@ public class LoginServiceImpl implements LoginService {
         }
 
         String token = jwtProvider.generateToken(customer);
-        String refreshToken = jwtProvider.generateRefreshToken(new HashMap<>(),customer);
+        Map<String, Object> claims = new HashMap<>();
+        claims.put("identifier", identifier);
+        claims.put("authorities", customer.getAuthorities());
+        claims.put("accountStatus", AccountStatus.ACTIVE);
+        String refreshToken = jwtProvider.generateRefreshToken(claims,customer);
 
         return CompletableFuture.completedFuture(new LoginResponse("Login successful", token, refreshToken));
     }

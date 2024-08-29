@@ -65,24 +65,17 @@ public class LoginController {
             loginAttemptService.updateLoginAttempt(loginRequest.identifier());
             return CompletableFuture.completedFuture(ResponseEntity.
                     status(HttpStatus.UNAUTHORIZED)
-                    .body(createErrorResponse("Invalid request"))
+                    .body(createErrorResponse())
             );
         }
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        log.info(auth.getName());
+        auth.getAuthorities().forEach(
+                authority -> log.info(authority.getAuthority())
+        );
 
         return this.loginService.login(loginRequest)
-                .thenApply(loginResponse -> {
-                    Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-                    log.info(auth.getName());
-                    auth.getAuthorities().forEach(
-                            authority -> log.info(authority.getAuthority())
-                    );
-                    if (!authentication.isAuthenticated()){
-                        loginAttemptService.updateLoginAttempt(loginRequest.identifier());
-                        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(createErrorResponse("Invalid request"));
-                    }
-
-                    return ResponseEntity.ok(createSuccessResponse(loginResponse));
-                });
+                .thenApply(loginResponse -> ResponseEntity.ok(createSuccessResponse(loginResponse)));
     }
 
     private Map<String, Object> createSuccessResponse(LoginResponse response) {
@@ -91,13 +84,14 @@ public class LoginController {
         responseBody.put("status", HttpStatus.OK.value());
         responseBody.put("message", response.message());
         responseBody.put("token", response.token());
+        responseBody.put("refreshToken", response.refreshToken());
         return responseBody;
     }
 
-    private Map<String, Object> createErrorResponse(String message) {
+    private Map<String, Object> createErrorResponse() {
         Map<String, Object> responseBody = new LinkedHashMap<>();
         responseBody.put("timestamp", new Date());
-        responseBody.put("message", message);
+        responseBody.put("message", "Unauthorized access");
         return responseBody;
     }
 }
