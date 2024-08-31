@@ -3,9 +3,12 @@ package com.backend.bank.entity.enums;
 import lombok.*;
 
 @Getter
+@RequiredArgsConstructor
 public enum Role {
-    USER,
-    STAFF,
-    MANAGER,
-    ADMIN,
+    USER("ROLE_USER"),
+    STAFF("ROLE_STAFF"),
+    MANAGER("ROLE_MANAGER"),
+    ADMIN("ROLE_ADMIN"),;
+
+    private final String role;
 }

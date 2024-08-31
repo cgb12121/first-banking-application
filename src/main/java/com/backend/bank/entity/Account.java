@@ -9,7 +9,6 @@ import jakarta.persistence.*;
 
 import lombok.*;
 import lombok.experimental.FieldDefaults;
-import org.springframework.data.redis.core.RedisHash;
 
 import java.math.BigDecimal;
 import java.util.List;

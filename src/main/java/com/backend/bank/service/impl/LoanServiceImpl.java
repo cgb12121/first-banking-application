@@ -12,17 +12,17 @@ import com.backend.bank.entity.Loan;
 import com.backend.bank.entity.enums.LoanStatus;
 import com.backend.bank.entity.enums.TakeLoanStatus;
 import com.backend.bank.exception.*;
-import com.backend.bank.repository.jpa.AccountRepository;
-import com.backend.bank.repository.jpa.CustomerRepository;
-import com.backend.bank.repository.jpa.LoanRepository;
+import com.backend.bank.repository.AccountRepository;
+import com.backend.bank.repository.CustomerRepository;
+import com.backend.bank.repository.LoanRepository;
 import com.backend.bank.service.intf.LoanService;
 import com.backend.bank.utils.RequestValidator;
 
+import jakarta.transaction.Transactional;
+
 import lombok.RequiredArgsConstructor;
 
-import org.springframework.mail.MailException;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -33,10 +33,7 @@ import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
-@Transactional(
-        rollbackFor = Exception.class,
-        noRollbackFor = {MailException.class}
-)
+@Transactional(rollbackOn = Exception.class)
 public class LoanServiceImpl implements LoanService {
 
     private final LoanRepository loanRepository;
