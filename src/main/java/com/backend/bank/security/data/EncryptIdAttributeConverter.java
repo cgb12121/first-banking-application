@@ -2,6 +2,7 @@ package com.backend.bank.security.data;
 
 import jakarta.persistence.AttributeConverter;
 import jakarta.persistence.Converter;
+import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Value;
 
 import javax.crypto.Cipher;
@@ -12,6 +13,7 @@ import javax.crypto.spec.SecretKeySpec;
 import java.security.spec.KeySpec;
 import java.util.Base64;
 
+@Log4j2
 @Converter()
 public class EncryptIdAttributeConverter implements AttributeConverter<Long, String> {
 
@@ -46,7 +48,9 @@ public class EncryptIdAttributeConverter implements AttributeConverter<Long, Str
             Cipher cipher = Cipher.getInstance(ALGORITHM);
             SecretKeySpec keySpec = getKeySpec();
             cipher.init(Cipher.ENCRYPT_MODE, keySpec);
-            return Base64.getEncoder().encodeToString(cipher.doFinal(id.toString().getBytes()));
+            String encryptedId = Base64.getEncoder().encodeToString(cipher.doFinal(id.toString().getBytes()));
+            log.info("encrypted id: {}", encryptedId);
+            return encryptedId;
         } catch (Exception e) {
             throw new RuntimeException("Encryption error", e);
         }
@@ -59,6 +63,7 @@ public class EncryptIdAttributeConverter implements AttributeConverter<Long, Str
             SecretKeySpec keySpec = getKeySpec();
             cipher.init(Cipher.DECRYPT_MODE, keySpec);
             String decryptedId = new String(cipher.doFinal(Base64.getDecoder().decode(encodedId)));
+            log.info("decrypted id: {}", decryptedId);
             return Long.valueOf(decryptedId);
         } catch (Exception e) {
             throw new RuntimeException("Decryption error", e);

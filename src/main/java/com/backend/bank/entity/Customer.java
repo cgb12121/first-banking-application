@@ -59,14 +59,14 @@ public class Customer implements UserDetails {
     @Timestamp
     @Column(name = "created_date", nullable = false)
     LocalDateTime createdDate;
-
+    
     @OneToOne(mappedBy = "accountHolder", cascade = CascadeType.ALL)
     Account account;
 
-    @OneToMany(mappedBy = "customer", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @OneToMany(mappedBy = "customer", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
     List<Loan> loans;
 
-    @OneToMany(mappedBy = "customer", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @OneToMany(mappedBy = "customer", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
     List<Card> cards;
 
     @PrePersist
@@ -76,37 +76,34 @@ public class Customer implements UserDetails {
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        return List.of(new SimpleGrantedAuthority(this.getRole().name()));
+        return List.of(new SimpleGrantedAuthority(this.getRole().getRole()));
     }
 
     @Override
     public String getUsername() {
-        return email != null ? email : phoneNumber != null ? phoneNumber : account.getAccountNumber();
+        return this.email;
     }
 
     @Override
     public boolean isEnabled() {
-        AccountStatus status = account.getAccountStatus();
+        AccountStatus status = this.getAccount().getAccountStatus();
         return status == AccountStatus.ACTIVE;
     }
 
     @Override
     public boolean isAccountNonExpired() {
-        return account.getAccountStatus() != AccountStatus.INACTIVE;
+        AccountStatus status = this.getAccount().getAccountStatus();
+        return status != AccountStatus.INACTIVE;
     }
 
     @Override
     public boolean isAccountNonLocked() {
-        return account.getAccountStatus() != AccountStatus.FROZEN && account.getAccountStatus() != AccountStatus.BANNED;
+        AccountStatus status = this.getAccount().getAccountStatus();
+        return status != AccountStatus.FROZEN && status != AccountStatus.BANNED;
     }
 
     @Override
     public boolean isCredentialsNonExpired() {
         return true;
-    }
-
-    @Convert(converter = EncryptionAttributeConverter.class)
-    public String getEmail() {
-        return email;
     }
 }

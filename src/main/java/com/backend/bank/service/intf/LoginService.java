@@ -7,6 +7,7 @@ import com.backend.bank.exception.AccountInactiveException;
 import com.backend.bank.exception.AccountNotExistException;
 
 import com.backend.bank.exception.InputViolationException;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import java.util.concurrent.CompletableFuture;

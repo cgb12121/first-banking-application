@@ -28,6 +28,7 @@ public class JwtProvider {
     public String generateToken(UserDetails userDetails) {
         Map<String, Object> headers = new HashMap<>();
         headers.put("type", "token");
+        getInfo(userDetails, "access-token");
         return Jwts.builder()
                 .header()
                 .add(headers)
@@ -44,6 +45,7 @@ public class JwtProvider {
     public String generateRefreshToken(Map<String, Object> extraClaims, UserDetails userDetails) {
         Map<String, Object> headers = new HashMap<>();
         headers.put("type", "refresh-token");
+        getInfo(userDetails, "refresh-token");
         return Jwts.builder()
                 .header()
                 .add(headers)
@@ -57,6 +59,13 @@ public class JwtProvider {
                 .compact();
     }
 
+    private static void getInfo(UserDetails userDetails, String tokenType) {
+        log.info("------------Generate {}--------------", tokenType);
+        log.info("userDetails: {}", userDetails);
+        log.info("username: {}", userDetails.getUsername());
+        log.info("authorities: {}", userDetails.getAuthorities());
+    }
+
     public <T> T extractClaims(String token, Function<Claims, T> claimsResolvers) {
         final Claims claims = extractAllClaims(token);
         return claimsResolvers.apply(claims);
@@ -66,7 +75,6 @@ public class JwtProvider {
         byte[] key = Decoders.BASE64URL.decode(secretKey);
         return Keys.hmacShaKeyFor(key);
     }
-
 
     public Claims extractAllClaims(String token) {
         return Jwts.parser()

@@ -1,104 +1,115 @@
 package com.backend.bank.security.auth;
 
-import com.backend.bank.exception.InvalidTokenException;
-import com.backend.bank.exception.TokenExpiredException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-
+import io.jsonwebtoken.JwtException;
+import io.jsonwebtoken.io.IOException;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
-import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-
-import lombok.NonNull;
-
 import lombok.RequiredArgsConstructor;
-
-import org.apache.commons.lang3.StringUtils;
-import org.springframework.context.annotation.Configuration;
+import lombok.extern.log4j.Log4j2;
+import org.apache.logging.log4j.Marker;
+import org.apache.logging.log4j.MarkerManager;
+import org.springframework.context.ApplicationContext;
+import org.springframework.http.HttpHeaders;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
+import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
-import java.io.IOException;
-import java.util.Date;
-import java.util.LinkedHashMap;
-import java.util.Map;
-
-@Configuration
+@Log4j2
+@Component
 @RequiredArgsConstructor
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     private final JwtProvider jwtProvider;
 
-    private final UserDetailsService userService;
+    private final ApplicationContext applicationContext;
+
+    private static final Marker AUTH_SUCCESS = MarkerManager.getMarker("AUTH_SUCCESS");
+
+    private static final Marker AUTH_FAILURE = MarkerManager.getMarker("AUTH_FAILURE");
+
+    private static final Marker JWT_EXCEPTION = MarkerManager.getMarker("JWT_EXCEPTION");
 
     @Override
-    protected void doFilterInternal(@NonNull HttpServletRequest request, @NonNull HttpServletResponse response, @NonNull FilterChain filterChain)
-            throws ServletException, IOException {
-
-        final String authHeader = request.getHeader("Authorization");
-        final String userEmail;
-
-        String token = null;
-
-        if (request.getCookies() != null) {
-            for (Cookie cookie : request.getCookies()) {
-                if ("JWT_TOKEN".equals(cookie.getName())) {
-                    token = cookie.getValue();
-                    break;
-                }
-            }
-        }
-
-        if (StringUtils.isEmpty(token) && StringUtils.isNotEmpty(authHeader) && StringUtils.startsWith(authHeader, "Bearer")) {
-            token = authHeader.substring(7);
-        }
-
-        if (StringUtils.isEmpty(token)) {
-            filterChain.doFilter(request, response);
-            return;
-        }
-
+    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
+            throws IOException, java.io.IOException {
         try {
-            userEmail = jwtProvider.extractUserName(token);
+            log.info("-----------------AUTH FILTERING----------------------");
+            loggingProcess(request, response, 1);
 
-            if (StringUtils.isNotEmpty(userEmail) && SecurityContextHolder.getContext().getAuthentication() == null) {
-                UserDetails userDetails = userService.loadUserByUsername(userEmail);
+            String requestTokenHeader = request.getHeader(HttpHeaders.AUTHORIZATION);
+            String jwt;
+            String username;
 
-                if (jwtProvider.isTokenValid(token, userDetails)) {
-                    SecurityContext securityContext = SecurityContextHolder.createEmptyContext();
-                    UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
+            if (requestTokenHeader == null || !requestTokenHeader.startsWith("Bearer ")) {
+                filterChain.doFilter(request, response);
+                log.info("-------------No valid token found-------");
+                loggingProcess(request, response,2);
+                return;
+            }
 
-                    authenticationToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
-                    securityContext.setAuthentication(authenticationToken);
-                    SecurityContextHolder.setContext(securityContext);
+            jwt = requestTokenHeader.substring(7);
+            username = jwtProvider.extractUserName(jwt);
+
+            if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
+                UserDetails userDetails = applicationContext.getBean(UserDetailsService.class).loadUserByUsername(username);
+
+                if (jwtProvider.isTokenValid(jwt, userDetails)) {
+                    log.info("------------------TOKEN  IS VALID-----------------");
+                    UsernamePasswordAuthenticationToken usernamePasswordAuthenticationToken  = new UsernamePasswordAuthenticationToken(
+                            userDetails.getUsername(), null, userDetails.getAuthorities()
+                    );
+                    usernamePasswordAuthenticationToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+                    SecurityContextHolder.getContext().setAuthentication(usernamePasswordAuthenticationToken);
+                    log.info(AUTH_SUCCESS, "Authentication successful!");
+                    loggingProcess(request, response,3);
+                } else {
+                    log.info(AUTH_FAILURE, "-----------------Invalid token!-----------------");
+                    loggingProcess(request, response,4);
+                    throw new JwtException("-------------------Invalid JWT token---------------------");
                 }
             }
-        } catch (TokenExpiredException e) {
-            handleUnauthorized(response, "JWT token is expired!");
-            return;
-        } catch (InvalidTokenException e) {
-            handleUnauthorized(response, "Invalid JWT token!");
-            return;
+            filterChain.doFilter(request, response);
+            log.info("#################Request processed-PASSED#################");
+            loggingProcess(request, response,5);
+        }catch (IOException |ServletException e) {
+            log.error(JWT_EXCEPTION, e.getMessage(), e);
+            response.sendError(HttpServletResponse.SC_UNAUTHORIZED, e.getMessage());
+            throw new JwtException(e.getMessage());
         }
-
-        filterChain.doFilter(request, response);
     }
 
-    private void handleUnauthorized(HttpServletResponse response, String message) throws IOException {
-        Map<String, Object> body = new LinkedHashMap<>();
-        body.put("[timestamp]", new Date());
-        body.put("status", HttpServletResponse.SC_UNAUTHORIZED);
-        body.put("message", message);
-
-        response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-        response.setContentType("application/json");
-
-        response.getWriter().write(new ObjectMapper().writeValueAsString(body));
+    private void loggingProcess(HttpServletRequest request, HttpServletResponse response, int step) {
+        log.info("""
+                            [{}] - \
+                           \s
+                             Request Method: {} \
+                           \s
+                             Request Auth: {} \
+                           \s
+                             Request Principal: {} \
+                           \s
+                             Request URI: {} \
+                           \s
+                             Request Query: {} \
+                            \s
+                             Response Status: {}\
+                            \s
+                             Response Content: {}  \s
+                            \s""",
+                step,
+                request.getMethod(),
+                request.getAuthType(),
+                request.getUserPrincipal(),
+                request.getRequestURI(),
+                request.getQueryString(),
+                response.getStatus(),
+                response.getContentType()
+        );
     }
 }

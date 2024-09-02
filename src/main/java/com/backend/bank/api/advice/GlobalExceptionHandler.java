@@ -76,17 +76,17 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
         return buildErrorResponse(errorDetails, HttpStatus.FORBIDDEN);
     }
 
-    @ResponseStatus(HttpStatus.UNAUTHORIZED)
+    @ResponseStatus(HttpStatus.NOT_FOUND)
     @ExceptionHandler(AccountNotExistException.class)
     public ResponseEntity<Map<String, Object>> handleAccountNotExistException(
             AccountNotExistException e,
             HttpServletRequest request,
             WebRequest webRequest
     ) {
-        Map<String, Object> errorDetails = buildErrorDetails(request, e, HttpStatus.UNAUTHORIZED);
+        Map<String, Object> errorDetails = buildErrorDetails(request, e, HttpStatus.NOT_FOUND);
         log.error("AccountNotExistException occurred: {}, {}, {} ",
                 webRequest.getHeaderNames(), webRequest.getParameterMap(), errorDetails, e);
-        return buildErrorResponse(errorDetails, HttpStatus.UNAUTHORIZED);
+        return buildErrorResponse(errorDetails, HttpStatus.NOT_FOUND);
     }
 
     @ResponseStatus(HttpStatus.FORBIDDEN)

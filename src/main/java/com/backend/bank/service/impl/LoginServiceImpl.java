@@ -12,16 +12,23 @@ import com.backend.bank.utils.RequestValidator;
 
 import lombok.RequiredArgsConstructor;
 
+import lombok.extern.log4j.Log4j2;
 import org.springframework.scheduling.annotation.Async;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContext;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 
+@Log4j2
 @Service
 @RequiredArgsConstructor
 public class LoginServiceImpl implements LoginService {
@@ -34,6 +41,8 @@ public class LoginServiceImpl implements LoginService {
 
     private final RequestValidator<LoginRequest> loginRequestRequestValidator;
 
+    private final AuthenticationManager authenticationManager;
+
     @Override
     @Async(value = "userTaskExecutor")
     public CompletableFuture<LoginResponse> login(LoginRequest loginRequest) {
@@ -42,11 +51,11 @@ public class LoginServiceImpl implements LoginService {
             throw new InputViolationException(String.join("\n", violations));
         }
 
-        String identifier = loginRequest.identifier();
+        String email = loginRequest.email();
         String password = loginRequest.password();
 
-        Customer customer = findCustomerByIdentifier(identifier)
-                .orElseThrow(() -> new AccountNotExistException("Customer not found: " + identifier));
+        Customer customer = customerRepository.findByEmail(email)
+                .orElseThrow(() -> new AccountNotExistException("Customer not found: " + email));
 
         boolean isCorrectPassword = passwordEncoder.matches(password, customer.getPassword());
         boolean isAccountInactive = customer.getAccount().getAccountStatus().equals(AccountStatus.INACTIVE);
@@ -62,19 +71,32 @@ public class LoginServiceImpl implements LoginService {
             throw new AccountBannedException("You are banned from using our services!");
         }
 
+        UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(email, password);
+        authenticationManager.authenticate(authentication);
+
+        if (!authentication.isAuthenticated()){
+            return CompletableFuture.completedFuture(new LoginResponse(Collections.singletonList("Wrong username or password!")));
+        }
+
+        Authentication userAuthentication = authenticationManager.authenticate(authentication);
+        SecurityContextHolder.getContext().setAuthentication(authentication);
+        authentication.setAuthenticated(true);
+
+        SecurityContext context = SecurityContextHolder.getContext();
+        context.setAuthentication(userAuthentication);
+
         String token = jwtProvider.generateToken(customer);
         Map<String, Object> claims = new HashMap<>();
-        claims.put("identifier", identifier);
+        claims.put("identifier", email);
         claims.put("authorities", customer.getAuthorities());
         claims.put("accountStatus", AccountStatus.ACTIVE);
         String refreshToken = jwtProvider.generateRefreshToken(claims,customer);
 
-        return CompletableFuture.completedFuture(new LoginResponse("Login successful", token, refreshToken));
-    }
+        log.info("Login successful");
+        log.info(authentication);
 
-    private Optional<Customer> findCustomerByIdentifier(String identifier) {
-        return customerRepository.findByEmail(identifier)
-                .or(() -> customerRepository.findByPhoneNumber(identifier))
-                .or(() -> customerRepository.findByAccount_AccountNumber(identifier));
+        return CompletableFuture.completedFuture(new LoginResponse(
+                Collections.singletonList("Login successful"), token, refreshToken)
+        );
     }
 }

@@ -1,4 +1,6 @@
 package com.backend.bank.dto.response;
 
-public record SignupResponse(Long customerId, String message) {
+import java.util.List;
+
+public record SignupResponse(List<String> message) {
 }

@@ -84,8 +84,7 @@ public class SignupServiceImpl implements SignupService {
         Customer customer = createCustomer(signupRequest);
         Account account = createAccount(signupRequest.account(), customer);
         customer.setAccount(account);
-        List<Card> cards = createCards(signupRequest.card(), customer);
-        customer.setCards(cards);
+        customer.setCards(createCards(signupRequest.card(), customer));
 
         AccountType accountType = account.getAccountType();
         BigDecimal interest;
@@ -161,7 +160,7 @@ public class SignupServiceImpl implements SignupService {
         customer.setPhoneNumber(signupRequest.phoneNumber());
         customer.setPassword(passwordEncoder.encode(signupRequest.password()));
         customer.setFirstName(signupRequest.firstName());
-        customer.setRole(Role.USER);
+        customer.setRole(Role.ROLE_USER);
         customer.setLastName(signupRequest.lastName());
         return customer;
     }
@@ -241,8 +240,7 @@ public class SignupServiceImpl implements SignupService {
 
     private SignupResponse createSignupResponse(Customer customer) {
         return new SignupResponse(
-                customer.getId(),
-                "Signup successful! Please check your email!"
+                Collections.singletonList("Signup successful! Please check your email!" + customer.getEmail())
         );
     }
 

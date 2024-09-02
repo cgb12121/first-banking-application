@@ -2,7 +2,6 @@ package com.backend.bank.api;
 
 import com.backend.bank.dto.request.LoginRequest;
 import com.backend.bank.dto.response.LoginResponse;
-import com.backend.bank.service.LoginAttemptService;
 import com.backend.bank.service.intf.LoginService;
 
 import jakarta.validation.Valid;
@@ -12,16 +11,12 @@ import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import lombok.extern.log4j.Log4j2;
 
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.ObjectError;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.Instant;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
@@ -35,64 +30,24 @@ public class LoginController {
 
     LoginService loginService;
 
-    AuthenticationManager authenticationManager;
-
-    LoginAttemptService loginAttemptService;
-
     @PostMapping("/login")
-    public CompletableFuture<ResponseEntity<Map<String, Object>>> login(
+    public CompletableFuture<ResponseEntity<LoginResponse>> login(
             @RequestBody @Valid LoginRequest loginRequest,
             BindingResult bindingResult) {
 
         if (bindingResult.hasErrors()) {
-            List<String> errors = bindingResult
-                    .getAllErrors()
+            List<String> errors = bindingResult.getAllErrors()
                     .stream()
                     .map(ObjectError::getDefaultMessage)
                     .collect(Collectors.toList());
 
-            Map<String, Object> response = new HashMap<>();
-            response.put("status: ", HttpStatus.BAD_REQUEST.value());
-            response.put("errors: ", errors);
+            errors.addFirst(Instant.now().toString());
 
-            return CompletableFuture.completedFuture(ResponseEntity.badRequest().body(response));
+            LoginResponse errorResponse = new LoginResponse(errors, null, null);
+            return CompletableFuture.completedFuture(ResponseEntity.badRequest().body(errorResponse));
         }
-
-        Authentication authentication = authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(loginRequest.identifier(), loginRequest.password())
-        );
-        if (!authentication.isAuthenticated()){
-            loginAttemptService.updateLoginAttempt(loginRequest.identifier());
-            return CompletableFuture.completedFuture(ResponseEntity.
-                    status(HttpStatus.UNAUTHORIZED)
-                    .body(createErrorResponse())
-            );
-        }
-        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        log.info(auth.getName());
-        auth.getAuthorities().forEach(
-                authority -> log.info(authority.getAuthority())
-        );
 
         return this.loginService.login(loginRequest)
-                .thenApply(loginResponse -> ResponseEntity.ok(createSuccessResponse(loginResponse)));
-    }
-
-    private Map<String, Object> createSuccessResponse(LoginResponse response) {
-        Map<String, Object> responseBody = new LinkedHashMap<>();
-        responseBody.put("timestamp", new Date());
-        responseBody.put("status", HttpStatus.OK.value());
-        responseBody.put("message", response.message());
-        responseBody.put("token", response.token());
-        responseBody.put("refreshToken", response.refreshToken());
-        return responseBody;
-    }
-
-    private Map<String, Object> createErrorResponse() {
-        Map<String, Object> responseBody = new LinkedHashMap<>();
-        responseBody.put("timestamp", new Date());
-        responseBody.put("message", "Unauthorized access");
-        return responseBody;
+                .thenApply(ResponseEntity::ok);
     }
 }
-

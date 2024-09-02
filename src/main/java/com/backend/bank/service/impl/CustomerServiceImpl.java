@@ -25,8 +25,10 @@ import com.backend.bank.service.intf.OtpService;
 import com.backend.bank.utils.EmailUtils;
 import com.backend.bank.utils.RequestValidator;
 
+import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 
+import lombok.experimental.FieldDefaults;
 import org.springframework.context.annotation.Primary;
 import org.springframework.mail.MailException;
 import org.springframework.security.authentication.BadCredentialsException;
@@ -46,42 +48,52 @@ import java.util.*;
 @Primary
 @Service
 @RequiredArgsConstructor
+@FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 public class CustomerServiceImpl implements CustomerService, UserDetailsService {
 
-    private final CustomerRepository customerRepository;
+    CustomerRepository customerRepository;
 
-    private final PasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
+    PasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
 
-    private final AccountRepository accountRepository;
+    AccountRepository accountRepository;
 
-    private final NotificationService notificationService;
+    NotificationService notificationService;
 
-    private final EmailChangeTokenRepository emailChangeTokenRepository;
+    EmailChangeTokenRepository emailChangeTokenRepository;
 
-    private final PhoneChangeTokenRepository phoneChangeTokenRepository;
+    PhoneChangeTokenRepository phoneChangeTokenRepository;
 
-    private final OtpService otpService;
+    OtpService otpService;
 
-    private final RequestValidator<ChangePasswordRequest> changePasswordRequestValidator;
+    RequestValidator<ChangePasswordRequest> changePasswordRequestValidator;
 
-    private final RequestValidator<ChangeEmailRequest> changeEmailRequestValidator;
+    RequestValidator<ChangeEmailRequest> changeEmailRequestValidator;
 
-    private final RequestValidator<ChangePhoneNumberRequest> changePhoneNumberRequestValidator;
+    RequestValidator<ChangePhoneNumberRequest> changePhoneNumberRequestValidator;
 
-    private final RequestValidator<RegisterNewCardRequest> registerNewCardRequestValidator;
+    RequestValidator<RegisterNewCardRequest> registerNewCardRequestValidator;
 
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
         Customer customer = customerRepository.findByEmail(username)
-                .or(() -> customerRepository.findByPhoneNumber(username))
-                .or(() -> customerRepository.findByAccount_AccountNumber(username))
                 .orElseThrow(() -> new UsernameNotFoundException("User not found"));
 
         return new org.springframework.security.core.userdetails.User(
-                customer.getEmail(),
+                customer.getUsername() != null ? customer.getUsername() : username,
                 customer.getPassword(),
-                new ArrayList<>(customer.getAuthorities())
+                customer.getAuthorities()
         );
+    }
+
+    @Override
+    public UserDetailsService userDetailsService() {
+        return username -> {
+            Customer customer =  customerRepository.findByEmail(username).orElse(null);
+            if (customer == null) {
+                throw new AccountNotExistException(username);
+            }
+            return customer;
+        };
     }
 
     @Override

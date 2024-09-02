@@ -30,29 +30,22 @@ public class SignupController {
     SignupService signupService;
 
     @PostMapping("/signup")
-    public CompletableFuture<ResponseEntity<Map<String, Object>>> signup(
+    public CompletableFuture<ResponseEntity<SignupResponse>> signup(
             @RequestBody @Valid SignupRequest signupRequest,
             BindingResult bindingResult) {
 
         if (bindingResult.hasErrors()) {
-            List<String> errors = bindingResult
-                    .getAllErrors()
+            List<String> errors = bindingResult.getAllErrors()
                     .stream()
                     .map(ObjectError::getDefaultMessage)
                     .collect(Collectors.toList());
 
-            Map<String, Object> response = new HashMap<>();
-            response.put("status: ", HttpStatus.BAD_REQUEST.value());
-            response.put("errors: ", errors);
-
-            return CompletableFuture.completedFuture(ResponseEntity.badRequest().body(response));
+            SignupResponse errorResponse = new SignupResponse(errors);
+            return CompletableFuture.completedFuture(ResponseEntity.badRequest().body(errorResponse));
         }
 
         return this.signupService.signup(signupRequest)
-                .thenApply(signupResponse -> {
-                    log.info(signupResponse);
-                    return ResponseEntity.ok(createSuccessResponse(signupResponse));
-                });
+                .thenApply(ResponseEntity::ok);
     }
 
     @PostMapping("/verify/{verificationCode}")
@@ -68,13 +61,5 @@ public class SignupController {
     @PostMapping("/resend-verify-email")
     public void resendVerifyEmail(@RequestBody SignupRequest signupRequest) {
         this.signupService.resendVerificationEmail(signupRequest);
-    }
-
-    private Map<String, Object> createSuccessResponse(SignupResponse response) {
-        Map<String, Object> responseBody = new LinkedHashMap<>();
-        responseBody.put("timestamp", new Date());
-        responseBody.put("status", HttpStatus.OK.value());
-        responseBody.put("message", response.message());
-        return responseBody;
     }
 }

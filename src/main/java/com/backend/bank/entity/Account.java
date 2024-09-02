@@ -5,6 +5,7 @@ import com.backend.bank.entity.enums.AccountType;
 
 import com.backend.bank.security.data.EncryptIdAttributeConverter;
 import com.backend.bank.security.data.EncryptionAttributeConverter;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 
 import lombok.*;
@@ -48,9 +49,10 @@ public class Account {
     AccountStatus accountStatus;
 
     @OneToOne
+    @JsonIgnore
     @JoinColumn(name = "customer_id", nullable = false)
     Customer accountHolder;
 
-    @OneToMany(mappedBy = "account", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @OneToMany(mappedBy = "account", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
     List<Transaction> transactions;
 }
