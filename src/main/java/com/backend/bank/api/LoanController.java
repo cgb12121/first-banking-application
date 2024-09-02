@@ -29,21 +29,21 @@ public class LoanController {
     LoanService loanService;
 
     @PostMapping("/apply")
-    @PreAuthorize("hasRole('USER')")
+    @PreAuthorize("hasRole('ROLE_USER')")
     public ResponseEntity<LoanApplicationResponse> applyForLoan(@RequestBody @Valid LoanApplicationRequest request)  {
         LoanApplicationResponse response = this.loanService.applyForLoan(request);
         return ResponseEntity.ok(response);
     }
 
     @PostMapping("/approve")
-    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER', 'STAFF')")
+    @PreAuthorize("hasAnyRole('ROLE_ADMIN', 'ROLE_MANAGER', 'ROLE_STAFF')")
     public ResponseEntity<LoanApplicationResponse> approveLoan(@RequestBody @Valid LoanApprovalRequest request) {
         LoanApplicationResponse response = this.loanService.approveLoan(request);
         return ResponseEntity.ok(response);
     }
 
     @PostMapping("/repay")
-    @PreAuthorize("hasRole('USER')")
+    @PreAuthorize("hasRole('ROLE_USER')")
     public ResponseEntity<LoanRepaymentResponse> makeRepayment(@RequestBody LoanRepaymentRequest request) {
         LoanRepaymentResponse response = this.loanService.makeRepayment(request);
         return ResponseEntity.ok(response);

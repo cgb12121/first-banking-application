@@ -4,6 +4,7 @@ import com.backend.bank.entity.enums.CardType;
 
 import com.backend.bank.security.data.EncryptIdAttributeConverter;
 import com.backend.bank.security.data.EncryptionAttributeConverter;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 
 import lombok.*;
@@ -46,6 +47,7 @@ public class Card {
     BigDecimal balance;
 
     @ManyToOne
+    @JsonIgnore
     @JoinColumn(name = "customer_id", nullable = false)
     Customer customer;
 }

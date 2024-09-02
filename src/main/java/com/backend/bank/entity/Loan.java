@@ -5,6 +5,7 @@ import com.backend.bank.entity.enums.TakeLoanStatus;
 
 import com.backend.bank.security.data.EncryptIdAttributeConverter;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 
 import jdk.jfr.Timestamp;
@@ -58,6 +59,7 @@ public class Loan {
     LoanStatus loanStatus;
 
     @ManyToOne
+    @JsonIgnore
     @JoinColumn(name = "customer_id", nullable = false)
     Customer customer;
 }

@@ -51,9 +51,7 @@ public class AccountController {
         }
 
         return this.accountService.upgradeAccount(request)
-                .thenApply(upgradeAccountResponse ->
-                        ResponseEntity.ok().body(createSuccessResponse(upgradeAccountResponse))
-                );
+                .thenApply(upgradeAccountResponse -> ResponseEntity.ok().body(createSuccessResponse(upgradeAccountResponse)));
     }
 
     @PatchMapping("/update-info")
@@ -76,9 +74,7 @@ public class AccountController {
         }
 
         return this.accountService.updateCustomerInfo(request)
-                .thenApply(updateCustomerInfoResponse ->
-                        ResponseEntity.ok(createSuccessResponse(updateCustomerInfoResponse))
-                );
+                .thenApply(updateCustomerInfoResponse -> ResponseEntity.ok(createSuccessResponse(updateCustomerInfoResponse)));
     }
 
     private Map<String, Object> createSuccessResponse(Object response) {

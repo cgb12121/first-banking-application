@@ -16,10 +16,10 @@ import com.backend.bank.exception.AccountAlreadyExistsException;
 import com.backend.bank.exception.IllegalAccountTypeException;
 import com.backend.bank.exception.InputViolationException;
 import com.backend.bank.exception.InvalidVerifyLinkException;
-import com.backend.bank.repository.jpa.AccountRepository;
-import com.backend.bank.repository.jpa.CardRepository;
-import com.backend.bank.repository.jpa.CustomerRepository;
-import com.backend.bank.repository.jpa.VerifyRepository;
+import com.backend.bank.repository.AccountRepository;
+import com.backend.bank.repository.CardRepository;
+import com.backend.bank.repository.CustomerRepository;
+import com.backend.bank.repository.VerifyRepository;
 import com.backend.bank.service.intf.NotificationService;
 import com.backend.bank.service.intf.SignupService;
 import com.backend.bank.utils.EmailUtils;
@@ -84,8 +84,7 @@ public class SignupServiceImpl implements SignupService {
         Customer customer = createCustomer(signupRequest);
         Account account = createAccount(signupRequest.account(), customer);
         customer.setAccount(account);
-        List<Card> cards = createCards(signupRequest.card(), customer);
-        customer.setCards(cards);
+        customer.setCards(createCards(signupRequest.card(), customer));
 
         AccountType accountType = account.getAccountType();
         BigDecimal interest;
@@ -114,10 +113,6 @@ public class SignupServiceImpl implements SignupService {
 
     @Override
     @Async(value = "userTaskExecutor")
-    @Transactional(
-            rollbackFor = Exception.class,
-            noRollbackFor = MailException.class
-    )
     public CompletableFuture<String> verifyUser(String httpRequest) throws InvalidVerifyLinkException {
         String link = DOMAIN_VERIFY_LINK + httpRequest;
 
@@ -165,7 +160,7 @@ public class SignupServiceImpl implements SignupService {
         customer.setPhoneNumber(signupRequest.phoneNumber());
         customer.setPassword(passwordEncoder.encode(signupRequest.password()));
         customer.setFirstName(signupRequest.firstName());
-        customer.setRole(Role.USER);
+        customer.setRole(Role.ROLE_USER);
         customer.setLastName(signupRequest.lastName());
         return customer;
     }
@@ -245,8 +240,7 @@ public class SignupServiceImpl implements SignupService {
 
     private SignupResponse createSignupResponse(Customer customer) {
         return new SignupResponse(
-                customer.getId(),
-                "Signup successful! Please check your email!"
+                Collections.singletonList("Signup successful! Please check your email!" + customer.getEmail())
         );
     }
 

@@ -1,4 +1,4 @@
-package com.backend.bank.repository.jpa;
+package com.backend.bank.repository;
 
 import com.backend.bank.entity.PhoneChangeToken;
 

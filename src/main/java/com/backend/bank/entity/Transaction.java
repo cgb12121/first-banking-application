@@ -2,11 +2,10 @@ package com.backend.bank.entity;
 
 import com.backend.bank.entity.enums.TransactionStatus;
 import com.backend.bank.entity.enums.TransactionType;
-
 import com.backend.bank.security.data.EncryptIdAttributeConverter;
 import com.backend.bank.security.data.EncryptionAttributeConverter;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
-
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 
@@ -43,11 +42,13 @@ public class Transaction {
     @Column(name = "status", nullable = false)
     TransactionStatus status;
 
+    @JsonIgnore
     @Convert(converter = EncryptionAttributeConverter.class)
     @Column(name = "transfer_to_account")
     String transferToAccount;
 
     @ManyToOne
+    @JsonIgnore
     @JoinColumn(name = "account_id", nullable = false)
     Account account;
 }

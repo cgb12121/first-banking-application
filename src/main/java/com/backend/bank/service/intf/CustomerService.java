@@ -15,6 +15,8 @@ import org.springframework.stereotype.Service;
 
 @Service
 public interface CustomerService {
+    UserDetailsService userDetailsService();
+
     ChangePasswordResponse changePassword(ChangePasswordRequest request);
 
     ChangeEmailResponse changeEmail(ChangeEmailRequest request);

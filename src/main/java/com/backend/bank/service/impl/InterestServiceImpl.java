@@ -1,7 +1,7 @@
 package com.backend.bank.service.impl;
 
 import com.backend.bank.entity.Account;
-import com.backend.bank.repository.jpa.AccountRepository;
+import com.backend.bank.repository.AccountRepository;
 import com.backend.bank.service.intf.InterestService;
 
 import lombok.RequiredArgsConstructor;

@@ -9,7 +9,7 @@ import com.backend.bank.entity.enums.AccountType;
 import com.backend.bank.exception.AccountNotExistException;
 import com.backend.bank.exception.IllegalAccountTypeException;
 import com.backend.bank.exception.InputViolationException;
-import com.backend.bank.repository.jpa.AccountRepository;
+import com.backend.bank.repository.AccountRepository;
 import com.backend.bank.service.intf.AccountService;
 import com.backend.bank.utils.RequestValidator;
 
@@ -33,7 +33,7 @@ public class AccountServiceImpl implements AccountService {
 
     @Override
     @Async
-    @Transactional(rollbackFor = Exception.class, timeout = 120)
+    @Transactional(rollbackFor = Exception.class)
     public CompletableFuture<UpgradeAccountResponse> upgradeAccount(UpgradeAccountRequest request) {
         Set<String> violations = upgradeAccountRequestValidator.validate(request);
         if (!violations.isEmpty()) {
@@ -60,7 +60,7 @@ public class AccountServiceImpl implements AccountService {
 
     @Override
     @Async
-    @Transactional(rollbackFor = Exception.class, timeout = 120)
+    @Transactional(rollbackFor = Exception.class)
     public CompletableFuture<UpdateCustomerInfoResponse> updateCustomerInfo(UpdateCustomerInfoRequest request) {
         Set<String> violations = updateCustomerInfoRequestValidator.validate(request);
         if (!violations.isEmpty()) {
