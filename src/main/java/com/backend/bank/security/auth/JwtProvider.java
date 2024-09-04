@@ -13,8 +13,6 @@ import javax.crypto.SecretKey;
 import java.util.*;
 import java.util.function.Function;
 
-import static javax.management.timer.Timer.ONE_DAY;
-
 @Log4j2
 @Configuration
 public class JwtProvider {
@@ -24,6 +22,8 @@ public class JwtProvider {
 
     @Value("${security.jwt.issuer}")
     private String issuer;
+
+    private final Long ONE_HOUR = 60 * 60 * 1000L;
 
     public String generateToken(UserDetails userDetails) {
         Map<String, Object> headers = new HashMap<>();
@@ -37,7 +37,7 @@ public class JwtProvider {
                 .subject(userDetails.getUsername())
                 .claim("authority", userDetails.getAuthorities())
                 .issuedAt(new Date(System.currentTimeMillis()))
-                .expiration(new Date(System.currentTimeMillis() + (ONE_DAY / 24)))
+                .expiration(new Date(System.currentTimeMillis() + ONE_HOUR))
                 .signWith(getSigningKey())
                 .compact();
     }
@@ -54,7 +54,7 @@ public class JwtProvider {
                 .subject(userDetails.getUsername())
                 .claims(extraClaims)
                 .issuedAt(new Date(System.currentTimeMillis()))
-                .expiration(new Date(System.currentTimeMillis() + ONE_DAY) )
+                .expiration(new Date(System.currentTimeMillis() + (ONE_HOUR * 8)) )
                 .signWith(getSigningKey())
                 .compact();
     }

@@ -1,7 +1,5 @@
 package com.backend.bank.security;
 
-import com.backend.bank.entity.Customer;
-import com.backend.bank.repository.CustomerRepository;
 import com.backend.bank.security.auth.JwtAuthenticationFilter;
 
 import lombok.RequiredArgsConstructor;
@@ -15,16 +13,13 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetailsService;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
-
-import java.util.List;
-import java.util.stream.Collectors;
+import org.springframework.security.web.context.HttpSessionSecurityContextRepository;
 
 @Configuration
 @EnableWebSecurity
@@ -51,6 +46,34 @@ public class SecurityConfig {
                         .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                         .maximumSessions(1)
                         .maxSessionsPreventsLogin(true)
+                )
+                .formLogin(loginConfigurer -> loginConfigurer
+                        .permitAll()
+                        .loginPage("/login")
+                        .loginProcessingUrl("/auth/login")
+                        .failureUrl("/auth/login")
+                        .successForwardUrl("/home")
+                        .usernameParameter("username")
+                        .passwordParameter("password")
+                        .successHandler()
+                        .authenticationDetailsSource()
+                        .securityContextRepository(new HttpSessionSecurityContextRepository())
+                )
+                .logout(logoutConfigurer -> logoutConfigurer
+                        .permitAll()
+                        .logoutSuccessUrl("/login")
+                        .logoutUrl("/auth/logout")
+                        .addLogoutHandler(null)
+                        .logoutSuccessHandler(
+                                ((request, response, authentication) -> {
+                                    request.logout();
+                                    response.sendRedirect("/login");
+                                    authentication.setAuthenticated(false);
+                                    SecurityContextHolder.clearContext();
+                                })
+                        )
+                        .deleteCookies("JSESSIONID")
+                        .clearAuthentication(true)
                 )
                 .build();
     }

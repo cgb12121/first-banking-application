@@ -19,6 +19,7 @@ import org.springframework.web.bind.annotation.*;
 import java.time.Instant;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 @Log4j2
@@ -33,7 +34,7 @@ public class LoginController {
     @PostMapping("/login")
     public CompletableFuture<ResponseEntity<LoginResponse>> login(
             @RequestBody @Valid LoginRequest loginRequest,
-            BindingResult bindingResult) {
+            BindingResult bindingResult)  {
 
         if (bindingResult.hasErrors()) {
             List<String> errors = bindingResult.getAllErrors()
@@ -43,11 +44,38 @@ public class LoginController {
 
             errors.addFirst(Instant.now().toString());
 
-            LoginResponse errorResponse = new LoginResponse(errors, null, null);
+            LoginResponse errorResponse = new LoginResponse(errors);
             return CompletableFuture.completedFuture(ResponseEntity.badRequest().body(errorResponse));
         }
 
-        return this.loginService.login(loginRequest)
-                .thenApply(ResponseEntity::ok);
+        return loginService.login(loginRequest)
+                .thenApply(ResponseEntity::ok)
+                .orTimeout(0, TimeUnit.SECONDS);
+    }
+
+    @PostMapping("/login-v2")
+    public CompletableFuture<ResponseEntity<LoginResponse>> loginV2(
+            @RequestBody @Valid LoginRequest loginRequest,
+            BindingResult bindingResult) {
+
+        return CompletableFuture.supplyAsync(() -> {
+
+            if (bindingResult.hasErrors()) {
+                List<String> errors = bindingResult.getAllErrors()
+                        .stream()
+                        .map(ObjectError::getDefaultMessage)
+                        .collect(Collectors.toList());
+
+                errors.addFirst(Instant.now().toString());
+
+                LoginResponse errorResponse = new LoginResponse(errors, null, null);
+                return ResponseEntity.badRequest().body(errorResponse);
+            }
+
+            return loginService.login(loginRequest)
+                    .thenApply(ResponseEntity::ok)
+                    .orTimeout(10, TimeUnit.SECONDS)
+                    .join();
+        });
     }
 }

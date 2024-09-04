@@ -19,6 +19,8 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -42,6 +44,8 @@ public class LoginServiceImpl implements LoginService {
     private final RequestValidator<LoginRequest> loginRequestRequestValidator;
 
     private final AuthenticationManager authenticationManager;
+
+    private final UserDetailsService userDetailsService;
 
     @Override
     @Async(value = "userTaskExecutor")
@@ -71,19 +75,10 @@ public class LoginServiceImpl implements LoginService {
             throw new AccountBannedException("You are banned from using our services!");
         }
 
-        UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(email, password);
-        authenticationManager.authenticate(authentication);
-
-        if (!authentication.isAuthenticated()){
-            return CompletableFuture.completedFuture(new LoginResponse(Collections.singletonList("Wrong username or password!")));
-        }
-
-        Authentication userAuthentication = authenticationManager.authenticate(authentication);
-        SecurityContextHolder.getContext().setAuthentication(authentication);
-        authentication.setAuthenticated(true);
-
-        SecurityContext context = SecurityContextHolder.getContext();
-        context.setAuthentication(userAuthentication);
+        UserDetails userDetails = userDetailsService.loadUserByUsername(email);
+        UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(email, password, userDetails.getAuthorities());
+        Authentication authResult = authenticationManager.authenticate(authentication);
+        SecurityContextHolder.getContext().setAuthentication(authResult);
 
         String token = jwtProvider.generateToken(customer);
         Map<String, Object> claims = new HashMap<>();

@@ -18,11 +18,25 @@ import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExcep
 import java.time.Instant;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.TimeoutException;
 
 @Log4j2
 @ControllerAdvice
 @RestControllerAdvice
 public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
+
+    @ResponseStatus(HttpStatus.REQUEST_TIMEOUT)
+    @ExceptionHandler(TimeoutException.class)
+    public ResponseEntity<Map<String, Object>> handleTimeoutException(
+            TimeoutException e,
+            HttpServletRequest request,
+            WebRequest webRequest
+    ) {
+        Map<String, Object> errorDetails = buildErrorDetails(request, e, HttpStatus.REQUEST_TIMEOUT);
+        log.error("Timeout Exception: {}, {}, {}, {} ",
+                webRequest.getHeaderNames(), webRequest.getParameterMap(), errorDetails, e);
+        return buildErrorResponse(errorDetails, HttpStatus.REQUEST_TIMEOUT);
+    }
 
     @ResponseStatus(HttpStatus.CONFLICT)
     @ExceptionHandler(AccountAlreadyExistsException.class)
