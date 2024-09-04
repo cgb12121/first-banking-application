@@ -2,6 +2,7 @@ package com.backend.bank.api.advice;
 
 import com.backend.bank.exception.*;
 
+import io.jsonwebtoken.MalformedJwtException;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.log4j.Log4j2;
 
@@ -36,6 +37,32 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
         log.error("Timeout Exception: {}, {}, {}, {} ",
                 webRequest.getHeaderNames(), webRequest.getParameterMap(), errorDetails, e);
         return buildErrorResponse(errorDetails, HttpStatus.REQUEST_TIMEOUT);
+    }
+
+    @ResponseStatus(HttpStatus.FORBIDDEN)
+    @ExceptionHandler(MalformedJwtException.class)
+    public ResponseEntity<Map<String, Object>> handleMalformedJwtException(
+            MalformedJwtException e,
+            HttpServletRequest request,
+            WebRequest webRequest
+    ) {
+        Map<String, Object> errorDetails = buildErrorDetails(request, e, HttpStatus.FORBIDDEN);
+        log.error("Malformed jwt token: {}, {}, {}, {} ",
+                webRequest.getHeaderNames(), webRequest.getParameterMap(), errorDetails, e);
+        return buildErrorResponse(errorDetails, HttpStatus.FORBIDDEN);
+    }
+
+    @ResponseStatus(HttpStatus.FORBIDDEN)
+    @ExceptionHandler(InvalidSecretTokenException.class)
+    public ResponseEntity<Map<String, Object>> handleInvalidSecretToken(
+            InvalidSecretTokenException e,
+            HttpServletRequest request,
+            WebRequest webRequest
+    ) {
+        Map<String, Object> errorDetails = buildErrorDetails(request, e, HttpStatus.FORBIDDEN);
+        log.error("Token Exception: {}, {}, {}, {} ",
+                webRequest.getHeaderNames(), webRequest.getParameterMap(), errorDetails, e);
+        return buildErrorResponse(errorDetails, HttpStatus.FORBIDDEN);
     }
 
     @ResponseStatus(HttpStatus.CONFLICT)

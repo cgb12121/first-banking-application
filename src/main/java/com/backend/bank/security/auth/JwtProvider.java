@@ -1,5 +1,7 @@
 package com.backend.bank.security.auth;
 
+import com.backend.bank.exception.InvalidSecretTokenException;
+import com.backend.bank.exception.TokenExpiredException;
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
@@ -77,11 +79,18 @@ public class JwtProvider {
     }
 
     public Claims extractAllClaims(String token) {
-        return Jwts.parser()
-                .verifyWith(getSigningKey())
-                .build()
-                .parseSignedClaims(token)
-                .getPayload();
+        try {
+            return Jwts.parser()
+                    .verifyWith(getSigningKey())
+                    .build()
+                    .parseSignedClaims(token)
+                    .getPayload();
+        } catch (ExpiredJwtException e) {
+            throw new TokenExpiredException("Token Expired: " + e.getMessage());
+        } catch (JwtException e) {
+            log.error("Invalid secret key or tampered token: {}", e.getMessage(), e);
+            throw new InvalidSecretTokenException("Invalid Token");
+        }
     }
 
     public String extractUserName(String token) {
@@ -107,9 +116,12 @@ public class JwtProvider {
                     .build()
                     .parseSignedClaims(token);
             return true;
-        } catch (JwtException | IllegalArgumentException e) {
-            log.error("Invalid secret key or tampered token: {}", e.getMessage(), e);
+        } catch (JwtException e) {
+            log.error("Invalid signature: {}", e.getMessage(), e);
             return false;
+        } catch (Exception e) {
+            log.error("Unexpected error: {}", e.getMessage(), e);
+            throw e;
         }
     }
 }

@@ -13,13 +13,18 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
-import org.springframework.security.web.context.HttpSessionSecurityContextRepository;
+import org.springframework.security.web.csrf.HttpSessionCsrfTokenRepository;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.CorsConfigurationSource;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+
+import java.util.Arrays;
+import java.util.List;
 
 @Configuration
 @EnableWebSecurity
@@ -34,7 +39,9 @@ public class SecurityConfig {
     public SecurityFilterChain securityFilterChain(HttpSecurity httpSecurity) throws Exception {
         return httpSecurity
                 .csrf(AbstractHttpConfigurer::disable)
-                .cors(AbstractHttpConfigurer::disable)
+                .cors(cors -> cors
+                        .configurationSource(corsConfigurationSource())
+                )
                 .authorizeHttpRequests (request -> request
                         .requestMatchers("/auth/**").permitAll()
                         .requestMatchers("account/update-info").hasRole("STAFF")
@@ -46,34 +53,6 @@ public class SecurityConfig {
                         .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                         .maximumSessions(1)
                         .maxSessionsPreventsLogin(true)
-                )
-                .formLogin(loginConfigurer -> loginConfigurer
-                        .permitAll()
-                        .loginPage("/login")
-                        .loginProcessingUrl("/auth/login")
-                        .failureUrl("/auth/login")
-                        .successForwardUrl("/home")
-                        .usernameParameter("username")
-                        .passwordParameter("password")
-                        .successHandler()
-                        .authenticationDetailsSource()
-                        .securityContextRepository(new HttpSessionSecurityContextRepository())
-                )
-                .logout(logoutConfigurer -> logoutConfigurer
-                        .permitAll()
-                        .logoutSuccessUrl("/login")
-                        .logoutUrl("/auth/logout")
-                        .addLogoutHandler(null)
-                        .logoutSuccessHandler(
-                                ((request, response, authentication) -> {
-                                    request.logout();
-                                    response.sendRedirect("/login");
-                                    authentication.setAuthenticated(false);
-                                    SecurityContextHolder.clearContext();
-                                })
-                        )
-                        .deleteCookies("JSESSIONID")
-                        .clearAuthentication(true)
                 )
                 .build();
     }
@@ -94,5 +73,15 @@ public class SecurityConfig {
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
+    }
+
+    @Bean
+    CorsConfigurationSource corsConfigurationSource() {
+        CorsConfiguration configuration = new CorsConfiguration();
+        configuration.setAllowedOrigins(List.of("https://example.com"));
+        configuration.setAllowedMethods(Arrays.asList("GET","POST"));
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        source.registerCorsConfiguration("/**", configuration);
+        return source;
     }
 }
