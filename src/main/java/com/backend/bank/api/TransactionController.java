@@ -2,7 +2,6 @@ package com.backend.bank.api;
 
 import com.backend.bank.dto.request.TransactionRequest;
 import com.backend.bank.dto.response.TransactionResponse;
-import com.backend.bank.security.ApiRateLimiter;
 import com.backend.bank.security.SecurityWall;
 import com.backend.bank.service.intf.TransactionService;
 
@@ -31,8 +30,6 @@ public class TransactionController {
 
     @SuppressWarnings("unused")
     SecurityWall securityWall;
-
-    ApiRateLimiter apiRateLimiter;
 
     @PostMapping("/deposit")
     @PreAuthorize("hasAnyRole('ROLE_ADMIN', 'ROLE_MANAGER', 'ROLE_STAFF')")
