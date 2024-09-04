@@ -12,7 +12,6 @@ import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -74,11 +73,6 @@ public class TransactionController {
             @RequestParam(value = "0") int page,
             @RequestParam(value = "10") int size
     ) {
-        String key = String.valueOf(accountId);
-        if (apiRateLimiter.isRateLimited(key)) {
-            return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS).build();
-        }
-
         CompletableFuture<List<TransactionResponse>> response =
                 this.transactionService.getTransactionHistory(accountId, page, size);
         return ResponseEntity.ok(response);
