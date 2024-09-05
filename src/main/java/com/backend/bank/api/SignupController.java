@@ -10,7 +10,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 
 import lombok.extern.log4j.Log4j2;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.ObjectError;
@@ -51,11 +50,7 @@ public class SignupController {
     @PostMapping("/verify/{verificationCode}")
     public CompletableFuture<ResponseEntity<String>> verifyAccount(@PathVariable String verificationCode) {
         return this.signupService.verifyUser(verificationCode)
-                .thenApply(ResponseEntity::ok)
-                .exceptionally(ex -> {
-                    log.error(ex);
-                    return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(ex.getMessage());
-                });
+                .thenApply(ResponseEntity::ok);
     }
 
     @PostMapping("/resend-verify-email")

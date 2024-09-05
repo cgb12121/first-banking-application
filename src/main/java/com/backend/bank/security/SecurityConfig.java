@@ -1,27 +1,39 @@
 package com.backend.bank.security;
 
+import com.backend.bank.dto.request.LoginRequest;
 import com.backend.bank.security.auth.JwtAuthenticationFilter;
 
+import jakarta.servlet.FilterChain;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.*;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
+import org.springframework.security.config.annotation.ObjectPostProcessor;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
+import org.springframework.security.web.authentication.logout.SecurityContextLogoutHandler;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
+import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
 
@@ -54,6 +66,59 @@ public class SecurityConfig {
                         .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                         .maximumSessions(1)
                         .maxSessionsPreventsLogin(true)
+                )
+                .formLogin(login -> login
+                        .permitAll()
+                        .usernameParameter("username")
+                        .passwordParameter("password")
+                        .authenticationDetailsSource(new WebAuthenticationDetailsSource())
+                        .withObjectPostProcessor(new ObjectPostProcessor<LoginRequest>() {
+                            @Override
+                            public <T extends LoginRequest> T postProcess(T object) {
+                                return object;
+                            }
+                        })
+                        .successHandler(new AuthenticationSuccessHandler() {
+                            @Override
+                            public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response, FilterChain chain, Authentication authentication) throws IOException, ServletException {
+                                AuthenticationSuccessHandler.super.onAuthenticationSuccess(request, response, chain, authentication);
+                            }
+
+                            @Override
+                            public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response, Authentication authentication) {
+                                Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+                                if (!auth.isAuthenticated()) {
+                                    SecurityContextHolder.getContext().setAuthentication(auth);
+                                }
+                            }
+                        })
+                        .loginPage("/login")
+                        .loginProcessingUrl("auth/login")
+                        .successForwardUrl("/test/hi")
+                )
+                .logout(logoutConfigurer -> logoutConfigurer
+                        .permitAll()
+                        .logoutUrl("/auth/logout")
+                        .deleteCookies("Authorization", "JSESSIONID", "AUTHORIZATION")
+                        .invalidateHttpSession(true)
+                        .clearAuthentication(true)
+                        .logoutSuccessUrl("/test/hi")
+                        .addLogoutHandler((request, response, authentication) -> {
+                            request.getSession().invalidate();
+                            if (authentication != null) {
+                                request.getSession().invalidate();
+                                SecurityContextHolder.clearContext();
+                                new SecurityContextLogoutHandler().logout(request, response, authentication);
+                            }
+                        })
+                        .logoutSuccessHandler((request, response, authentication) -> {
+                            request.getSession().invalidate();
+                            if (authentication != null) {
+                                request.getSession().invalidate();
+                                SecurityContextHolder.clearContext();
+                                new SecurityContextLogoutHandler().logout(request, response, authentication);
+                            }
+                        })
                 )
                 .build();
     }

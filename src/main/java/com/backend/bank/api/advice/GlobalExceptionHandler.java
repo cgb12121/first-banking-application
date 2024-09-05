@@ -53,6 +53,19 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
     }
 
     @ResponseStatus(HttpStatus.FORBIDDEN)
+    @ExceptionHandler(TokenExpiredException.class)
+    public ResponseEntity<Map<String, Object>> handleTokenExpiredException(
+            TokenExpiredException e,
+            HttpServletRequest request,
+            WebRequest webRequest
+    ) {
+        Map<String, Object> errorDetails = buildErrorDetails(request, e, HttpStatus.FORBIDDEN);
+        log.error("Token Expired Exception: {}, {}, {}, {} ",
+                webRequest.getHeaderNames(), webRequest.getParameterMap(), errorDetails, e);
+        return buildErrorResponse(errorDetails, HttpStatus.FORBIDDEN);
+    }
+
+    @ResponseStatus(HttpStatus.FORBIDDEN)
     @ExceptionHandler(InvalidSecretTokenException.class)
     public ResponseEntity<Map<String, Object>> handleInvalidSecretToken(
             InvalidSecretTokenException e,
@@ -234,17 +247,30 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
         return buildErrorResponse(errorDetails, HttpStatus.UNAUTHORIZED);
     }
 
-    @ResponseStatus(HttpStatus.UNAUTHORIZED)
+    @ResponseStatus(HttpStatus.NOT_FOUND)
     @ExceptionHandler(InvalidVerifyLinkException.class)
     public ResponseEntity<Map<String, Object>> handleInvalidVerifyLinkException(
             InvalidVerifyLinkException e,
             HttpServletRequest request,
             WebRequest webRequest
     ) {
-        Map<String, Object> errorDetails = buildErrorDetails(request, e, HttpStatus.UNAUTHORIZED);
+        Map<String, Object> errorDetails = buildErrorDetails(request, e, HttpStatus.NOT_FOUND);
         log.error("InvalidVerifyLinkException occurred: {}, {}, {} ",
                 webRequest.getHeaderNames(), webRequest.getParameterMap(), errorDetails, e);
-        return buildErrorResponse(errorDetails, HttpStatus.UNAUTHORIZED);
+        return buildErrorResponse(errorDetails, HttpStatus.NOT_FOUND);
+    }
+
+    @ResponseStatus(HttpStatus.FORBIDDEN)
+    @ExceptionHandler(UnauthorizedAccessException.class)
+    public ResponseEntity<Map<String, Object>> handleUnauthorizedAccessException(
+            UnauthorizedAccessException e,
+            HttpServletRequest request,
+            WebRequest webRequest
+    ) {
+        Map<String, Object> errorDetails = buildErrorDetails(request, e, HttpStatus.FORBIDDEN);
+        log.error("UnauthorizedAccessException occurred: {}, {}, {} ",
+                webRequest.getHeaderNames(), webRequest.getParameterMap(), errorDetails, e);
+        return buildErrorResponse(errorDetails, HttpStatus.FORBIDDEN);
     }
 
     @ResponseStatus(HttpStatus.NOT_FOUND)
@@ -258,19 +284,6 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
         log.error("LoanNotFoundException occurred: {}, {}, {} ",
                 webRequest.getHeaderNames(), webRequest.getParameterMap(), errorDetails, e);
         return buildErrorResponse(errorDetails, HttpStatus.NOT_FOUND);
-    }
-
-    @ResponseStatus(HttpStatus.UNAUTHORIZED)
-    @ExceptionHandler(TokenExpiredException.class)
-    public ResponseEntity<Map<String, Object>> handleTokenExpiredException(
-            TokenExpiredException e,
-            HttpServletRequest request,
-            WebRequest webRequest
-    ) {
-        Map<String, Object> errorDetails = buildErrorDetails(request, e, HttpStatus.UNAUTHORIZED);
-        log.error("TokenExpiredException occurred: {}, {}, {} ",
-                webRequest.getHeaderNames(), webRequest.getParameterMap(), errorDetails, e);
-        return buildErrorResponse(errorDetails, HttpStatus.UNAUTHORIZED);
     }
 
     @ResponseStatus(HttpStatus.BAD_REQUEST)

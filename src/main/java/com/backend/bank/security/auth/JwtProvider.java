@@ -9,6 +9,7 @@ import io.jsonwebtoken.security.Keys;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpHeaders;
 import org.springframework.security.core.userdetails.UserDetails;
 
 import javax.crypto.SecretKey;
@@ -30,7 +31,6 @@ public class JwtProvider {
     public String generateToken(UserDetails userDetails) {
         Map<String, Object> headers = new HashMap<>();
         headers.put("type", "token");
-        getInfo(userDetails, "access-token");
         return Jwts.builder()
                 .header()
                 .add(headers)
@@ -47,7 +47,6 @@ public class JwtProvider {
     public String generateRefreshToken(Map<String, Object> extraClaims, UserDetails userDetails) {
         Map<String, Object> headers = new HashMap<>();
         headers.put("type", "refresh-token");
-        getInfo(userDetails, "refresh-token");
         return Jwts.builder()
                 .header()
                 .add(headers)
@@ -59,13 +58,6 @@ public class JwtProvider {
                 .expiration(new Date(System.currentTimeMillis() + (ONE_HOUR * 8)) )
                 .signWith(getSigningKey())
                 .compact();
-    }
-
-    private static void getInfo(UserDetails userDetails, String tokenType) {
-        log.info("------------Generate {}--------------", tokenType);
-        log.info("userDetails: {}", userDetails);
-        log.info("username: {}", userDetails.getUsername());
-        log.info("authorities: {}", userDetails.getAuthorities());
     }
 
     public <T> T extractClaims(String token, Function<Claims, T> claimsResolvers) {

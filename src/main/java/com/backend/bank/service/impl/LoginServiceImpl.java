@@ -11,13 +11,12 @@ import com.backend.bank.service.intf.LoginService;
 import com.backend.bank.utils.RequestValidator;
 
 import lombok.RequiredArgsConstructor;
-
 import lombok.extern.log4j.Log4j2;
+
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -25,8 +24,6 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 
@@ -75,20 +72,13 @@ public class LoginServiceImpl implements LoginService {
             throw new AccountBannedException("You are banned from using our services!");
         }
 
-        UserDetails userDetails = userDetailsService.loadUserByUsername(email);
-        UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(email, password, userDetails.getAuthorities());
-        Authentication authResult = authenticationManager.authenticate(authentication);
-        SecurityContextHolder.getContext().setAuthentication(authResult);
+//        UserDetails userDetails = userDetailsService.loadUserByUsername(email);
+//        UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(email, password, userDetails.getAuthorities());
+//        Authentication authResult = authenticationManager.authenticate(authentication);
+//        SecurityContextHolder.getContext().setAuthentication(authResult);
 
         String token = jwtProvider.generateToken(customer);
-        Map<String, Object> claims = new HashMap<>();
-        claims.put("identifier", email);
-        claims.put("authorities", customer.getAuthorities());
-        claims.put("accountStatus", AccountStatus.ACTIVE);
-        String refreshToken = jwtProvider.generateRefreshToken(claims,customer);
-
-        log.info("Login successful");
-        log.info(authentication);
+        String refreshToken = jwtProvider.generateRefreshToken(null,customer);
 
         return CompletableFuture.completedFuture(new LoginResponse(
                 Collections.singletonList("Login successful"), token, refreshToken)
