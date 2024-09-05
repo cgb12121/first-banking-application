@@ -14,12 +14,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 
 import org.springframework.scheduling.annotation.Async;
-import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -39,10 +33,6 @@ public class LoginServiceImpl implements LoginService {
     private final JwtProvider jwtProvider;
 
     private final RequestValidator<LoginRequest> loginRequestRequestValidator;
-
-    private final AuthenticationManager authenticationManager;
-
-    private final UserDetailsService userDetailsService;
 
     @Override
     @Async(value = "userTaskExecutor")
@@ -71,11 +61,6 @@ public class LoginServiceImpl implements LoginService {
         if (isAccountBanned) {
             throw new AccountBannedException("You are banned from using our services!");
         }
-
-//        UserDetails userDetails = userDetailsService.loadUserByUsername(email);
-//        UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(email, password, userDetails.getAuthorities());
-//        Authentication authResult = authenticationManager.authenticate(authentication);
-//        SecurityContextHolder.getContext().setAuthentication(authResult);
 
         String token = jwtProvider.generateToken(customer);
         String refreshToken = jwtProvider.generateRefreshToken(null,customer);

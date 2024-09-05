@@ -54,6 +54,7 @@ public class SecurityConfig {
                         .configurationSource(corsConfigurationSource())
                 )
                 .authorizeHttpRequests (request -> request
+                        .requestMatchers("/login.html").permitAll()
                         .requestMatchers("/test/**").permitAll()
                         .requestMatchers("/swagger-ui/**", "/swagger-resources/*", "/v3/api-docs/**").permitAll()
                         .requestMatchers("/auth/**").permitAll()
@@ -92,7 +93,7 @@ public class SecurityConfig {
                                 }
                             }
                         })
-                        .loginPage("/login")
+                        .loginPage("/login.html")
                         .loginProcessingUrl("auth/login")
                         .successForwardUrl("/test/hi")
                 )

@@ -1,9 +1,12 @@
 package com.backend.bank.api;
 
 import com.backend.bank.dto.request.LoginRequest;
+import com.backend.bank.dto.request.SignupRequest;
 import com.backend.bank.dto.response.LoginResponse;
+import com.backend.bank.dto.response.SignupResponse;
 import com.backend.bank.service.intf.LoginService;
 
+import com.backend.bank.service.intf.SignupService;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -34,9 +37,41 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 @RequestMapping("/auth")
-public class LoginLogoutController {
+public class AuthController {
 
     LoginService loginService;
+
+    SignupService signupService;
+
+    @PostMapping("/signup")
+    public CompletableFuture<ResponseEntity<SignupResponse>> signup(
+            @RequestBody @Valid SignupRequest signupRequest,
+            BindingResult bindingResult) {
+
+        if (bindingResult.hasErrors()) {
+            List<String> errors = bindingResult.getAllErrors()
+                    .stream()
+                    .map(ObjectError::getDefaultMessage)
+                    .collect(Collectors.toList());
+
+            SignupResponse errorResponse = new SignupResponse(errors);
+            return CompletableFuture.completedFuture(ResponseEntity.badRequest().body(errorResponse));
+        }
+
+        return this.signupService.signup(signupRequest)
+                .thenApply(ResponseEntity::ok);
+    }
+
+    @PostMapping("/verify/{verificationCode}")
+    public CompletableFuture<ResponseEntity<String>> verifyAccount(@PathVariable String verificationCode) {
+        return this.signupService.verifyUser(verificationCode)
+                .thenApply(ResponseEntity::ok);
+    }
+
+    @PostMapping("/resend-verify-email")
+    public void resendVerifyEmail(@RequestBody SignupRequest signupRequest) {
+        this.signupService.resendVerificationEmail(signupRequest);
+    }
 
     @PostMapping("/login")
     public CompletableFuture<ResponseEntity<LoginResponse>> login(
