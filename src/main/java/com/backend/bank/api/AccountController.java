@@ -50,7 +50,7 @@ public class AccountController {
             return CompletableFuture.completedFuture(ResponseEntity.badRequest().body(response));
         }
 
-        return this.accountService.upgradeAccount(request)
+        return accountService.upgradeAccount(request)
                 .thenApply(upgradeAccountResponse -> ResponseEntity.ok().body(createSuccessResponse(upgradeAccountResponse)));
     }
 
@@ -73,7 +73,7 @@ public class AccountController {
             return CompletableFuture.completedFuture(ResponseEntity.badRequest().body(response));
         }
 
-        return this.accountService.updateCustomerInfo(request)
+        return accountService.updateCustomerInfo(request)
                 .thenApply(updateCustomerInfoResponse -> ResponseEntity.ok(createSuccessResponse(updateCustomerInfoResponse)));
     }
 

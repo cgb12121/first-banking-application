@@ -22,16 +22,16 @@ public class PhoneController {
 
     @PostMapping("/change")
     public ChangePhoneNumberResponse changePhoneNumber(@RequestBody @Valid ChangePhoneNumberRequest request) {
-        return this.customerService.changePhoneNumber(request);
+        return customerService.changePhoneNumber(request);
     }
 
     @GetMapping("/confirm-phone-change/{token}")
     public String confirmPhoneNumberChange(@PathVariable String token) {
-        return this.customerService.confirmPhoneNumberChangeByLinkOnEmail(token);
+        return customerService.confirmPhoneNumberChangeByLinkOnEmail(token);
     }
 
     @PostMapping("/confirm-phone-change-otp")
     public String confirmPhoneNumberChangeByOTP(@RequestParam String otp, @RequestParam String newPhoneNumber) {
-        return this.customerService.confirmPhoneNumberChangeByOTP(otp, newPhoneNumber);
+        return customerService.confirmPhoneNumberChangeByOTP(otp, newPhoneNumber);
     }
 }

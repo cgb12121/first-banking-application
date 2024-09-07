@@ -22,11 +22,11 @@ public class EmailController {
 
     @PostMapping("/change")
     public ChangeEmailResponse changeEmail(@RequestBody @Valid ChangeEmailRequest request) {
-        return this.customerService.changeEmail(request);
+        return customerService.changeEmail(request);
     }
 
     @GetMapping("/confirm-email-change/{token}")
     public String confirmEmailChange(@PathVariable String token) {
-        return this.customerService.confirmEmailChange(token);
+        return customerService.confirmEmailChange(token);
     }
 }

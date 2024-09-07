@@ -36,8 +36,7 @@ public class TransactionController {
             @PathVariable(name = "accountId") Long accountId,
             @RequestBody @Valid TransactionRequest transactionRequest
     ) {
-        CompletableFuture<TransactionResponse> response =
-                this.transactionService.deposit(accountId, transactionRequest);
+        CompletableFuture<TransactionResponse> response = transactionService.deposit(accountId, transactionRequest);
         return ResponseEntity.ok(response);
     }
 
@@ -47,8 +46,7 @@ public class TransactionController {
             @PathVariable(name = "accountId") Long accountId,
             @RequestBody @Valid TransactionRequest transactionRequest
     ) {
-        CompletableFuture<TransactionResponse> response =
-                this.transactionService.withdraw(accountId, transactionRequest);
+        CompletableFuture<TransactionResponse> response = transactionService.withdraw(accountId, transactionRequest);
         return ResponseEntity.ok(response);
     }
 
@@ -58,8 +56,7 @@ public class TransactionController {
             @PathVariable(name = "accountId") @NotNull Long accountId,
             @RequestBody @Valid TransactionRequest transactionRequest
     ) {
-        CompletableFuture<TransactionResponse> response =
-                this.transactionService.transfer(accountId, transactionRequest);
+        CompletableFuture<TransactionResponse> response = transactionService.transfer(accountId, transactionRequest);
         return ResponseEntity.ok(response);
     }
 
@@ -73,8 +70,7 @@ public class TransactionController {
             @RequestParam(value = "0") int page,
             @RequestParam(value = "10") int size
     ) {
-        CompletableFuture<List<TransactionResponse>> response =
-                this.transactionService.getTransactionHistory(accountId, page, size);
+        CompletableFuture<List<TransactionResponse>> response = transactionService.getTransactionHistory(accountId, page, size);
         return ResponseEntity.ok(response);
     }
 
@@ -88,8 +84,7 @@ public class TransactionController {
             @RequestParam(value = "0") int page,
             @RequestParam(value = "10") int size
     ) {
-        CompletableFuture<List<TransactionResponse>> response =
-                this.transactionService.getDepositTransactionHistory(accountId, page, size);
+        CompletableFuture<List<TransactionResponse>> response = transactionService.getDepositTransactionHistory(accountId, page, size);
         return ResponseEntity.ok(response);
     }
 
@@ -103,8 +98,7 @@ public class TransactionController {
             @RequestParam(value = "0") int page,
             @RequestParam(value = "10") int size
     ) {
-        CompletableFuture<List<TransactionResponse>> response =
-                this.transactionService.getWithdrawTransactionHistory(accountId, page, size);
+        CompletableFuture<List<TransactionResponse>> response = transactionService.getWithdrawTransactionHistory(accountId, page, size);
         return ResponseEntity.ok(response);
     }
 
@@ -118,8 +112,7 @@ public class TransactionController {
             @RequestParam(value = "0") int page,
             @RequestParam(value = "10") int size
     ) {
-        CompletableFuture<List<TransactionResponse>> response =
-                this.transactionService.getSentTransactionHistory(accountId, page, size);
+        CompletableFuture<List<TransactionResponse>> response = transactionService.getSentTransactionHistory(accountId, page, size);
         return ResponseEntity.ok(response);
     }
 
@@ -133,8 +126,7 @@ public class TransactionController {
             @RequestParam(value = "0") int page,
             @RequestParam(value = "10") int size
     ) {
-        CompletableFuture<List<TransactionResponse>> response =
-                this.transactionService.getReceivedTransactionHistory(accountId, page, size);
+        CompletableFuture<List<TransactionResponse>> response = transactionService.getReceivedTransactionHistory(accountId, page, size);
         return ResponseEntity.ok(response);
     }
 
