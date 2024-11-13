@@ -10,5 +10,6 @@ import java.util.Optional;
 @Repository
 public interface VerifyRepository extends JpaRepository<Verify, Long> {
      Optional<Verify> findByVerifyLink(String verifyLink);
+     
      Optional<Verify> findCustomerById(Long id);
 }

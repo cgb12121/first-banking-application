@@ -18,6 +18,8 @@ public class SwaggerOpenAPI {
         return new OpenAPI()
                 .info(new Info()
                         .title("MY OPEN API")
+                        .version("1.0.0")
+                        .description("API for bank transactions")
                 );
     }
 }

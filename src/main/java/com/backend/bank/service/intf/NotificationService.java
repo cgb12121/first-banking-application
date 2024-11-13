@@ -9,4 +9,10 @@ public interface NotificationService {
 
     @Async(value = "emailTaskExecutor")
     void sendEmailToCustomer(EmailDetails emailDetails);
+
+    void sendTransactionNotification(Transaction transaction);
+
+    void sendSecurityAlert(SecurityEvent event);
+    
+    void sendLowBalanceAlert(Account account);
 }

@@ -41,6 +41,8 @@ import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
 
+import com.google.common.util.concurrent.RateLimiter;
+
 @Configuration
 @EnableWebSecurity
 @RequiredArgsConstructor
@@ -51,81 +53,50 @@ public class SecurityConfig {
     private final UserDetailsService userDetailsService;
 
     @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity httpSecurity) throws Exception {
-        return httpSecurity
-                .csrf(AbstractHttpConfigurer::disable)
-                .cors(cors -> cors
-                        .configurationSource(corsConfigurationSource())
-                )
-                .authorizeHttpRequests (request -> request
-                        .requestMatchers("/login.html").permitAll()
-                        .requestMatchers("/test/**").permitAll()
-                        .requestMatchers("/swagger-ui/**", "/swagger-resources/*", "/v3/api-docs/**").permitAll()
-                        .requestMatchers("/auth/**").permitAll()
-                        .requestMatchers("account/**").hasRole("STAFF")
-                        .anyRequest().authenticated()
-                )
-                .authenticationProvider(authenticationProvider())
-                .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
-                .sessionManagement(session -> session
-                        .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
-                        .maximumSessions(1)
-                        .maxSessionsPreventsLogin(true)
-                )
-                .formLogin(login -> login
-                        .permitAll()
-                        .usernameParameter("username")
-                        .passwordParameter("password")
-                        .authenticationDetailsSource(new WebAuthenticationDetailsSource())
-                        .withObjectPostProcessor(new ObjectPostProcessor<LoginRequest>() {
-                            @Override
-                            public <T extends LoginRequest> T postProcess(T object) {
-                                return object;
-                            }
-                        })
-                        .successHandler(new AuthenticationSuccessHandler() {
-                            @Override
-                            public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response, FilterChain chain, Authentication authentication) throws IOException, ServletException {
-                                AuthenticationSuccessHandler.super.onAuthenticationSuccess(request, response, chain, authentication);
-                            }
-
-                            @Override
-                            public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response, Authentication authentication) {
-                                Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-                                if (!auth.isAuthenticated()) {
-                                    SecurityContextHolder.getContext().setAuthentication(auth);
-                                }
-                            }
-                        })
-                        .loginPage("/login.html")
-                        .loginProcessingUrl("auth/login")
-                        .successForwardUrl("/test/hi")
-                )
-                .logout(logoutConfigurer -> logoutConfigurer
-                        .permitAll()
-                        .logoutUrl("/auth/logout")
-                        .deleteCookies("Authorization", "JSESSIONID", "AUTHORIZATION")
-                        .invalidateHttpSession(true)
-                        .clearAuthentication(true)
-                        .logoutSuccessUrl("/test/hi")
-                        .addLogoutHandler((request, response, authentication) -> {
-                            request.getSession().invalidate();
-                            if (authentication != null) {
-                                request.getSession().invalidate();
-                                SecurityContextHolder.clearContext();
-                                new SecurityContextLogoutHandler().logout(request, response, authentication);
-                            }
-                        })
-                        .logoutSuccessHandler((request, response, authentication) -> {
-                            request.getSession().invalidate();
-                            if (authentication != null) {
-                                request.getSession().invalidate();
-                                SecurityContextHolder.clearContext();
-                                new SecurityContextLogoutHandler().logout(request, response, authentication);
-                            }
-                        })
-                )
-                .build();
+    public SecurityFilterChain securityFilterChain(HttpSecurity http) {
+        return http
+            .csrf(AbstractHttpConfigurer::disable)
+            .cors(cors -> cors.configurationSource(corsConfigurationSource()))
+            .headers(headers -> headers
+                .frameOptions().sameOrigin()
+                .xssProtection()
+                .contentSecurityPolicy("script-src 'self'")
+            )
+            .authorizeHttpRequests(request -> request
+                .requestMatchers("/login.html", "/test/**", "/auth/**").permitAll()
+                .requestMatchers("/swagger-ui/**", "/swagger-resources/*", "/v3/api-docs/**").permitAll()
+                .requestMatchers("/account/**").hasRole("STAFF")
+                .anyRequest().authenticated()
+            )
+            .authenticationProvider(authenticationProvider())
+            .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
+            .addFilterBefore(new RateLimitFilter(rateLimiter()), UsernamePasswordAuthenticationFilter.class)
+            .sessionManagement(session -> session
+                .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+                .maximumSessions(1)
+                .maxSessionsPreventsLogin(true)
+            )
+            .formLogin(login -> login
+                .permitAll()
+                .usernameParameter("email")
+                .passwordParameter("password")
+                .loginPage("/login.html")
+                .loginProcessingUrl("/auth/login")
+                .successForwardUrl("/test/hi")
+            )
+            .logout(logout -> logout
+                .permitAll()
+                .logoutUrl("/auth/logout")
+                .deleteCookies("Authorization", "JSESSIONID", "AUTHORIZATION")
+                .invalidateHttpSession(true)
+                .clearAuthentication(true)
+                .logoutSuccessUrl("/test/hi")
+                .logoutSuccessHandler((request, response, authentication) -> {
+                    SecurityContextHolder.clearContext();
+                    request.getSession().invalidate();
+                })
+            )
+            .build();
     }
 
     @Bean
@@ -147,39 +118,32 @@ public class SecurityConfig {
     }
 
     @Bean
-    CorsConfigurationSource corsConfigurationSource() {
+    public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
         configuration.setAllowedOrigins(List.of("https://localhost:4200"));
-        configuration.setAllowedMethods(Arrays.asList("GET","POST"));
+        configuration.setAllowedMethods(Arrays.asList(
+            HttpMethod.GET.name(),
+            HttpMethod.POST.name(),
+            HttpMethod.PUT.name(),
+            HttpMethod.PATCH.name(),
+            HttpMethod.DELETE.name()
+        ));
+        configuration.setAllowedHeaders(Arrays.asList(
+            HttpHeaders.AUTHORIZATION,
+            HttpHeaders.CONTENT_TYPE,
+            HttpHeaders.ACCEPT
+        ));
+        configuration.setAllowCredentials(true);
+        configuration.setMaxAge(3600L);
+        
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", configuration);
         return source;
     }
 
     @Bean
-    public FilterRegistrationBean<CorsFilter> corsFilter() {
-        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-        CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowCredentials(true);
-        configuration.addAllowedOrigin("https://localhost:4200");
-        configuration.setAllowedHeaders(List.of(
-                HttpHeaders.AUTHORIZATION,
-                HttpHeaders.CONTENT_TYPE,
-                HttpHeaders.ACCEPT
-        ));
-        configuration.setAllowedMethods(Arrays.asList(
-                HttpMethod.PUT.name(),
-                HttpMethod.PATCH.name(),
-                HttpMethod.GET.name(),
-                HttpMethod.DELETE.name(),
-                HttpMethod.POST.name()
-        ));
-        configuration.setMaxAge(3600L);
-        source.registerCorsConfiguration("/**", configuration);
-
-        FilterRegistrationBean<CorsFilter> bean = new FilterRegistrationBean<>(new CorsFilter(source));
-        bean.setOrder(0);
-        return bean;
+    public RateLimiter rateLimiter() {
+        return RateLimiter.create(100.0);
     }
 
 }
