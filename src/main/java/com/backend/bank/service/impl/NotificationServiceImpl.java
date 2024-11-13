@@ -1,6 +1,8 @@
 package com.backend.bank.service.impl;
 
 import com.backend.bank.dto.EmailDetails;
+import com.backend.bank.entity.Account;
+import com.backend.bank.entity.Transaction;
 import com.backend.bank.service.intf.NotificationService;
 
 import lombok.RequiredArgsConstructor;
@@ -35,6 +37,16 @@ public class NotificationServiceImpl implements NotificationService {
             logEmailSentError(emailDetails, e);
             throw new RuntimeException(e.getMessage());
         }
+    }
+
+    @Override
+    public void sendTransactionNotification(Transaction transaction) {
+
+    }
+
+    @Override
+    public void sendLowBalanceAlert(Account account) {
+
     }
 
     private void sendEmail(EmailDetails emailDetails) {

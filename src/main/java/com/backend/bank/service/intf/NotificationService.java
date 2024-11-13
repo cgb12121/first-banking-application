@@ -1,6 +1,8 @@
 package com.backend.bank.service.intf;
 
 import com.backend.bank.dto.EmailDetails;
+import com.backend.bank.entity.Account;
+import com.backend.bank.entity.Transaction;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
@@ -12,7 +14,5 @@ public interface NotificationService {
 
     void sendTransactionNotification(Transaction transaction);
 
-    void sendSecurityAlert(SecurityEvent event);
-    
     void sendLowBalanceAlert(Account account);
 }

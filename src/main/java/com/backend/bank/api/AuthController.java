@@ -170,11 +170,10 @@ public class AuthController {
 
         return loginService.login(loginRequest)
                 .thenApply(loginResponse -> {
-                    session.setAttribute("userId", loginResponse.getUserId());
-                    session.setAttribute("username", loginResponse.getUsername());
+                    session.setAttribute("username", loginRequest.email());
                     session.setMaxInactiveInterval(30 * 60);
 
-                    ResponseCookie cookie = ResponseCookie.from("authToken", loginResponse.getToken())
+                    ResponseCookie cookie = ResponseCookie.from("authToken", loginResponse.token())
                             .httpOnly(true)
                             .secure(true)
                             .path("/")
